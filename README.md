@@ -40,6 +40,7 @@ with a lowercase `x`, even when the first word in a sentence.
 | Message Definitions Registry  | [v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/message/spec.md) | [WIP](message/spec.md)                         |
 | Schema Registry               | [v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/schema/spec.md) | [WIP](schema/spec.md)                         |
 | OpenUSD Artifact Registry     | n/a | [WIP](models/openusd/spec.md)                         |
+| Asset Administration Shell Registry | n/a | [WIP](models/aas/spec.md)                         |
 |                               |
 | **Additional Documentation:** |
 | xRegistry Primer              | [v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/core/primer.md) | [WIP](core/primer.md)                          |
