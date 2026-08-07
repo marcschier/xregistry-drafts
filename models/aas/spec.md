@@ -509,7 +509,7 @@ The AAS API series provides a discovery service that maps asset keys onto shell
 identifiers. In this model that is a filter over the `shells` collection, and no
 separate service is needed:
 
-```
+```http
 GET /shells?filter=globalassetid=https://fabrikam.com/asset/SN-001
 GET /shells?filter=specificassetids[*].value=SN-001
 GET /shells?filter=assetkind=Instance,derivedfrom=/shells/com.fabrikam.type.pump
@@ -518,7 +518,7 @@ GET /shells?filter=assetkind=Instance,derivedfrom=/shells/com.fabrikam.type.pump
 Finding every Submodel of a given kind is likewise a filter on `semanticid`,
 which is the query a passport assembler makes:
 
-```
+```http
 GET /shells/<SHELLID>/submodels?filter=semanticid=<CONCEPT>&inline=*
 ```
 
