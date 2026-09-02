@@ -8,7 +8,7 @@ JSON Schema draft version (by inspecting the "$schema" property), groups the fil
 references to the raw GitHub URLs.
 
 Each registry version entry contains:
-  - schemauri: Constructed from the raw GitHub URL plus the filename.
+    - schemaurl: Constructed from the raw GitHub URL plus the filename.
   - description: A generic description based on the filename.
   - format: "JSONSchema/Draft/<detected draft>", reflecting the JSON Schema draft version
             with "Draft" capitalized.
@@ -121,7 +121,7 @@ def build_registry(groups):
             # Capitalize the draft string (e.g. "draft-07" -> "Draft-07")
             draft_cap = info["draft"].capitalize() if info["draft"] else "unknown"
             version_entries[ver] = {
-                "schemauri": BASE_URI + info["filename"],
+                "schemaurl": BASE_URI + info["filename"],
                 "description": f"Schema for {info['filename']}",
                 "format": f"JSONSchema/{draft_cap}"
             }
