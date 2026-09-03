@@ -403,7 +403,7 @@ definitions are normative in OPC 10000-20.
 | Get or create resource or version | `GroupType.GetOrCreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, VersionId, FileHandle, Created)` | resolves the `(ResourceId, VersionId)` version (empty `VersionId` selects or creates the default version); the server returns the existing file with `Created = false` or creates and returns a new one with `Created = true`; `RequestFileOpen = true` returns a write `FileHandle` |
 | Delete group/resource/version | `Delete(ExpectedEpoch: UInt32)` on the selected `GroupType` or `ResourceType` | The target node is resolved from the xRegistry `xid` or identifier Properties; `ExpectedEpoch` can be omitted; `0` or omission disables the epoch check, and a non-zero value MUST equal the entity's current `Epoch` or the Call fails with `Bad_InvalidState` and deletes nothing; the Method returns no output arguments |
 | Read document | `ResourceType.Open(mode)` -> `Read(fileHandle, length)` -> `Close(fileHandle)` | `mode` is read-only; `length` and repeated Reads are bounded by `Size` |
-| Replace document | `ResourceType.Open(mode)` -> `SetPosition(fileHandle, 0)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | `mode` allows write; the complete replacement byte stream is written; server updates `ModifiedAt` and `Epoch` |
+| Replace document | `ResourceType.Open(mode)` -> `SetPosition(fileHandle, 0)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | `mode` allows write and stages the complete replacement byte stream; only a successful dirty `Close` updates Version `ModifiedAt` and `Epoch` |
 | Read metadata | Read Service on Properties | Property BrowseNames map to xRegistry attribute names by the tables in this document and the domain model |
 | Replace scalar metadata | Write Service on Properties | Value DataTypes are those in Annex A of the base model |
 | Add/update registry, group or version extension attribute or label | `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object; `ExpectedEpoch` is matched against its `Epoch`; success increments `Epoch` and updates `ModifiedAt` |
@@ -450,9 +450,12 @@ omitted argument disables the check.
 
 For document replacement, exclusive `Open(write)` serializes writers. An
 epoch-matched replacement sequence is: Read `Epoch`, call `Open(write)`,
-re-Read `Epoch`, abort and `Close` if the value changed, otherwise `Write` the
-complete replacement document and `Close`; the server increments `Epoch` on
-successful `Close`.
+re-Read `Epoch`, abort the staged replacement if the value changed, otherwise
+`Write` the complete replacement document and `Close`. Only a successful dirty
+`Close`, whose committed bytes differ from the committed state immediately
+before `Open`, increments the Version's `Epoch` and updates `ModifiedAt`. A
+clean, aborted or byte-identical `Close` leaves both values unchanged and emits
+no event.
 
 For deletion, a client passes the current entity `Epoch` as the
 `ExpectedEpoch` input to `Delete(ExpectedEpoch)`. If `ExpectedEpoch` is
@@ -887,6 +890,12 @@ or validates metadata Properties.
 Partial patching of document bytes is not defined. A client that wants to change
 document content MUST provide a complete replacement document.
 
+The FileTransfer `Write` Calls stage the replacement. Only a successful dirty
+`Close`, determined by comparison with the committed bytes immediately before
+`Open`, increments the default Version's `Epoch` and updates its `ModifiedAt`.
+A clean, aborted or byte-identical `Close` leaves both unchanged and emits no
+event.
+
 ### 5.16. Deleting resources
 
 Deleting a selected resource uses the resource's own
@@ -973,6 +982,11 @@ the version file bytes using `GetOrCreateResource` or strict `CreateResource`,
 `Open`, `SetPosition`, `Write` and `Close`.
 
 Partial patching of version document bytes is not defined.
+
+The FileTransfer `Write` Calls stage the replacement. Only a successful dirty
+`Close`, determined by comparison with the committed bytes immediately before
+`Open`, increments that Version's `Epoch` and updates its `ModifiedAt`. A clean,
+aborted or byte-identical `Close` leaves both unchanged and emits no event.
 
 ### 5.21. Deleting versions
 
@@ -1325,7 +1339,9 @@ A `Close` is dirty only when the document bytes committed by it differ from the
 committed document bytes immediately before `Open`. Separate Property Writes
 and server-managed metadata changes do not make `Close` dirty. Opening with
 `EraseExisting` only stages an empty document; the change is committed by a
-successful dirty `Close`.
+successful dirty `Close`. Only that successful dirty `Close` increments Version
+`Epoch` and updates `ModifiedAt`. A clean, aborted or byte-identical `Close`
+leaves both unchanged and emits no event.
 
 `CreateResource`, or `GetOrCreateResource` with `Created = true`, is the
 interaction that commits the Resource and Version structural identities,
