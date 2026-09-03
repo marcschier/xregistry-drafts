@@ -42,7 +42,7 @@
 <!-- words: versioncreatedeventtype versiondeletedeventtype -->
 <!-- words: versionupdatedeventtype -->
 <!-- words: metalabels metacreatedat metamodifiedat -->
-<!-- words: opcf -->
+<!-- words: opcf eraseexisting monitoringmode -->
 
 ## Abstract
 
@@ -144,7 +144,7 @@ the OPC UA API patterns in this document remain the same.
 ## 2. Normative references
 
 - [xRegistry Core specification](../../core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
-- [xRegistry Events working draft](https://github.com/xregistry/spec/blob/1ff0a485f2a2efbeb559c6ab872f9c76c3a37ed0/core/events.md) — canonical xRegistry event types, fields and emission rules.
+- [xRegistry Events working draft](https://github.com/xregistry/spec/blob/1ff0a485f2a2efbeb559c6ab872f9c76c3a37ed0/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the normative errata in §9.1.
 - [xRegistry primer](../../core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
 - [OPC UA — xRegistry](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md) — the published working-draft base information model used by this API.
 - OPC UA — xRegistry event companion change — `OPCF-Members/spec-drafts#32`, model commit `111233536e14a50630e9ee33b544767ae07abdce` — the EventTypes, notifier model and Resource Meta additions used by §9.
@@ -1203,22 +1203,30 @@ xRegistry event `type` maps to the following concrete leaf EventType:
 
 The concrete leaf EventType is the native representation of the canonical
 `type`; an event consumer determines the canonical type from `EventType` and
-the companion model type hierarchy. A server MUST NOT add aliases for
-misspellings in the xRegistry Events working draft. In particular,
-`version.update` means `version.updated`. A `resource.deprecated` event means
-that `meta.deprecated` was set or changed, and a `resource.undeprecated` event
-means that `meta.deprecated` was deleted. Both events omit `Changed`; the
-companion `resource.updated` event carries the changed metadata.
+the companion model type hierarchy.
+
+This binding targets xRegistry specification PR #563 at exact head
+`1ff0a485f2a2efbeb559c6ab872f9c76c3a37ed0`, subject to these normative
+errata:
+
+- The `version.update` token in the Resource `updated` rule means
+  `version.updated`. A server MUST NOT define or emit a `version.update` alias.
+- `resource.deprecated` is generated when `meta.deprecated` is created or
+  changed. Removal generates `resource.undeprecated`, not
+  `resource.deprecated`.
+- `Changed` MUST NOT occur on any `deprecated` or `undeprecated` event. The
+  companion group or resource `updated` event carries the changed metadata.
 
 An event-capable server claiming the `XREG-Events` conformance unit MUST
-implement every event that the xRegistry Events working draft says MUST be
-generated for every mutation it supports. It SHOULD generate
-`registry.created` and `registry.deleted` when it exposes registry lifecycle,
-and SHOULD generate descendant `deleted` events when an entire registry is
-deleted, matching their status in that working draft. Recursive deletion of a
-group or resource is different: all REQUIRED descendant resource and version
-events remain part of the applicable MUST event set. Supporting only a subset
-of that MUST event set does not conform to `XREG-Events`.
+implement every event that the xRegistry Events working draft, as interpreted
+by these errata, says MUST be generated for every mutation it supports. It
+SHOULD generate `registry.created` and `registry.deleted` when it exposes
+registry lifecycle, and SHOULD generate descendant `deleted` events when an
+entire registry is deleted, matching their status in that working draft.
+Recursive deletion of a group or resource is different: all REQUIRED descendant
+resource and version events remain part of the applicable MUST event set.
+Supporting only a subset of that MUST event set does not conform to
+`XREG-Events`.
 
 ### 9.2. Event field mapping
 
@@ -1305,22 +1313,29 @@ native OPC UA node.
 
 ### 9.4. Interaction and emission rules
 
-Each successful mutation Call, each dirty FileTransfer `Close`, and each
-post-startup reconciliation batch is one logical interaction. A successful
-Write Service request that changes at least one value is likewise one logical
-interaction. A dirty FileTransfer `Close` is a successful `Close` that commits
-bytes or metadata different from the state at `Open`. All events from one
-interaction MUST have the same `Time`.
+Each successful xRegistry domain mutation Method Call, excluding inherited
+FileTransfer Methods, is one logical interaction. Each successful Write Service
+request that changes one or more entity values is one logical interaction.
+Each post-startup reconciliation batch is also one logical interaction. All
+events from one interaction MUST have the same `Time`.
 
-`CreateResource`, or `GetOrCreateResource` with `Created = true`, MUST generate
-and enqueue the applicable Resource and Version `created` events before
-returning its Call result. Those events contain the committed structural
-identity, `Xid`, initial epochs and timestamps. If the Call also returns a
-writable `FileHandle`, a later dirty FileTransfer `Close` is a separate logical
-interaction. That `Close` generates the applicable `version.updated` event and,
-when the Version is the committed default, `resource.updated` for the document
-bytes and derived fields changed by the close. It MUST NOT merge those updates
-into, or repeat, the earlier `created` events.
+FileTransfer `Write` Calls only stage document bytes. One successful dirty
+FileTransfer `Close` commits the staged bytes and is one logical interaction.
+A `Close` is dirty only when the document bytes committed by it differ from the
+committed document bytes immediately before `Open`. Separate Property Writes
+and server-managed metadata changes do not make `Close` dirty. Opening with
+`EraseExisting` only stages an empty document; the change is committed by a
+successful dirty `Close`.
+
+`CreateResource`, or `GetOrCreateResource` with `Created = true`, is the
+interaction that commits the Resource and Version structural identities,
+`Xid`, initial epochs and timestamps. The applicable Resource and Version
+`created` events are generated for that interaction and MUST NOT be deferred to,
+or coalesced with, a later FileTransfer `Close`. If the Method also returns a
+writable `FileHandle`, a later dirty `Close` is a separate interaction. It
+generates the applicable `version.updated` event and, when the Version is the
+committed default, `resource.updated` for the document bytes and derived fields
+changed by the close. It MUST NOT repeat the earlier `created` events.
 
 Initial projection of persisted xRegistry state into the AddressSpace is
 silent. A failed operation, a no-op update, a clean FileTransfer `Close`, or an
@@ -1348,9 +1363,17 @@ An event-capable server MUST set the `SubscribeToEvents` bit in the
 resource/version Object. It MUST expose notifier paths using `HasNotifier` from
 the Server Object to each `RegistryType`, from a registry to its `GroupType`
 children, and from a group to its `ResourceType` resource/version children.
-Subtypes MAY add intermediate notifier Objects, but clients monitoring the
-Server Object or registry root MUST receive the same applicable descendant
-events.
+Subtypes MAY add intermediate notifier Objects. While the registry root exists,
+applicable descendant events are available to event MonitoredItems on the
+Server Object and registry root. Availability remains subject to the
+MonitoredItem's `EventFilter`, MonitoringMode, queue size and discard policy,
+and to normal Subscription publishing and lifetime semantics.
+
+Events caused by deletion of a monitored notifier are reported through the
+nearest surviving ancestor notifier. A client that requires
+`registry.deleted`, or descendant `deleted` events caused by deletion of an
+entire registry, MUST monitor the Server Object because the registry root does
+not survive that interaction.
 
 The companion model's `GeneratesEvent` References declare which concrete event
 types can be generated by `RegistryType`, `GroupType` and `ResourceType`.
@@ -1504,10 +1527,11 @@ that follows the xRegistry document shape.
 A server conforms to the event-capable OPC UA xRegistry API by claiming the
 `XREG-Events` conformance unit. It MUST expose `EventSourceUrl`, the notifier
 hierarchy and `GeneratesEvent` declarations, generate every event that the
-xRegistry Events working draft says MUST be generated for every supported
-mutation, and support standard OPC UA event subscription and delivery as
-specified in §9. The working draft's SHOULD events retain that status, including
-registry lifecycle events and descendant events on whole-registry deletion.
+xRegistry Events working draft, as interpreted by the normative errata in
+§9.1, says MUST be generated for every supported mutation, and support standard
+OPC UA event subscription and delivery as specified in §9. The working draft's
+SHOULD events retain that status, including registry lifecycle events and
+descendant events on whole-registry deletion.
 REQUIRED descendants of group and resource recursive deletion remain MUST
 events. `XREG-Events` is OPTIONAL and is not REQUIRED for read-only, writable
 or export-capable conformance.
