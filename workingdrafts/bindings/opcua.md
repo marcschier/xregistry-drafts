@@ -202,7 +202,9 @@ xRegistry registry; each `GroupType` child represents a group; each
 `ResourceType` child represents a resource or resource version whose document
 (raw bytes) are obtained through `FileType` Methods; and xRegistry labels and
 extension attributes are represented by Property Variables under `Labels` for
-registries, groups and versions, and under `MetaLabels` for Resource Meta.
+registries, groups and Versions. A flattened Resource representation takes its
+top-level `labels` from the committed default Version's `Labels`; the distinct
+Resource Meta entity uses `MetaLabels`.
 
 A server MAY expose more than one registry. A client selects the registry root
 by NodeId, BrowsePath, discovery metadata or domain convention before applying
@@ -291,6 +293,11 @@ other document-derived identifier. A server MAY use content identity as an
 internal lookup, cache or deduplication fast path, but that optimization MUST
 NOT change `Xid`, `Subject`, `ResourceId`, `VersionId` or AddressSpace
 placement.
+
+Here, resource is the generic xRegistry entity kind. A concrete registry uses
+the domain-specific `<RESOURCES>` collection and `<RESOURCE>` singular names
+declared by its model; this binding does not impose a literal `resources` path
+segment.
 
 ### 4.3. Entity processing rules
 
@@ -411,21 +418,22 @@ definitions are normative in OPC 10000-20.
 | Add/update Resource Meta extension attribute or label | `MetaLabels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the committed default-version file; `ExpectedEpoch` is matched against `MetaEpoch`; success increments `MetaEpoch` and updates `MetaModifiedAt` |
 | Remove Resource Meta extension attribute or label | `MetaLabels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the committed default-version file; `ExpectedEpoch` is matched against `MetaEpoch`; success increments `MetaEpoch` and updates `MetaModifiedAt` |
 
-`CreateResource` and `GetOrCreateResource` with `Created = true` commit the
-structural Resource and Version identity, `Xid`, initial epochs and timestamps
-before returning. If a Resource and its first Version are created together,
-both structural entities are committed by that Call. Returning a writable
-`FileHandle` does not defer or merge that structural commit with a later file
-write.
+From the xRegistry perspective, creating a new Resource necessarily creates its
+first Version in the same operation; neither can be created independently.
+`CreateResource` and `GetOrCreateResource` with `Created = true` commit both
+structural identities, their `Xid` values, initial epochs and timestamps before
+returning. Returning a writable `FileHandle` does not defer or merge that
+structural commit with a later file write.
 
 The base model defines `CreateGroup` and `GetOrCreateGroup` on `RegistryType`,
 `CreateResource` and `GetOrCreateResource` on `GroupType`, and `AttributesType`
-with `AddAttribute` / `RemoveAttribute`. Registries, groups and version files
-MAY expose `Labels`; the committed default-version file MAY expose
-`MetaLabels` for Resource Meta. Clients call the Methods on the container that
-owns the target attribute. The creation Methods are the base API create
-operations; move/copy is out of scope for the base API and can be modeled by
-re-creating an entity and deleting the original where permitted.
+with `AddAttribute` / `RemoveAttribute`. Registries, groups and Version entities
+MAY expose `Labels`. In the flattened OPC UA projection, `MetaLabels` is
+co-located on the committed default-version file but belongs to the Resource
+Meta entity and is never a Version attribute. Clients call the Methods on the
+container that owns the target attribute. The creation Methods are the base API
+create operations; move/copy is out of scope for the base API and can be
+modeled by re-creating an entity and deleting the original where permitted.
 
 #### 4.5.1. Concurrency and locking
 
@@ -489,19 +497,22 @@ The base model Properties map to xRegistry attributes as follows.
 | `contenttype` | `ContentType` | `ResourceType` |
 | `<RESOURCE>url` | `ResourceUrl` | `ResourceType` |
 | federation target | `ExternalReference` | `ResourceType` |
-| `xid` | `Xid` | all base entity types |
-| `epoch` | `Epoch` | `RegistryType`, `GroupType` and a `ResourceType` version; a Resource representation uses the committed default Version's value |
+| `xid` | `Xid`; the Resource Meta xid is derived as the Resource `Xid` plus `/meta` | `RegistryType`, `GroupType`, Resource, Version and Resource Meta entities |
+| `epoch` | `Epoch`; `MetaEpoch` for Resource Meta | `RegistryType`, `GroupType`, Version and Resource Meta entities; a Resource representation uses the committed default Version's `Epoch` |
 | `name` | `Name` | all base entity types |
 | `description` | `Description` | all base entity types |
 | `documentation` | `Documentation` | all base entity types |
-| `labels` | `Labels` object (`AttributesType`) containing `<Attribute>` Property Variables | `RegistryType`, `GroupType` and a `ResourceType` version; a Resource representation uses the committed default Version's value |
-| `createdat` | `CreatedAt` | `RegistryType`, `GroupType` and a `ResourceType` version; a Resource representation uses the committed default Version's value |
-| `modifiedat` | `ModifiedAt` | `RegistryType`, `GroupType` and a `ResourceType` version; a Resource representation uses the committed default Version's value |
-| `meta.epoch` | `MetaEpoch` | Resource Meta on the committed default-version `ResourceType` |
-| `meta.labels` | `MetaLabels` object (`AttributesType`) containing `<Attribute>` Property Variables | Resource Meta on the committed default-version `ResourceType` |
-| `meta.createdat` | `MetaCreatedAt` | Resource Meta on the committed default-version `ResourceType` |
-| `meta.modifiedat` | `MetaModifiedAt` | Resource Meta on the committed default-version `ResourceType` |
+| `labels` | `Labels` object (`AttributesType`); `MetaLabels` for Resource Meta | `RegistryType`, `GroupType`, Version and Resource Meta entities; a Resource representation uses the committed default Version's `Labels` |
+| `createdat` | `CreatedAt`; `MetaCreatedAt` for Resource Meta | `RegistryType`, `GroupType`, Version and Resource Meta entities; a Resource representation uses the committed default Version's `CreatedAt` |
+| `modifiedat` | `ModifiedAt`; `MetaModifiedAt` for Resource Meta | `RegistryType`, `GroupType`, Version and Resource Meta entities; a Resource representation uses the committed default Version's `ModifiedAt` |
 | event `source` URL | `EventSourceUrl` | `RegistryType`; REQUIRED only for event-capable server conformance (§9.3) |
+
+Resource Meta is a first-class xRegistry entity, not a Version attribute or
+merely a nested implementation object. The `Meta` prefix only disambiguates its
+OPC UA BrowseNames because the binding co-locates Resource Meta Properties on
+the committed default-version `ResourceType`. Dotted names such as
+`meta.epoch` are used only when xRegistry represents a Resource and its Meta
+attributes in one flattened document or in an event `Changed` path.
 
 The xRegistry attributes `self`, collection `url` attributes, collection
 `count` attributes, `metaurl`, `versionsurl`, `versionscount`,
@@ -856,6 +867,10 @@ calling the corresponding Method on `MetaLabels` with `MetaEpoch`. A Resource
 Meta label change MUST increment `MetaEpoch` and update `MetaModifiedAt`, and
 MUST NOT change Version `Epoch` or `ModifiedAt` unless the same interaction also
 changes Version attributes.
+
+Updating an existing Version's Properties, `Labels` or document bytes does not
+update Resource Meta. Resource Meta changes only when its own attributes change,
+when a Version is added or removed, or when default-Version state changes.
 
 The resource-level meta view is a serialization view over Properties of the
 committed default-version file. The base model does not define a separate
