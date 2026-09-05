@@ -150,7 +150,13 @@ the OPC UA API patterns in this document remain the same.
 - [xRegistry Core specification](../../core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
 - [xRegistry Events specification](https://github.com/xregistry/spec/blob/66ee31e47fbadff6ab982ae1516f7d9065e46b64/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
 - [xRegistry primer](../../core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
-- *OPC UA — xRegistry* — the proposed Version 0.6.0 companion information model used by this API, including distinct Resource and Version Objects, `ResourceVersionsType`, Resource Meta and the EventTypes used by §9.
+- *OPC UA — xRegistry* — Version 0.6.0, published
+  `2026-09-05T00:00:00Z`, at commit
+  `d3399fca025025a73e5a6b599f850a81d985c060`. The xRegistry NodeSet SHA-256
+  digest is
+  `369f5f3f1814b333e4eeb52bfb4b6a730cdff372505a5f91a54c94f0016ac4cf`.
+  This companion information model defines the distinct Resource and Version
+  Objects, `ResourceVersionsType`, Resource Meta and the EventTypes used by §9.
 - [OPC 10000-3](https://reference.opcfoundation.org/specs/OPC-10000-3/) — Address Space Model, including NodeIds, References, TypeDefinitions and `ExpandedNodeId`.
 - [OPC 10000-4](https://reference.opcfoundation.org/specs/OPC-10000-4/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds and StatusCodes.
 - [OPC 10000-5](https://reference.opcfoundation.org/specs/OPC-10000-5/) — Base Information Model, including `FolderType` and `PropertyType`.
@@ -171,8 +177,8 @@ relative identifier of an entity within a registry, for example
 the selected `RegistryType` root.
 
 OPC UA type and member names follow OPC UA naming conventions and are written
-exactly as defined by [*OPC UA —
-xRegistry*]
+exactly as defined by *OPC UA —
+xRegistry*
 Annex A and the corresponding NodeSet: `RegistryType`, `GroupType`,
 `ResourceType`, `ResourceVersionsType`, `AttributesType`,
 `RegistryCapabilitiesDataType`,
@@ -286,8 +292,8 @@ BrowseName to its identifier: `groupid`, `resourceid` or `versionid`,
 respectively, and each group's and logical Resource's DisplayName to its
 `Name`. A `groupid` and a
 `resourceid` are **symbolic identifiers** built from the entity's domain source
-identity by the construction of [*OPC UA —
-xRegistry*]
+identity by the construction of *OPC UA —
+xRegistry*
 §6.9, so they are readable, safe in a URL, on a command line and as a file name,
 and never derived from a document. Because Browse results carry BrowseName,
 DisplayName, NodeClass, TypeDefinition and the target NodeId, a client selects
@@ -394,7 +400,7 @@ updates `MetaModifiedAt` and increments `MetaEpoch`; it does not change the
 selected default Version's `Epoch` or `ModifiedAt` unless Version attributes
 also change. Creation MUST initialize the applicable `CreatedAt`, `ModifiedAt`,
 `Epoch`, `MetaCreatedAt`, `MetaModifiedAt`, `MetaEpoch`, `Xid` and identifier
-Properties according to [*OPC UA — xRegistry*]
+Properties according to *OPC UA — xRegistry*
 §6.5 and the xRegistry core rules.
 
 ### 4.4. OPC UA-specific attribute processing
@@ -1249,8 +1255,8 @@ mapped Properties, update exact Version `Labels` and logical Resource
 `MetaModifiedAt` where they are not explicitly supplied or are server-managed.
 
 Serialization MUST preserve the three-representation symmetry described by the
-xRegistry primer and by [*OPC UA —
-xRegistry*]
+xRegistry primer and by *OPC UA —
+xRegistry*
 §4.2 and §7: an entity has the same `Xid` and identity whether reached as a
 file, through OPC UA services, or in an exported xRegistry document.
 
@@ -1260,9 +1266,10 @@ file, through OPC UA services, or in an exported xRegistry document.
 
 An event-capable OPC UA xRegistry server reports xRegistry changes as native
 OPC UA Events. It MUST NOT encapsulate a CloudEvent or another protocol payload
-as the event body. The concrete EventTypes and their fields are defined by the
-proposed Version 0.6.0 OPC UA — xRegistry companion model. Each canonical
-xRegistry event `type` maps to the following concrete leaf EventType:
+as the event body. The concrete EventTypes and their fields are defined by
+Version 0.6.0 of the OPC UA — xRegistry companion model at commit
+`d3399fca025025a73e5a6b599f850a81d985c060`. Each canonical xRegistry event
+`type` maps to the following concrete leaf EventType:
 
 | Canonical xRegistry type | OPC UA EventType | Additional fields |
 |---|---|---|
@@ -1518,8 +1525,8 @@ separately.
 
 Federation is realized by `ExternalReference` and `ResourceUrl` on
 `ResourceType`, as defined by the xRegistry primer, xRegistry core
-specification, and [*OPC UA —
-xRegistry*]
+specification, and *OPC UA —
+xRegistry*
 §8 and Annex B.
 
 `ExternalReference` is an `ExpandedNodeId`. Its `ServerUri` identifies the
@@ -1655,8 +1662,8 @@ Event-capable client conformance is OPTIONAL and is not REQUIRED for baseline
 client conformance.
 
 A conforming implementation MUST NOT require any node or Method name that is not
-defined by [*OPC UA —
-xRegistry*],
+defined by *OPC UA —
+xRegistry*,
 OPC 10000-20, or its own domain companion specification.
 
 ## Annex A — Correspondence to the xRegistry HTTP binding (informative)
@@ -1710,4 +1717,3 @@ corresponding operation concepts in the two peer bindings.
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
 [xRegistry HTTP]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/http.html
 [xRegistry primer]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/primer.html
-[OPC UA — xRegistry]: https://github.com/marcschier/opcua-drafts
