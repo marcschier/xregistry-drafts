@@ -981,11 +981,7 @@
                         }
                       },
                       "query": {
-                        "type": "object",
-                        "description": "The HTTP query parameters",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "A map of native HTTP query-parameter names to string values. Keys are not constrained by the xRegistry map key character set and MAY carry RFC6570 Level 1 placeholders."
                       },
                       "path": {
                         "type": "string",
@@ -1048,11 +1044,7 @@
                         }
                       },
                       "query": {
-                        "type": "object",
-                        "description": "The HTTP query parameters",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "A map of native HTTP query-parameter names to string values. Keys are not constrained by the xRegistry map key character set and MAY carry RFC6570 Level 1 placeholders."
                       },
                       "path": {
                         "type": "string",
@@ -1115,11 +1107,7 @@
                         }
                       },
                       "query": {
-                        "type": "object",
-                        "description": "The HTTP query parameters",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "A map of native HTTP query-parameter names to string values. Keys are not constrained by the xRegistry map key character set and MAY carry RFC6570 Level 1 placeholders."
                       },
                       "path": {
                         "type": "string",
@@ -1182,11 +1170,7 @@
                         }
                       },
                       "query": {
-                        "type": "object",
-                        "description": "The HTTP query parameters",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "A map of native HTTP query-parameter names to string values. Keys are not constrained by the xRegistry map key character set and MAY carry RFC6570 Level 1 placeholders."
                       },
                       "path": {
                         "type": "string",

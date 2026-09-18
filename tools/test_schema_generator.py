@@ -139,10 +139,15 @@ class TestSchemaGenerator:
         ]['attributes']
         assert http_options['query'] == {
             'name': 'query',
-            'description': 'The HTTP query parameters',
-            'type': 'map',
-            'item': {'type': 'string'},
+            'description': (
+                'A map of native HTTP query-parameter names to string values. '
+                'Keys are not constrained by the xRegistry map key character '
+                'set and MAY carry RFC6570 Level 1 placeholders.'
+            ),
+            'type': 'any',
         }
+        assert 'item' not in http_options['query']
+        assert 'attributes' not in http_options['query']
         assert http_options['status'] == {
             'name': 'status',
             'description': 'The HTTP status code',
@@ -186,7 +191,10 @@ class TestSchemaGenerator:
                             'basemessage': '/messagegroups/group/messages/root',
                             'protocol': 'HTTP/1.1',
                             'protocoloptions': {
-                                'query': {'foo': 'bar', 'tenant': '{tenant}'},
+                                'query': {
+                                    'apiVersion': '2026-09-18',
+                                    '{parameter}': '{value}',
+                                },
                                 'status': '{code}',
                             },
                         },
@@ -214,15 +222,6 @@ class TestSchemaGenerator:
     @pytest.mark.parametrize(
         ('message_id', 'message'),
         [
-            (
-                'legacy-query-array',
-                {
-                    'protocol': 'HTTP',
-                    'protocoloptions': {
-                        'query': [{'name': 'foo', 'value': 'bar'}],
-                    },
-                },
-            ),
             (
                 'numeric-status',
                 {
