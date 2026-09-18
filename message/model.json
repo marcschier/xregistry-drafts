@@ -30,8 +30,8 @@
           "modelversion": "1.0-rc4",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
           "attributes": {
-            "basemessageuri": {
-              "name": "basemessageuri",
+            "basemessage": {
+              "name": "basemessage",
               "type": "uri",
               "target": "/messagegroups/messages[/versions]",
               "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
@@ -1108,7 +1108,7 @@
                         "content_type": {
                           "name": "content_type",
                           "description": "MQTT content type",
-                          "type": "uritemplate"
+                          "type": "string"
                         },
                         "user_properties": {
                           "name": "user_properties",
@@ -1244,33 +1244,9 @@
                         "query": {
                           "name": "query",
                           "description": "The HTTP query parameters",
-                          "type": "array",
+                          "type": "map",
                           "item": {
-                            "type": "object",
-                            "attributes": {
-                              "name": {
-                                "name": "name",
-                                "description": "The HTTP query parameter",
-                                "type": "string",
-                                "required": true
-                              },
-                              "description": {
-                                "name": "description",
-                                "type": "string"
-                              },
-                              "value": {
-                                "name": "value",
-                                "description": "The HTTP query parameter value",
-                                "type": "string"
-                              },
-                              "required": {
-                                "name": "required",
-                                "description": "The HTTP query parameter required",
-                                "type": "boolean",
-                                "required": true,
-                                "default": false
-                              }
-                            }
+                            "type": "string"
                           }
                         },
                         "path": {
@@ -1281,6 +1257,209 @@
                         "method": {
                           "name": "method",
                           "description": "The HTTP method",
+                          "type": "string"
+                        },
+                        "status": {
+                          "name": "status",
+                          "description": "The HTTP status code",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "HTTP/1.1": {
+                  "siblingattributes": {
+                    "protocoloptions": {
+                      "name": "protocoloptions",
+                      "description": "The HTTP message metadata constraints",
+                      "type": "object",
+                      "attributes": {
+                        "headers": {
+                          "name": "headers",
+                          "description": "The HTTP headers",
+                          "type": "array",
+                          "item": {
+                            "type": "object",
+                            "attributes": {
+                              "name": {
+                                "name": "name",
+                                "description": "The HTTP header name",
+                                "type": "string",
+                                "required": true
+                              },
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "value": {
+                                "name": "value",
+                                "description": "The HTTP header value",
+                                "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The HTTP header required",
+                                "type": "boolean",
+                                "required": true,
+                                "default": false
+                              }
+                            }
+                          }
+                        },
+                        "query": {
+                          "name": "query",
+                          "description": "The HTTP query parameters",
+                          "type": "map",
+                          "item": {
+                            "type": "string"
+                          }
+                        },
+                        "path": {
+                          "name": "path",
+                          "description": "The HTTP path as a uri template",
+                          "type": "uritemplate"
+                        },
+                        "method": {
+                          "name": "method",
+                          "description": "The HTTP method",
+                          "type": "string"
+                        },
+                        "status": {
+                          "name": "status",
+                          "description": "The HTTP status code",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "HTTP/2": {
+                  "siblingattributes": {
+                    "protocoloptions": {
+                      "name": "protocoloptions",
+                      "description": "The HTTP message metadata constraints",
+                      "type": "object",
+                      "attributes": {
+                        "headers": {
+                          "name": "headers",
+                          "description": "The HTTP headers",
+                          "type": "array",
+                          "item": {
+                            "type": "object",
+                            "attributes": {
+                              "name": {
+                                "name": "name",
+                                "description": "The HTTP header name",
+                                "type": "string",
+                                "required": true
+                              },
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "value": {
+                                "name": "value",
+                                "description": "The HTTP header value",
+                                "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The HTTP header required",
+                                "type": "boolean",
+                                "required": true,
+                                "default": false
+                              }
+                            }
+                          }
+                        },
+                        "query": {
+                          "name": "query",
+                          "description": "The HTTP query parameters",
+                          "type": "map",
+                          "item": {
+                            "type": "string"
+                          }
+                        },
+                        "path": {
+                          "name": "path",
+                          "description": "The HTTP path as a uri template",
+                          "type": "uritemplate"
+                        },
+                        "method": {
+                          "name": "method",
+                          "description": "The HTTP method",
+                          "type": "string"
+                        },
+                        "status": {
+                          "name": "status",
+                          "description": "The HTTP status code",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "HTTP/3": {
+                  "siblingattributes": {
+                    "protocoloptions": {
+                      "name": "protocoloptions",
+                      "description": "The HTTP message metadata constraints",
+                      "type": "object",
+                      "attributes": {
+                        "headers": {
+                          "name": "headers",
+                          "description": "The HTTP headers",
+                          "type": "array",
+                          "item": {
+                            "type": "object",
+                            "attributes": {
+                              "name": {
+                                "name": "name",
+                                "description": "The HTTP header name",
+                                "type": "string",
+                                "required": true
+                              },
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "value": {
+                                "name": "value",
+                                "description": "The HTTP header value",
+                                "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The HTTP header required",
+                                "type": "boolean",
+                                "required": true,
+                                "default": false
+                              }
+                            }
+                          }
+                        },
+                        "query": {
+                          "name": "query",
+                          "description": "The HTTP query parameters",
+                          "type": "map",
+                          "item": {
+                            "type": "string"
+                          }
+                        },
+                        "path": {
+                          "name": "path",
+                          "description": "The HTTP path as a uri template",
+                          "type": "uritemplate"
+                        },
+                        "method": {
+                          "name": "method",
+                          "description": "The HTTP method",
+                          "type": "string"
+                        },
+                        "status": {
+                          "name": "status",
+                          "description": "The HTTP status code",
                           "type": "string"
                         }
                       }
@@ -1300,8 +1479,8 @@
                           "description": "The NATS subject",
                           "type": "uritemplate"
                         },
-                        "reply": {
-                          "name": "reply",
+                        "reply-to": {
+                          "name": "reply-to",
                           "description": "The NATS reply subject",
                           "type": "uritemplate"
                         },

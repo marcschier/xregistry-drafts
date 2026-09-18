@@ -37,6 +37,11 @@ class TestSchemaGenerator:
         """Path to the schema model.json."""
         return tools_dir.parent / "schema" / "model.json"
 
+    @pytest.fixture
+    def cloudevents_model(self, tools_dir):
+        """Path to the CloudEvents composite model.json."""
+        return tools_dir.parent / "cloudevents" / "model.json"
+
     def generate_schema(self, model_path: Path, schema_type: str, tools_dir: Path) -> dict:
         """Generate a schema using schema-generator.py."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
@@ -90,6 +95,208 @@ class TestSchemaGenerator:
                     visit(value)
 
         visit(schema_data)
+
+    def test_issue721_source_models_apply_model_consistency_contract(
+        self, message_model, endpoint_model, cloudevents_model
+    ):
+        """Check the issue 721 source-model consistency fixes in the canonical models."""
+        message = json.loads(message_model.read_text(encoding='utf-8'))
+        endpoint = json.loads(endpoint_model.read_text(encoding='utf-8'))
+        cloudevents = json.loads(cloudevents_model.read_text(encoding='utf-8'))
+
+        message_attrs = message['groups']['messagegroups']['resources'][
+            'messages'
+        ]['attributes']
+        endpoint_attrs = endpoint['groups']['endpoints']['attributes']
+
+        basemessage = message_attrs['basemessage']
+        assert basemessage['name'] == 'basemessage'
+        assert basemessage['type'] == 'uri'
+        assert basemessage['target'] == '/messagegroups/messages[/versions]'
+        assert 'basemessageuri' not in message_attrs
+
+        endpoint_messagegroups = endpoint_attrs['messagegroups']
+        assert endpoint_messagegroups['item'] == {
+            'type': 'uri',
+            'target': '/messagegroups',
+        }
+        assert endpoint['groups']['endpoints']['ximportresources'] == [
+            '/messagegroups/messages'
+        ]
+
+        assert cloudevents['groups']['$includes'] == [
+            '../endpoint/model.json#/groups',
+            '../message/model.json#/groups',
+            '../schema/model.json#/groups',
+        ]
+
+        message_protocols = message_attrs['protocol']['ifvalues']
+        for selector in ('HTTP/1.1', 'HTTP/2', 'HTTP/3'):
+            assert message_protocols[selector] == message_protocols['HTTP']
+
+        http_options = message_protocols['HTTP']['siblingattributes'][
+            'protocoloptions'
+        ]['attributes']
+        assert http_options['query'] == {
+            'name': 'query',
+            'description': 'The HTTP query parameters',
+            'type': 'map',
+            'item': {'type': 'string'},
+        }
+        assert http_options['status'] == {
+            'name': 'status',
+            'description': 'The HTTP status code',
+            'type': 'string',
+        }
+
+        nats_options = message_protocols['NATS']['siblingattributes'][
+            'protocoloptions'
+        ]['attributes']
+        assert nats_options['reply-to']['type'] == 'uritemplate'
+        assert 'reply' not in nats_options
+
+        mqtt5_options = message_protocols['MQTT/5.0']['siblingattributes'][
+            'protocoloptions'
+        ]['attributes']
+        assert mqtt5_options['content_type'] == {
+            'name': 'content_type',
+            'description': 'MQTT content type',
+            'type': 'string',
+        }
+
+        endpoint_protocols = endpoint_attrs['protocol']['ifvalues']
+        for selector in ('HTTP/1.1', 'HTTP/2', 'HTTP/3'):
+            assert endpoint_protocols[selector] == endpoint_protocols['HTTP']
+        assert endpoint_protocols['AMQP'] == endpoint_protocols['AMQP/1.0']
+        assert endpoint_protocols['MQTT'] == endpoint_protocols['MQTT/5.0']
+
+    def test_issue721_message_json_schema_admits_new_protocol_shapes(
+        self, message_model, tools_dir
+    ):
+        """Generated Message JSON Schema admits the corrected canonical declarations."""
+        schema_data = self.generate_schema(message_model, 'json-schema', tools_dir)
+        validator = jsonschema.Draft7Validator(schema_data)
+
+        document = {
+            'messagegroups': {
+                'group': {
+                    'protocol': 'HTTP/1.1',
+                    'messages': {
+                        'base': {
+                            'basemessage': '/messagegroups/group/messages/root',
+                            'protocol': 'HTTP/1.1',
+                            'protocoloptions': {
+                                'query': {'foo': 'bar', 'tenant': '{tenant}'},
+                                'status': '{code}',
+                            },
+                        },
+                        'nats': {
+                            'protocol': 'NATS',
+                            'protocoloptions': {
+                                'subject': 'orders.{tenant}',
+                                'reply-to': 'orders.reply',
+                            },
+                        },
+                        'mqtt': {
+                            'protocol': 'MQTT/5.0',
+                            'protocoloptions': {
+                                'topic_name': 'orders/{tenant}',
+                                'content_type': 'application/json; charset="utf-8"',
+                            },
+                        },
+                    },
+                }
+            }
+        }
+
+        validator.validate(document)
+
+    @pytest.mark.parametrize(
+        ('message_id', 'message'),
+        [
+            (
+                'legacy-query-array',
+                {
+                    'protocol': 'HTTP',
+                    'protocoloptions': {
+                        'query': [{'name': 'foo', 'value': 'bar'}],
+                    },
+                },
+            ),
+            (
+                'numeric-status',
+                {
+                    'protocol': 'HTTP',
+                    'protocoloptions': {'status': 204},
+                },
+            ),
+            (
+                'mqtt-content-type-object',
+                {
+                    'protocol': 'MQTT/5.0',
+                    'protocoloptions': {'content_type': {'value': 'application/json'}},
+                },
+            ),
+        ],
+    )
+    def test_issue721_message_json_schema_rejects_legacy_or_wrong_shapes(
+        self, message_model, tools_dir, message_id, message
+    ):
+        """Generated Message JSON Schema rejects removed spellings and wrong JSON kinds."""
+        schema_data = self.generate_schema(message_model, 'json-schema', tools_dir)
+        validator = jsonschema.Draft7Validator(schema_data)
+
+        document = {
+            'messagegroups': {
+                'group': {
+                    'messages': {
+                        message_id: message,
+                    }
+                }
+            }
+        }
+
+        assert list(validator.iter_errors(document))
+
+    def test_issue721_generated_protocol_selectors_are_explicit_in_openapi(
+        self, message_model, endpoint_model, tools_dir
+    ):
+        """OpenAPI generation exposes only the documented explicit selector branches."""
+        message_openapi = self.generate_schema(message_model, 'openapi', tools_dir)
+        endpoint_openapi = self.generate_schema(endpoint_model, 'openapi', tools_dir)
+
+        message_schemas = message_openapi['components']['schemas']
+        for selector_schema in (
+            'protocol_HTTP',
+            'protocol_HTTP_1_1',
+            'protocol_HTTP_2',
+            'protocol_HTTP_3',
+        ):
+            assert selector_schema in message_schemas
+        assert 'protocol_MQTT' not in message_schemas
+        assert 'protocol_HTTP_2_0' not in message_schemas
+        assert 'basemessage' in message_schemas['message']['properties']
+        assert 'basemessageuri' not in message_schemas['message']['properties']
+        nats_options = message_schemas['protocol_NATS']['properties'][
+            'protocoloptions'
+        ]['properties']
+        assert 'reply-to' in nats_options
+        assert 'reply' not in nats_options
+
+        endpoint_schemas = endpoint_openapi['components']['schemas']
+        for selector_schema in (
+            'protocol_HTTP',
+            'protocol_HTTP_1_1',
+            'protocol_HTTP_2',
+            'protocol_HTTP_3',
+            'protocol_AMQP_1_0',
+            'protocol_AMQP',
+            'protocol_MQTT_5_0',
+            'protocol_MQTT',
+        ):
+            assert selector_schema in endpoint_schemas
+        assert 'protocol_MQTT_3_1' not in endpoint_schemas
+        assert 'protocol_AMQP_0_9_1' not in endpoint_schemas
 
     def test_schema_model_json_structure(self, schema_model, tools_dir):
         """Test native JSON Structure shape for a registry model."""

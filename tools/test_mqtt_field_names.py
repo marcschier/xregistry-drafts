@@ -38,3 +38,10 @@ def test_user_property_items_keep_string_name_and_value():
     assert item["type"] == "object"
     assert item["attributes"]["name"]["type"] == "string"
     assert item["attributes"]["value"]["type"] == "string"
+
+
+def test_content_type_is_mime_string_not_uri_template():
+    attribute = _attributes("MQTT/5.0")["content_type"]
+    assert attribute["name"] == "content_type"
+    assert attribute["type"] == "string"
+    assert attribute["type"] != "uritemplate"
