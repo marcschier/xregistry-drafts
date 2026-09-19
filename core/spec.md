@@ -2752,7 +2752,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
 {
   "resourceid": "sharedSchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
+  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema$details",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
@@ -2773,7 +2773,7 @@ then the resulting serialization of the source Resource would be:
 {
   "resourceid": "mySchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
@@ -2791,7 +2791,7 @@ then the resulting serialization of the source Resource would be:
     "modifiedat": "2024-01-01-T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
-    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
+    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1$details",
     "defaultversionsticky": false
   },
 
@@ -2899,7 +2899,7 @@ Resource (`missingSchema`) would look like:
 ```yaml
 {
   "schemaid": "mySchema",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "metaurl": "https://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
@@ -5370,7 +5370,7 @@ the data being parsed; e.g. `/model`.
 ### server_busy
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#server_busy`
-* Code: `503 Internal Server Error`
+* Code: `503 Service Unavailable`
 * Title: `Due to excessive requests, the server could not complete "<subject>", please try again later.`
 * Subject: `<request_path>`
 

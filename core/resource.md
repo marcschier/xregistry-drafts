@@ -420,7 +420,7 @@ PUT /dirs/d1/files/f1
       "modifiedat": "now",
       "ancestorid": "v1"
     },
-    "v3": { see Resource.* attrs },
+    "v3": { see Resource.* attrs }
   }
 }
 ```
@@ -1224,7 +1224,7 @@ PATCH /dirs/d1/files/f1
 
 **Notes:**
 
-- Resource.name is ignored due to `v2` (the initial default Version) being in
+- Resource.name is ignored due to `v2` (the current default Version) being in
   the request's `versions` collection.
 - Since this `PATCH` changes `meta.defaultversionsticky` from `false` to `true`
   without specifying `meta.defaultversionid`, the default Version is
@@ -2291,7 +2291,7 @@ PUT /dirs/d1/files/f1?setdefaultversionid=v1
       "createdat": "now",
       "modifiedat": "now",
       "ancestorid": "v1"
-    },
+    }
   }
 }
 ```
@@ -2353,7 +2353,7 @@ POST /dirs/d1/files/f1/versions?setdefaultversionid=v1
       "createdat": "now",
       "modifiedat": "now",
       "ancestorid": "v1"
-    },
+    }
   }
 }
 ```
