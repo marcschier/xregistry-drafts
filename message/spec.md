@@ -1,6 +1,6 @@
 # Message Definitions Registry Service - Version 1.0-rc4
 
-<!-- words: formatvalidated compatibilityvalidated -->
+<!-- words: formatvalidated compatibilityvalidated basemessageuri -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
 
 ## Abstract
@@ -637,6 +637,11 @@ the core xRegistry Resource
   - `/messagegroups/group1/messages/msg1/versions/v1.0`
   - `https://catalog.example.com/messagegroups/shared/messages/base-event`
 
+Earlier generated artifacts used the obsolete `basemessageuri` spelling. New
+authoring data, generated client properties, and validation tools MUST use
+`basemessage`; implementations migrating legacy data MUST NOT merge both
+spellings silently.
+
 #### `envelope`
 
 Same as the [`envelope`](#envelope-message-group) attribute of the
@@ -1095,7 +1100,9 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values.
+The `query` property is a map of string keys to string values. Implementations
+migrating from the obsolete array form MUST NOT silently collapse duplicate
+legacy query names; callers need to choose the intended map value explicitly.
 
 The `path` property is a URI template.
 
@@ -1122,12 +1129,9 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": [
-      {
-        "name": "foo",
-        "value": "bar"
-      }
-    ],
+    "query": {
+      "foo": "bar"
+    },
     "path": "/foo/{bar}",
     "method": "POST"
   },
@@ -1212,7 +1216,7 @@ following properties are defined, with type constraints:
 | `subject`              | `string`         | message subject                                                                  |
 | `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
 | `correlation-id`       | `string`         | client-specific id that can be used to mark or identify messages between clients |
-| `content-type`         | `symbol`         | MIME content type for the message                                                |
+| `content-type`         | `string`         | MIME content type for the message                                                |
 | `content-encoding`     | `symbol`         | MIME content encoding for the message                                            |
 | `absolute-expiry-time` | `timestamp`      | time when this message is considered expired                                     |
 | `group-id`             | `string`         | group this message belongs to                                                    |
@@ -1223,6 +1227,11 @@ The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
 `uritemplate`. A `value` constraint for the `message-id` property SHOULD NOT be
 defined in the message definition except for the case where the `message-id`
 is a `uritemplate`.
+
+The `content-type` declaration is a MIME string as defined by
+[MIME Content-Type][MIME Content-Type]. AMQP 1.0 carries this value as its
+native wire `symbol`; the xRegistry declaration type does not change the AMQP
+wire type.
 
 ##### `application-properties` (AMQP 1.0)
 
@@ -1299,14 +1308,17 @@ indicate whether the property is supported for the respective MQTT version.
 | `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
 | `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
-| `content_type`            | `symbol`      | no         | yes      | MIME content type of the payload |
+| `content_type`            | `string`      | no         | yes      | MIME content type of the payload |
 | `user_properties`         | Array         | no         | yes      | User properties                  |
+
+The `content_type` property is a MIME string as defined by
+[MIME Content-Type][MIME Content-Type].
 
 Like HTTP, MQTT allows for multiple user properties with the same name,
 so the `user_properties` property is an array of objects, each of which
 contains a single property name and value.
 
-The values of all `string`, `symbol`, and `uritemplate`-typed properties and
+The values of all `string` and `uritemplate`-typed properties and
 user properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
@@ -1392,6 +1404,10 @@ The following properties are defined:
 | `reply-to` | `uritemplate` | The subject the receiver ought to reply to   |
 | `headers`  | Array         | A list of headers to set on the message      |
 
+Earlier generated artifacts used the obsolete `reply` spelling. New authoring
+data, generated client properties, and validation tools MUST use `reply-to`;
+implementations migrating legacy data MUST NOT treat `reply` as a silent alias.
+
 The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
 Template syntax. When the same placeholder is used in multiple properties,
@@ -1426,6 +1442,7 @@ Example:
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
+[MIME Content-Type]: https://www.rfc-editor.org/rfc/rfc2045#section-5.1
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
 [rfc3339]: https://tools.ietf.org/html/rfc3339
 [message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message
