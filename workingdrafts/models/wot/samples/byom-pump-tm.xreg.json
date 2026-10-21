@@ -1,8 +1,8 @@
 {
-    "thingmodelgroups": {
+    "thinggroups": {
         "Contoso.Pumps": {
             "description": "Thing Models supplied by Contoso and stored unchanged",
-            "thingmodels": {
+            "things": {
                 "example.contoso.tm.pump": {
                     "meta": {
                         "defaultversionid": "2"
@@ -10,6 +10,7 @@
                     "versions": {
                         "1": {
                             "description": "Vendor-supplied pump Thing Model, stored as authored",
+                            "kind": "ThingModel",
                             "format": "JSON-LD/1.1",
                             "contenttype": "application/tm+json",
                             "wotid": "https://contoso.example/tm/pump",
@@ -18,7 +19,7 @@
                             "license": "https://contoso.example/licenses/tm",
                             "canonicalurl": "https://contoso.example/tm/pump",
                             "maturity": "Vendor",
-                            "thingmodel": {
+                            "thing": {
                                 "@context": "https://www.w3.org/2022/wot/td/v1.1",
                                 "@type": "tm:ThingModel",
                                 "id": "https://contoso.example/tm/pump",
@@ -38,6 +39,7 @@
                         },
                         "2": {
                             "description": "Vendor-supplied pump Thing Model, stored as authored",
+                            "kind": "ThingModel",
                             "format": "JSON-LD/1.1",
                             "contenttype": "application/tm+json",
                             "wotid": "https://contoso.example/tm/pump",
@@ -46,7 +48,7 @@
                             "license": "https://contoso.example/licenses/tm",
                             "canonicalurl": "https://contoso.example/tm/pump",
                             "maturity": "Vendor",
-                            "thingmodel": {
+                            "thing": {
                                 "@context": "https://www.w3.org/2022/wot/td/v1.1",
                                 "@type": "tm:ThingModel",
                                 "id": "https://contoso.example/tm/pump",
@@ -69,13 +71,14 @@
                 },
                 "example.contoso.tm.device": {
                     "description": "Base device Thing Model that the pump extends",
+                    "kind": "ThingModel",
                     "format": "JSON-LD/1.1",
                     "contenttype": "application/tm+json",
                     "wotid": "https://contoso.example/tm/device",
                     "publisher": "Contoso",
                     "canonicalurl": "https://contoso.example/tm/device",
                     "maturity": "Vendor",
-                    "thingmodel": {
+                    "thing": {
                         "@context": "https://www.w3.org/2022/wot/td/v1.1",
                         "@type": "tm:ThingModel",
                         "id": "https://contoso.example/tm/device",

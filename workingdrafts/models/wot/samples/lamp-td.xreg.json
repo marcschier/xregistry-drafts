@@ -1,17 +1,18 @@
 {
-    "thingdescriptiongroups": {
+    "thinggroups": {
         "Fabrikam.FactoryFloor.01": {
             "description": "All Things deployed on Fabrikam factory floor #1",
-            "thingdescriptions": {
+            "things": {
                 "urn.fabrikam.lamp.42": {
                     "description": "Smart lamp instance #42 (above workbench A)",
+                    "kind": "ThingDescription",
                     "format": "JSON-LD/1.1",
                     "contenttype": "application/td+json",
                     "wotid": "urn:fabrikam:lamp:42",
                     "derivedfrom": [ "urn:fabrikam:lamp" ],
                     "publisher": "Fabrikam",
                     "maturity": "Vendor",
-                    "thingdescription": {
+                    "thing": {
                         "@context": [
                             "https://www.w3.org/2022/wot/td/v1.1",
                             { "fabrikam": "https://fabrikam.example/wot/v1#" }
@@ -23,7 +24,7 @@
                         "links": [
                             {
                                 "rel": "type",
-                                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp",
+                                "href": "https://example.com/thinggroups/Fabrikam.Lighting/things/urn.fabrikam.lamp",
                                 "type": "application/tm+json"
                             }
                         ],

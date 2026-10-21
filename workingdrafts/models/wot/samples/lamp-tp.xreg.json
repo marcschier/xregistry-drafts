@@ -1,0 +1,21 @@
+{
+    "thinggroups": {
+        "Fabrikam.Lighting": {
+            "description": "Provisional Thing Projection storage example",
+            "things": {
+                "urn.fabrikam.lamp.projection": {
+                    "kind": "ThingProjection",
+                    "format": "JSON-LD/1.1",
+                    "contenttype": "application/json",
+                    "wotid": "urn:fabrikam:lamp:projection",
+                    "description": "Registry envelope only; TP vocabulary and lineage are not yet defined",
+                    "thing": {
+                        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                        "id": "urn:fabrikam:lamp:projection",
+                        "title": "Provisional lamp projection"
+                    }
+                }
+            }
+        }
+    }
+}
