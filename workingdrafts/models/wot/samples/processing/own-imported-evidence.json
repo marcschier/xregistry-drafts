@@ -1,0 +1,290 @@
+{
+  "formatVersion": "1",
+  "evidence": {
+    "kind": "retained-resolution",
+    "invocation": {
+      "profile": {
+        "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+        "version": "1",
+        "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36",
+        "documentUrl": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingprofiles/tm-property-reference/versions/1",
+        "interpretationBase": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingprofiles/tm-property-reference/versions/1",
+        "registry": {
+          "origin": "https://registry.example",
+          "groupCollection": "wotprocessinggroups",
+          "groupId": "portable-reference-processing",
+          "resourceCollection": "processingprofiles",
+          "resourceId": "tm-property-reference",
+          "versionId": "1"
+        }
+      },
+      "configuration": {
+        "id": "https://plant.example/configurations/own-vendor-imports",
+        "version": "approved-own-default",
+        "digest": "sha-256:c0f173370798fecc9a5165752774d949e4065f20e6aaead57679974a3d16d336",
+        "documentUrl": "https://plant.example/configurations/own-vendor-imports.json",
+        "interpretationBase": "https://plant.example/configurations/own-vendor-imports.json",
+        "source": "own"
+      },
+      "root": {
+        "identity": "urn:example:plant:controller",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+        "documentUrl": "https://plant.example/controller.tm.json",
+        "interpretationBase": "https://plant.example/",
+        "registry": {
+          "origin": "https://registry.example",
+          "groupCollection": "thingmodelgroups",
+          "groupId": "vendor",
+          "resourceCollection": "thingmodels",
+          "resourceId": "controller",
+          "versionId": "release-A"
+        }
+      },
+      "request": {
+        "operation": "resolve-definition",
+        "pointer": "/properties/temperature"
+      },
+      "effectivePolicyDigest": "sha-256:c869b86eaf89aca866a07a712c15e36cd6cee0129aee8c7da412b7ebb24a592f"
+    },
+    "invocationDigest": "sha-256:8b5218a02d3fba5fdf0d585526bee8992a4decabc026ee65c6f3df773e31a45a",
+    "output": {
+      "digestScope": "json-jcs",
+      "digest": "sha-256:4ccede79f465a02a35af67c4d572a335e0014e7629baf2efe3ceab3b50abce69",
+      "value": {
+        "readOnly": true,
+        "title": "Plant temperature",
+        "type": "number",
+        "unit": "degree Celsius"
+      }
+    },
+    "localReferences": [],
+    "policy": {
+      "formatVersion": "1",
+      "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+      "rootDigest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+      "rules": [
+        {
+          "sourcePointer": "/properties/temperature/tm:ref",
+          "role": "tm:ref",
+          "expectedKind": "TM",
+          "expectedIdentity": "urn:example:sensors:model",
+          "resolver": {
+            "adapter": "xregistry-wot",
+            "registry": "https://registry.example",
+            "groupCollection": "thingmodelgroups",
+            "groupId": "vendor",
+            "resourceCollection": "thingmodels",
+            "resourceId": "sensors"
+          },
+          "selection": {
+            "mode": "registry-default"
+          }
+        }
+      ]
+    },
+    "lock": {
+      "formatVersion": "1",
+      "core": {
+        "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+        "policyDigest": "sha-256:c869b86eaf89aca866a07a712c15e36cd6cee0129aee8c7da412b7ebb24a592f",
+        "rootArtifact": "a1",
+        "artifacts": [
+          {
+            "artifactId": "a0",
+            "representation": "file",
+            "digestScope": "decoded-file-octets",
+            "digest": "sha-256:e9a78513cdf13fb3e1f90be7aa342a2b6c57b19d7aa8e191c5788cb80784d02a",
+            "byteLength": "2119",
+            "mediaType": "application/json",
+            "kind": "semantic-configuration",
+            "identity": "https://plant.example/configurations/own-vendor-imports"
+          },
+          {
+            "artifactId": "a1",
+            "representation": "file",
+            "digestScope": "decoded-file-octets",
+            "digest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+            "byteLength": "325",
+            "mediaType": "application/tm+json",
+            "kind": "TM",
+            "identity": "urn:example:plant:controller",
+            "documentUrl": "https://plant.example/controller.tm.json",
+            "interpretationBase": "https://plant.example/",
+            "registry": {
+              "origin": "https://registry.example",
+              "groupCollection": "thingmodelgroups",
+              "groupId": "vendor",
+              "resourceCollection": "thingmodels",
+              "resourceId": "controller",
+              "versionId": "release-A"
+            }
+          },
+          {
+            "artifactId": "a2",
+            "representation": "file",
+            "digestScope": "decoded-file-octets",
+            "digest": "sha-256:9320a818695badfc3fee34bcbfdf8e513195e19713312ff59fbe6af5b1f2f41c",
+            "byteLength": "298",
+            "mediaType": "application/tm+json",
+            "kind": "TM",
+            "identity": "urn:example:sensors:model",
+            "documentUrl": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+            "interpretationBase": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+            "registry": {
+              "origin": "https://registry.example",
+              "groupCollection": "thingmodelgroups",
+              "groupId": "vendor",
+              "resourceCollection": "thingmodels",
+              "resourceId": "sensors",
+              "versionId": "7"
+            }
+          },
+          {
+            "artifactId": "a3",
+            "representation": "file",
+            "digestScope": "decoded-file-octets",
+            "digest": "sha-256:95f340decc1efadd24102bd23967bed8952d92ce23d2a34bcbfcc33a7c744250",
+            "byteLength": "87",
+            "mediaType": "application/json",
+            "kind": "resolved-definition",
+            "identity": "urn:example:plant:controller#/properties/temperature"
+          }
+        ],
+        "edges": [
+          {
+            "from": "a1",
+            "sourcePointer": "/properties/temperature/tm:ref",
+            "authoredReference": "urn:example:sensors:model#/properties/temperature",
+            "role": "tm:ref",
+            "selection": {
+              "mode": "registry-default"
+            },
+            "to": "a2",
+            "fragment": "/properties/temperature"
+          }
+        ],
+        "transformations": [
+          {
+            "inputs": [
+              "a0",
+              "a1",
+              "a2"
+            ],
+            "output": "a3",
+            "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+            "configurationDigest": "sha-256:e9a78513cdf13fb3e1f90be7aa342a2b6c57b19d7aa8e191c5788cb80784d02a",
+            "mappings": [
+              {
+                "outputPointer": "/properties/temperature",
+                "sourceArtifact": "a2",
+                "sourcePointer": "/properties/temperature"
+              }
+            ]
+          }
+        ]
+      },
+      "observations": {
+        "defaults": [
+          {
+            "resourceArtifact": "a2",
+            "observedDefaultVersionId": "7",
+            "laterObservedDefaultVersionId": "8"
+          }
+        ]
+      }
+    }
+  },
+  "retainedArtifacts": [
+    {
+      "artifactId": "profile",
+      "kind": "processing-profile",
+      "identity": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36",
+      "documentUrl": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingprofiles/tm-property-reference/versions/1",
+      "interpretationBase": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingprofiles/tm-property-reference/versions/1",
+      "archivePath": "processing-profile.json"
+    },
+    {
+      "artifactId": "definition",
+      "kind": "processing-profile-definition",
+      "identity": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/definition/1",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:164dc82d02fdc39252ffbc30462374cc49ea8e2fa4b389fba33944c556828e4a",
+      "documentUrl": "file:///fixtures/processing/processing-profile-definition.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "processing-profile-definition.json"
+    },
+    {
+      "artifactId": "configuration",
+      "kind": "processing-configuration",
+      "identity": "https://plant.example/configurations/own-vendor-imports",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:c0f173370798fecc9a5165752774d949e4065f20e6aaead57679974a3d16d336",
+      "documentUrl": "https://plant.example/configurations/own-vendor-imports.json",
+      "interpretationBase": "https://plant.example/configurations/own-vendor-imports.json",
+      "archivePath": "configuration-own-imported.json"
+    },
+    {
+      "artifactId": "semantic-configuration",
+      "kind": "semantic-configuration",
+      "identity": "https://plant.example/configurations/own-vendor-imports",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:e9a78513cdf13fb3e1f90be7aa342a2b6c57b19d7aa8e191c5788cb80784d02a",
+      "documentUrl": "file:///fixtures/processing/semantic-configuration.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "semantic-configuration-own-imported.json"
+    },
+    {
+      "artifactId": "root",
+      "kind": "TM",
+      "identity": "urn:example:plant:controller",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+      "documentUrl": "https://plant.example/controller.tm.json",
+      "interpretationBase": "https://plant.example/",
+      "archivePath": "imported-root.tm.json"
+    },
+    {
+      "artifactId": "target",
+      "kind": "TM",
+      "identity": "urn:example:sensors:model",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:9320a818695badfc3fee34bcbfdf8e513195e19713312ff59fbe6af5b1f2f41c",
+      "documentUrl": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+      "interpretationBase": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+      "archivePath": "imported-target.tm.json"
+    },
+    {
+      "artifactId": "policy",
+      "kind": "resolution-policy",
+      "identity": "https://registry.example/artifacts/resolution/imported-policy.json",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:c869b86eaf89aca866a07a712c15e36cd6cee0129aee8c7da412b7ebb24a592f",
+      "documentUrl": "https://registry.example/artifacts/resolution/imported-policy.json",
+      "interpretationBase": "https://registry.example/artifacts/resolution/",
+      "archivePath": "imported-policy.json"
+    },
+    {
+      "artifactId": "lock",
+      "kind": "resolution-record",
+      "identity": "https://registry.example/artifacts/resolution/imported-record.json",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:a55615bb42c836e66b65e26c58579f2a04426fc704ad9d791957d3effff8cb6f",
+      "documentUrl": "https://registry.example/artifacts/resolution/imported-record.json",
+      "interpretationBase": "https://registry.example/artifacts/resolution/",
+      "archivePath": "resolution-record-own-imported.json"
+    },
+    {
+      "artifactId": "output",
+      "kind": "resolved-definition",
+      "identity": "urn:example:plant:controller#/properties/temperature",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:95f340decc1efadd24102bd23967bed8952d92ce23d2a34bcbfcc33a7c744250",
+      "documentUrl": "file:///fixtures/processing/imported-output.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "imported-output.json"
+    }
+  ]
+}

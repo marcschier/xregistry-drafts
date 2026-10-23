@@ -1,0 +1,5 @@
+{
+  "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+  "resultValidation": "required",
+  "documentLoader": "locked-inputs-only"
+}

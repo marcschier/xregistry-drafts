@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/models/wot/schemas/processing-configuration.schema.json",
+  "title": "xRegistry WoT Processing Configuration",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "id",
+    "version",
+    "profile",
+    "rules",
+    "limits"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": "1"
+    },
+    "id": {
+      "type": "string",
+      "format": "uri",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque configuration revision label; consumers compare it exactly and do not interpret it as a SemVer range"
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "digest"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "limits": {
+      "type": "object",
+      "required": [
+        "maxDepth",
+        "maxBytes",
+        "maxMilliseconds"
+      ],
+      "properties": {
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxMilliseconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha-256:[0-9a-f]{64}$"
+    },
+    "coreId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9._~:@-]{0,127}$"
+    },
+    "rule": {
+      "type": "object",
+      "required": [
+        "role",
+        "expectedKind",
+        "expectedIdentity",
+        "authority",
+        "selection"
+      ],
+      "properties": {
+        "role": {
+          "const": "tm:ref"
+        },
+        "expectedKind": {
+          "const": "TM"
+        },
+        "expectedIdentity": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "expectedDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "authority": {
+          "type": "object",
+          "required": [
+            "adapter",
+            "origin",
+            "scope"
+          ],
+          "properties": {
+            "adapter": {
+              "const": "https://xregistry.io/workingdrafts/models/wot/adapters/xregistry/1"
+            },
+            "origin": {
+              "type": "string",
+              "format": "uri"
+            },
+            "scope": {
+              "type": "object",
+              "required": [
+                "groupCollection",
+                "groupId",
+                "resourceCollection"
+              ],
+              "properties": {
+                "groupCollection": {
+                  "const": "thingmodelgroups"
+                },
+                "groupId": {
+                  "$ref": "#/$defs/coreId"
+                },
+                "resourceCollection": {
+                  "const": "thingmodels"
+                },
+                "resourceId": {
+                  "$ref": "#/$defs/coreId"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "selection": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "mode"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "registry-default"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "mode",
+                "versionId"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "exact"
+                },
+                "versionId": {
+                  "$ref": "#/$defs/coreId"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

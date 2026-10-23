@@ -1,0 +1,6 @@
+{
+  "type": "number",
+  "minimum": -40,
+  "title": "Controller temperature",
+  "unit": "degree Celsius"
+}

@@ -1,0 +1,99 @@
+{
+  "formatVersion": "1",
+  "evidence": {
+    "kind": "local-definition",
+    "invocation": {
+      "profile": {
+        "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+        "version": "1",
+        "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36",
+        "documentUrl": "file:///fixtures/processing/processing-profile.json",
+        "interpretationBase": "file:///fixtures/processing/"
+      },
+      "configuration": {
+        "id": "https://plant.example/configurations/local-property-resolution",
+        "version": "approved-local-1",
+        "digest": "sha-256:d9d868e974620056be0ab0c77cbffa376d356726f81de5f7e97e3868d8250f5e",
+        "documentUrl": "file:///fixtures/processing/configuration-own.json",
+        "interpretationBase": "file:///fixtures/processing/",
+        "source": "own"
+      },
+      "root": {
+        "identity": "urn:example:local:controller",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:13246cab9b39ca53abafbae629b5d524b9c036d11cd235cefdc907081bb4e900",
+        "documentUrl": "file:///fixtures/processing/local-root.tm.json",
+        "interpretationBase": "file:///fixtures/processing/"
+      },
+      "request": {
+        "operation": "resolve-definition",
+        "pointer": "/properties/temperature"
+      }
+    },
+    "invocationDigest": "sha-256:fde2c344499fe1cc02d3220e754e3e9529d5c9b55b3d10f61ca17f41bcec4e8f",
+    "output": {
+      "digestScope": "json-jcs",
+      "digest": "sha-256:168bb878ec9a7b905bc0db6edc3b1123492de022b773b98129af26636bf8893a",
+      "value": {
+        "type": "number",
+        "minimum": -40,
+        "title": "Controller temperature",
+        "unit": "degree Celsius"
+      }
+    },
+    "localReferences": [
+      {
+        "from": {
+          "digestScope": "decoded-file-octets",
+          "digest": "sha-256:13246cab9b39ca53abafbae629b5d524b9c036d11cd235cefdc907081bb4e900",
+          "documentUrl": "file:///fixtures/processing/local-root.tm.json",
+          "interpretationBase": "file:///fixtures/processing/"
+        },
+        "sourcePointer": "/properties/temperature/tm:ref",
+        "targetPointer": "/properties/baseTemperature"
+      }
+    ]
+  },
+  "retainedArtifacts": [
+    {
+      "artifactId": "profile",
+      "kind": "processing-profile",
+      "identity": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36",
+      "documentUrl": "file:///fixtures/processing/processing-profile.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "processing-profile.json"
+    },
+    {
+      "artifactId": "definition",
+      "kind": "processing-profile-definition",
+      "identity": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/definition/1",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:164dc82d02fdc39252ffbc30462374cc49ea8e2fa4b389fba33944c556828e4a",
+      "documentUrl": "file:///fixtures/processing/processing-profile-definition.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "processing-profile-definition.json"
+    },
+    {
+      "artifactId": "configuration",
+      "kind": "processing-configuration",
+      "identity": "https://plant.example/configurations/local-property-resolution",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:d9d868e974620056be0ab0c77cbffa376d356726f81de5f7e97e3868d8250f5e",
+      "documentUrl": "file:///fixtures/processing/configuration-own.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "configuration-own.json"
+    },
+    {
+      "artifactId": "root",
+      "kind": "TM",
+      "identity": "urn:example:local:controller",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:13246cab9b39ca53abafbae629b5d524b9c036d11cd235cefdc907081bb4e900",
+      "documentUrl": "file:///fixtures/processing/local-root.tm.json",
+      "interpretationBase": "file:///fixtures/processing/",
+      "archivePath": "local-root.tm.json"
+    }
+  ]
+}

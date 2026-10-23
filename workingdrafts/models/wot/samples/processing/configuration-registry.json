@@ -1,0 +1,35 @@
+{
+  "formatVersion": "1",
+  "id": "https://plant.example/configurations/own-registry-imports",
+  "version": "approved-own-registry",
+  "profile": {
+    "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+    "version": "1",
+    "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36"
+  },
+  "rules": [
+    {
+      "role": "tm:ref",
+      "expectedKind": "TM",
+      "expectedIdentity": "urn:example:sensors:model",
+      "authority": {
+        "adapter": "https://xregistry.io/workingdrafts/models/wot/adapters/xregistry/1",
+        "origin": "https://registry.example",
+        "scope": {
+          "groupCollection": "thingmodelgroups",
+          "groupId": "vendor",
+          "resourceCollection": "thingmodels",
+          "resourceId": "sensors"
+        }
+      },
+      "selection": {
+        "mode": "registry-default"
+      }
+    }
+  ],
+  "limits": {
+    "maxDepth": 12,
+    "maxBytes": 4194304,
+    "maxMilliseconds": 10000
+  }
+}

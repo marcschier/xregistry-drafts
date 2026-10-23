@@ -1,0 +1,56 @@
+{
+  "formatVersion": "1",
+  "invocation": {
+    "profile": {
+      "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+      "version": "1",
+      "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36",
+      "documentUrl": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingprofiles/tm-property-reference/versions/1",
+      "interpretationBase": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingprofiles/tm-property-reference/versions/1",
+      "registry": {
+        "origin": "https://registry.example",
+        "groupCollection": "wotprocessinggroups",
+        "groupId": "portable-reference-processing",
+        "resourceCollection": "processingprofiles",
+        "resourceId": "tm-property-reference",
+        "versionId": "1"
+      }
+    },
+    "configuration": {
+      "id": "https://plant.example/configurations/vendor-sensors",
+      "version": "approved-vendor-default",
+      "digest": "sha-256:5be9554a29ee4da4ce81331d0796eed2082f4b74bb11d480036dd2bb2a82fc06",
+      "documentUrl": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingconfigurations/vendor-default/versions/1",
+      "interpretationBase": "https://registry.example/wotprocessinggroups/portable-reference-processing/processingconfigurations/vendor-default/versions/1",
+      "source": "shared",
+      "registry": {
+        "origin": "https://registry.example",
+        "groupCollection": "wotprocessinggroups",
+        "groupId": "portable-reference-processing",
+        "resourceCollection": "processingconfigurations",
+        "resourceId": "vendor-default",
+        "versionId": "1"
+      }
+    },
+    "root": {
+      "identity": "urn:example:plant:controller",
+      "digestScope": "decoded-file-octets",
+      "digest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+      "documentUrl": "https://plant.example/controller.tm.json",
+      "interpretationBase": "https://plant.example/",
+      "registry": {
+        "origin": "https://registry.example",
+        "groupCollection": "thingmodelgroups",
+        "groupId": "vendor",
+        "resourceCollection": "thingmodels",
+        "resourceId": "controller",
+        "versionId": "release-A"
+      }
+    },
+    "request": {
+      "operation": "resolve-definition",
+      "pointer": "/properties/temperature"
+    }
+  },
+  "invocationDigest": "sha-256:b201beee57130d41bd5e9e535218d5aaba95cdd19572221bb0910e7831fc000e"
+}

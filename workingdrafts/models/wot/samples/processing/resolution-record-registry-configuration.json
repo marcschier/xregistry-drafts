@@ -1,0 +1,111 @@
+{
+  "formatVersion": "1",
+  "core": {
+    "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+    "policyDigest": "sha-256:c869b86eaf89aca866a07a712c15e36cd6cee0129aee8c7da412b7ebb24a592f",
+    "rootArtifact": "a1",
+    "artifacts": [
+      {
+        "artifactId": "a0",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:ce3acd99cd6249a054939116bc89193a3b07d4a2ad1ee6ff0ae2ac26d287a1fe",
+        "byteLength": "2525",
+        "mediaType": "application/json",
+        "kind": "semantic-configuration",
+        "identity": "https://plant.example/configurations/own-registry-imports"
+      },
+      {
+        "artifactId": "a1",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+        "byteLength": "325",
+        "mediaType": "application/tm+json",
+        "kind": "TM",
+        "identity": "urn:example:plant:controller",
+        "documentUrl": "https://plant.example/controller.tm.json",
+        "interpretationBase": "https://plant.example/",
+        "registry": {
+          "origin": "https://registry.example",
+          "groupCollection": "thingmodelgroups",
+          "groupId": "vendor",
+          "resourceCollection": "thingmodels",
+          "resourceId": "controller",
+          "versionId": "release-A"
+        }
+      },
+      {
+        "artifactId": "a2",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:9320a818695badfc3fee34bcbfdf8e513195e19713312ff59fbe6af5b1f2f41c",
+        "byteLength": "298",
+        "mediaType": "application/tm+json",
+        "kind": "TM",
+        "identity": "urn:example:sensors:model",
+        "documentUrl": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+        "interpretationBase": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+        "registry": {
+          "origin": "https://registry.example",
+          "groupCollection": "thingmodelgroups",
+          "groupId": "vendor",
+          "resourceCollection": "thingmodels",
+          "resourceId": "sensors",
+          "versionId": "7"
+        }
+      },
+      {
+        "artifactId": "a3",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:95f340decc1efadd24102bd23967bed8952d92ce23d2a34bcbfcc33a7c744250",
+        "byteLength": "87",
+        "mediaType": "application/json",
+        "kind": "resolved-definition",
+        "identity": "urn:example:plant:controller#/properties/temperature"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a1",
+        "sourcePointer": "/properties/temperature/tm:ref",
+        "authoredReference": "urn:example:sensors:model#/properties/temperature",
+        "role": "tm:ref",
+        "selection": {
+          "mode": "registry-default"
+        },
+        "to": "a2",
+        "fragment": "/properties/temperature"
+      }
+    ],
+    "transformations": [
+      {
+        "inputs": [
+          "a0",
+          "a1",
+          "a2"
+        ],
+        "output": "a3",
+        "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+        "configurationDigest": "sha-256:ce3acd99cd6249a054939116bc89193a3b07d4a2ad1ee6ff0ae2ac26d287a1fe",
+        "mappings": [
+          {
+            "outputPointer": "/properties/temperature",
+            "sourceArtifact": "a2",
+            "sourcePointer": "/properties/temperature"
+          }
+        ]
+      }
+    ]
+  },
+  "observations": {
+    "defaults": [
+      {
+        "resourceArtifact": "a2",
+        "observedDefaultVersionId": "7",
+        "laterObservedDefaultVersionId": "8"
+      }
+    ]
+  }
+}

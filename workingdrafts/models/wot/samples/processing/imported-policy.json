@@ -1,0 +1,24 @@
+{
+  "formatVersion": "1",
+  "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+  "rootDigest": "sha-256:126ee38a2d468d1bd44548f01d50f00db52f976348e2d6545df389d1649dd8bf",
+  "rules": [
+    {
+      "sourcePointer": "/properties/temperature/tm:ref",
+      "role": "tm:ref",
+      "expectedKind": "TM",
+      "expectedIdentity": "urn:example:sensors:model",
+      "resolver": {
+        "adapter": "xregistry-wot",
+        "registry": "https://registry.example",
+        "groupCollection": "thingmodelgroups",
+        "groupId": "vendor",
+        "resourceCollection": "thingmodels",
+        "resourceId": "sensors"
+      },
+      "selection": {
+        "mode": "registry-default"
+      }
+    }
+  ]
+}

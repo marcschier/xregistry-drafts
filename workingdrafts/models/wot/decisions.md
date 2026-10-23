@@ -3,6 +3,8 @@
 <!-- words: WoT wotid derivedfrom thingdescription thingmodel -->
 <!-- words: thingdescriptionid thingmodelid canonicalurl standardsbody -->
 <!-- words: openusd href td tm matchversions repointing -->
+<!-- words: configurationuri opc processingconfigurations processingprofiles -->
+<!-- words: resolutionpolicy resolutionrecords stableprofileuri ua wotprocessinggroups -->
 
 This document records the identity, versioning, lookup and provenance
 decisions behind the [WoT Registry specification](spec.md) and its
@@ -19,7 +21,7 @@ identifier. With a version baked in, the registry cannot tell that two
 documents describe the same logical Thing, `ancestor` lineage cannot be
 formed, and every holder of a reference has to be rewritten on each revision.
 Keeping the two apart also lets a recipient resolve a document without taking
-a string apart, and reusing the Core rule for "latest" avoids a second,
+a string apart, and reusing the Core rule for the default Version avoids a second,
 conflicting notion of it.
 
 **Example.** A typo is fixed in the lamp `urn:fabrikam:lamp:42`. Its `wotid`
@@ -29,7 +31,11 @@ the Resource `self` URL; one that wants the earlier text asks for that Version
 by name.
 
 **Consequence.** Revising a document leaves `wotid`, `thingdescriptionid` and
-`thingmodelid` unchanged and adds a Version.
+`thingmodelid` unchanged and adds a Version. The Core `versionid` is an
+identifier, not necessarily a numeric ordering or the WoT document's own
+version label; Core `versionmode` and `defaultversionsticky` define their
+separate lineage and default-selection behavior. Consumers that need repeatable
+processing record the chosen exact Version and its verified bytes.
 
 **Scope.** This constrains *mutating* an identifier, not the characters in
 one. An author who publishes a second, incompatible Thing is naming a
@@ -139,11 +145,14 @@ See [Section 4.6](spec.md#46-provenance-and-selection-metadata).
 
 ## 6. A breaking change produces a new logical Thing
 
-**Decision.** A breaking change creates a new Resource, and that Resource is
-reached by authoring a **new `wotid`** — not by revising the existing one. The
-superseded Resource retains its Versions and SHOULD set `deprecated` naming
-the successor. Where a solution versions Things semantically, the authored
-identifier SHOULD carry a major-version token.
+**Decision.** A breaking change that violates the Resource's declared
+`compatibility` policy is represented by a new Resource with a new authored
+`wotid`. A deployment MAY relate identifiers by an explicit family convention,
+but that convention does not redefine WoT identity or establish that a
+changed interface describes a different physical Thing. The superseded
+Resource SHOULD set `deprecated` naming the successor. Core retention and
+pruning rules continue to apply unless an explicit publication-retention
+capability says otherwise.
 
 **Why.** [Decision 1](#1-identity-and-version-are-separate-values) holds a
 `wotid` constant across revisions, and `wotid` is declared `matchversions`, so
@@ -154,15 +163,60 @@ explicitly removes an apparent contradiction between the two rules: without
 it, a breaking change has no legal representation, since it can neither become
 a Version of the existing Resource nor reuse its `wotid`.
 
-The major-version token is the convention the
-[Schema Registry](https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/spec.html)
-already recommends for `schemaid`, and `deprecated` is how it already links a
-superseded schema to its replacement; reusing both keeps a WoT registry
-legible to anyone who knows the approved specifications.
+If a deployment uses a major-version token, it is authored once as part of a
+stable identifier and MUST NOT be added by rewriting an existing document's
+`id`.
 
-**Consequence.** A consumer holding a stale identifier is not stranded: the
-old Resource still resolves, still serves its documents, and points at the
-successor.
+**Consequence.** A consumer MAY follow `deprecated` to a successor when
+available, but this metadata does not guarantee that every historical Version
+remains retrievable.
 
 See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
+## 7. Resolution records are separate, scoped evidence
+
+**Decision.** An OPTIONAL resolution record captures the exact Version
+selected for each authored reference occurrence, including a registry default
+when one is used. Replay uses the approved retained artifact instead of
+looking up the default again.
+
+**Why.** A `versionid` can identify a mutable Version, defaults can change,
+and a Resource epoch does not prove that an existing Version's contents are
+unchanged. Reproducible processing therefore needs the selected Version, its
+verified retained bytes, and the interpretation inputs that give those bytes
+meaning.
+
+**Consequence.** The OPTIONAL `resolutionpolicy` attachment is a suggestion,
+not authority. The deployment host imports authoritative policy bytes as an
+immutable revision into protected state. The separate `resolutionrecords`
+list MAY point to multiple digest-pinned records; it defines no default and
+does not activate anything. This draft defines the format in its
+[local schemas](schemas/README.md), independently of W3C and OPC UA proposals.
+
+See [Section 4.6](spec.md#46-provenance-and-selection-metadata) and
+[5.3](spec.md#53-lookup).
+
+## 8. Portable processing profiles and configurations are discoverable, not authority
+
+**Decision.** Store processing descriptors and root-free reusable
+configurations in `wotprocessinggroups/{processingprofiles,
+processingconfigurations}`. Identify profiles with `stableprofileuri` and
+configurations with `configurationuri`. Keep the root-bound
+`resolutionpolicy` and `resolutionrecords` attachments separate.
+
+**Why.** Profile definitions and configurations can be shared independently of
+any one root document or deployment. The WoT model exposes them through
+ordinary xRegistry document Resources. This avoids a third TD/TM Resource
+kind and requires no Core/HTTP change. A separate domain-neutral model is
+deferred.
+
+**Consequence.** A consumer explicitly selects exactly one own or shared
+configuration for each invocation; it does not merge configurations or fall
+back to another. A stable URI or matching Core identity does not freeze
+mutable document bytes. Each invocation binds the exact Core Version IDs,
+byte digests, document locations, and interpretation bases. Descriptors do
+not establish profile support, trust, or authority. Deployment policy remains
+an authorized immutable revision in deployment-host protected state.
+
+See [Section 4.7](spec.md#47-processing-profile-and-configuration-resources)
+and [Section 5.4](spec.md#54-processing-invocation-and-evidence).

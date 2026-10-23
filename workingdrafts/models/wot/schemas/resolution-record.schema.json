@@ -1,0 +1,410 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/models/wot/schemas/resolution-record.schema.json",
+  "title": "xRegistry WoT Resolution Record",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "core"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": "1"
+    },
+    "core": {
+      "$ref": "#/$defs/core"
+    },
+    "observations": {
+      "$ref": "#/$defs/observations"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha-256:[0-9a-f]{64}$"
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^a[0-9]+$"
+    },
+    "coreId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9._~:@-]{0,127}$"
+    },
+    "pointer": {
+      "type": "string",
+      "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+    },
+    "core": {
+      "type": "object",
+      "required": [
+        "profile",
+        "policyDigest",
+        "rootArtifact",
+        "artifacts",
+        "edges",
+        "transformations"
+      ],
+      "properties": {
+        "profile": {
+          "const": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2"
+        },
+        "policyDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "rootArtifact": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fileArtifact"
+              },
+              {
+                "$ref": "#/$defs/nativeArtifact"
+              }
+            ]
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/edge"
+          }
+        },
+        "transformations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/transformation"
+          }
+        }
+      }
+    },
+    "artifactCommon": {
+      "type": "object",
+      "required": [
+        "artifactId",
+        "digest",
+        "kind",
+        "mediaType"
+      ],
+      "properties": {
+        "artifactId": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "identity": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "documentUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "interpretationBase": {
+          "type": "string",
+          "format": "uri"
+        },
+        "contextBindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextBinding"
+          }
+        },
+        "registry": {
+          "$ref": "#/$defs/registryEvidence"
+        }
+      }
+    },
+    "fileArtifact": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/artifactCommon"
+        },
+        {
+          "type": "object",
+          "required": [
+            "representation",
+            "digestScope",
+            "byteLength"
+          ],
+          "properties": {
+            "representation": {
+              "const": "file"
+            },
+            "digestScope": {
+              "const": "decoded-file-octets"
+            },
+            "byteLength": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)$"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "nativeArtifact": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/artifactCommon"
+        },
+        {
+          "type": "object",
+          "required": [
+            "representation",
+            "digestScope",
+            "representationProfile"
+          ],
+          "properties": {
+            "representation": {
+              "const": "native-metadata"
+            },
+            "digestScope": {
+              "const": "frozen-native-metadata-v1"
+            },
+            "representationProfile": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "contextBinding": {
+      "type": "object",
+      "required": [
+        "url",
+        "digest",
+        "effectiveBase"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "effectiveBase": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "registryEvidence": {
+      "type": "object",
+      "required": [
+        "origin",
+        "groupCollection",
+        "groupId",
+        "resourceCollection",
+        "resourceId",
+        "versionId"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "groupCollection": {
+          "enum": [
+            "thingdescriptiongroups",
+            "thingmodelgroups"
+          ]
+        },
+        "groupId": {
+          "$ref": "#/$defs/coreId"
+        },
+        "resourceCollection": {
+          "enum": [
+            "thingdescriptions",
+            "thingmodels"
+          ]
+        },
+        "resourceId": {
+          "$ref": "#/$defs/coreId"
+        },
+        "versionId": {
+          "$ref": "#/$defs/coreId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "from",
+        "sourcePointer",
+        "authoredReference",
+        "role",
+        "selection",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "sourcePointer": {
+          "$ref": "#/$defs/pointer"
+        },
+        "authoredReference": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selection": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "mode"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "registry-default"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "mode",
+                "versionId"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "exact"
+                },
+                "versionId": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "to": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "fragment": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transformation": {
+      "type": "object",
+      "required": [
+        "inputs",
+        "output",
+        "profile",
+        "configurationDigest",
+        "mappings"
+      ],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/artifactId"
+          }
+        },
+        "output": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "profile": {
+          "type": "string",
+          "format": "uri"
+        },
+        "configurationDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mapping"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "mapping": {
+      "type": "object",
+      "required": [
+        "outputPointer",
+        "sourceArtifact",
+        "sourcePointer"
+      ],
+      "properties": {
+        "outputPointer": {
+          "$ref": "#/$defs/pointer"
+        },
+        "sourceArtifact": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "sourcePointer": {
+          "$ref": "#/$defs/pointer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "observations": {
+      "type": "object",
+      "properties": {
+        "defaults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "resourceArtifact",
+              "observedDefaultVersionId"
+            ],
+            "properties": {
+              "resourceArtifact": {
+                "$ref": "#/$defs/artifactId"
+              },
+              "observedDefaultVersionId": {
+                "$ref": "#/$defs/coreId"
+              },
+              "laterObservedDefaultVersionId": {
+                "$ref": "#/$defs/coreId"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

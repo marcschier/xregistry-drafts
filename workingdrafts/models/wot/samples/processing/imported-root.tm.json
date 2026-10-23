@@ -1,0 +1,14 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "tm": "https://www.w3.org/2022/wot/tm#"
+  },
+  "@type": "tm:ThingModel",
+  "id": "urn:example:plant:controller",
+  "properties": {
+    "temperature": {
+      "tm:ref": "urn:example:sensors:model#/properties/temperature",
+      "title": "Plant temperature"
+    }
+  }
+}
