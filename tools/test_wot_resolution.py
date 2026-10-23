@@ -7,6 +7,10 @@ import jsonschema
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonpointer import resolve_pointer
+from rfc3986.exceptions import InvalidAuthority, ValidationError as URIValidationError
+from rfc3986.misc import URI_MATCHER
+from rfc3986.uri import URIReference
+from rfc3986.validators import Validator as URIValidator
 
 
 ROOT = Path(__file__).parent.parent
@@ -17,6 +21,24 @@ PROFILE = (
     "https://xregistry.io/workingdrafts/models/wot/"
     "profiles/reference-resolution/0.2"
 )
+FORMAT_CHECKER = FormatChecker()
+URI_VALIDATOR = (
+    URIValidator()
+    .require_presence_of("scheme")
+    .check_validity_of(*URIValidator.COMPONENT_NAMES)
+)
+
+
+@FORMAT_CHECKER.checks("uri", raises=(InvalidAuthority, URIValidationError))
+def _is_absolute_uri(value):
+    if not isinstance(value, str):
+        return True
+    # Validate raw components without percent-encoding invalid input first.
+    match = URI_MATCHER.fullmatch(value)
+    if match is None:
+        return False
+    URI_VALIDATOR.validate(URIReference(**match.groupdict()))
+    return True
 
 
 def _read_json(path):
@@ -48,7 +70,7 @@ def _validate(instance, schema_path):
     schema = _read_json(schema_path)
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(
-        schema, format_checker=FormatChecker()
+        schema, format_checker=FORMAT_CHECKER
     ).validate(instance)
 
 
