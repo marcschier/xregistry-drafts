@@ -3,6 +3,7 @@
 <!-- words: WoT wotid derivedfrom thing kind ThingDescription ThingModel ThingProjection -->
 <!-- words: thingid canonicalurl standardsbody thinggroups things -->
 <!-- words: openusd href td tm matchversions repointing -->
+<!-- words: anded tds thingmodels tms -->
 
 This document records the identity, versioning, lookup and provenance
 decisions behind the [WoT Registry specification](spec.md) and its
@@ -178,7 +179,7 @@ it fixed across all Versions; changing kind requires a separate Resource.
 
 **Why.** Adding a collection per document kind would repeat the entire model
 for each new kind and force applications to partition documents that belong
-together. A required discriminator retains kind-specific discovery and
+together. A REQUIRED discriminator retains kind-specific discovery and
 validation without that partition. Neutral names avoid using "Thing
 Description" both for the TD document class and for every kind of document.
 A missing discriminator is an error rather than an implicit TD.
@@ -189,13 +190,13 @@ ids. A `wotid`-only query returns all matching kinds; Consumers resolve a
 known document class by filtering both attributes.
 
 **TP scope.** By explicit working-draft choice, TPs use JSON-LD 1.1 and
-provisional `application/json`. No TP vocabulary, required `@type`, or
+provisional `application/json`. No TP vocabulary, REQUIRED `@type`, or
 lineage is invented here. `derivedfrom` remains TD/TM metadata and is omitted
 on TPs until their lineage is defined. This is not a claim of a W3C TP
 standard or registered TP media type.
 
 **Trade-off.** This breaks the earlier working-draft wire format and registry
-paths. There is no mandated alias period. Migrators must handle colliding
+paths. There is no mandated alias period. Migrators MUST handle colliding
 ids, preserve document bytes and authored identifiers, and retain access
 controls that previously depended on separate Groups. Embedded legacy URLs
 need continued hosting or compatibility routes, not document rewriting.

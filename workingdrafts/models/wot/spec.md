@@ -11,6 +11,8 @@
 <!-- words: wotid wotids derivedfrom canonicalurl standardsbody submodel spdx openusd -->
 <!-- words: toolchain byom contoso maturity publisher nosniff validateformat -->
 <!-- words: shortself -->
+<!-- words: dereferenceable thingdescriptiongroups thingdescriptions -->
+<!-- words: thingmodelgroups thingmodels validatecompatibility -->
 
 ## Abstract
 
@@ -547,7 +549,7 @@ Resource collection name distinguishes kinds.
 - Format identifier: `JSON-LD/1.1`
 - `contenttype`: `application/json` (provisional)
 - Document: a JSON-LD 1.1 document. This draft does not define TP-specific
-  vocabulary, a required `@type`, projection source links, or lineage.
+  vocabulary, a REQUIRED `@type`, projection source links, or lineage.
 
 This is a provisional registry convention, not a claim that a W3C TP media
 type or document specification has been standardized. Consumers MUST NOT
@@ -1073,7 +1075,7 @@ access control.
 
 Mixing kinds in a Group does not make their authorization requirements
 identical. Operators that previously used separate TD and TM Groups as
-security boundaries MUST preserve the required access controls when
+security boundaries MUST preserve the REQUIRED access controls when
 migrating. A client-supplied `kind` filter is not a security boundary.
 
 Operators of a WoT Registry SHOULD be aware that Thing Descriptions can
