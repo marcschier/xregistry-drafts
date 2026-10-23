@@ -1,8 +1,9 @@
 # WoT Registry Decision Record
 
-<!-- words: WoT wotid derivedfrom thingdescription thingmodel -->
-<!-- words: thingdescriptionid thingmodelid canonicalurl standardsbody -->
+<!-- words: WoT wotid derivedfrom thing kind ThingDescription ThingModel ThingProjection -->
+<!-- words: thingid canonicalurl standardsbody thinggroups things -->
 <!-- words: openusd href td tm matchversions repointing -->
+<!-- words: anded tds thingmodels tms -->
 
 This document records the identity, versioning, lookup and provenance
 decisions behind the [WoT Registry specification](spec.md) and its
@@ -23,13 +24,13 @@ a string apart, and reusing the Core rule for "latest" avoids a second,
 conflicting notion of it.
 
 **Example.** A typo is fixed in the lamp `urn:fabrikam:lamp:42`. Its `wotid`
-and its `thingdescriptionid` do not change, and the correction becomes a new
+and its `thingid` do not change, and the correction becomes a new
 Version of the same Resource. A Consumer that wants the correction asks for
 the Resource `self` URL; one that wants the earlier text asks for that Version
 by name.
 
-**Consequence.** Revising a document leaves `wotid`, `thingdescriptionid` and
-`thingmodelid` unchanged and adds a Version.
+**Consequence.** Revising a document leaves `wotid`, `kind`, and `thingid`
+unchanged and adds a Version.
 
 **Scope.** This constrains *mutating* an identifier, not the characters in
 one. An author who publishes a second, incompatible Thing is naming a
@@ -69,7 +70,7 @@ See [Section 5.2](spec.md#52-preserving-customer-documents).
 ## 3. The Resource id is chosen by the client, not derived by the registry
 
 **Decision.** This specification does not define a mapping between a `wotid`
-and a `thingdescriptionid`/`thingmodelid`. The client that creates a Resource
+and a `thingid`. The client that creates a Resource
 supplies both; the registry relates them by storing them together, not by
 computing one from the other.
 
@@ -96,10 +97,11 @@ See [Section 5.1](spec.md#51-wot-identifiers-and-registry-ids).
 
 ## 4. `wotid` is a REQUIRED, indexed, first-party attribute
 
-**Decision.** `wotid` is REQUIRED on every `thingdescription` and
-`thingmodel`, is defined in the extension model rather than left to an
+**Decision.** `wotid` is REQUIRED on every `thing`,
+is defined in the extension model rather than left to an
 application-managed label, and SHOULD be indexed so that
-`?filter=wotid=<id>` is served without scanning.
+kind-specific lookup using `?filter=kind=ThingModel,wotid=<id>` is served
+without scanning. The same principle applies to every kind.
 
 **Why.** An informal label is not enforced, not validated and not indexed, so
 a resolver cannot depend on it. Defining the attribute in the model means the
@@ -129,7 +131,8 @@ publisher.
 
 **Example.** An agent prefers a Thing Model marked `Standard` by a
 `standardsbody` over one marked `Community`. Two documents that share a
-`publisher` are still two documents, because identity is `wotid` alone.
+`publisher` are still two documents, because kind-specific identity is
+`(kind, wotid)`, not provenance.
 
 **Consequence.** Updating one of these attributes is an ordinary update of a
 Version attribute, governed by the Core rules for updating a Version. This
@@ -166,3 +169,64 @@ successor.
 
 See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
+## 7. Groups organize documents, not document kinds
+
+**Decision.** All WoT documents use `thinggroups` / `things`. A Group can mix
+TDs, TMs, and TPs. Every Version has a REQUIRED `kind` of `ThingDescription`,
+`ThingModel`, or `ThingProjection`, with no default. Kind is registry metadata
+and is never inserted into the stored document. `matchversions: true` keeps
+it fixed across all Versions; changing kind requires a separate Resource.
+
+**Why.** Adding a collection per document kind would repeat the entire model
+for each new kind and force applications to partition documents that belong
+together. A REQUIRED discriminator retains kind-specific discovery and
+validation without that partition. Neutral names avoid using "Thing
+Description" both for the TD document class and for every kind of document.
+A missing discriminator is an error rather than an implicit TD.
+
+**Identity.** A `(kind, wotid)` pair SHOULD be unique within a Group.
+Different kinds can share an authored identifier but have distinct Resource
+ids. A `wotid`-only query returns all matching kinds; Consumers resolve a
+known document class by filtering both attributes.
+
+**TP scope.** By explicit working-draft choice, TPs use JSON-LD 1.1 and
+provisional `application/json`. No TP vocabulary, REQUIRED `@type`, or
+lineage is invented here. `derivedfrom` remains TD/TM metadata and is omitted
+on TPs until their lineage is defined. This is not a claim of a W3C TP
+standard or registered TP media type.
+
+**Trade-off.** This breaks the earlier working-draft wire format and registry
+paths. There is no mandated alias period. Migrators MUST handle colliding
+ids, preserve document bytes and authored identifiers, and retain access
+controls that previously depended on separate Groups. Embedded legacy URLs
+need continued hosting or compatibility routes, not document rewriting.
+
+See [Sections 4.1–4.5](spec.md#41-thing-groups) and
+[Section 5.4](spec.md#54-migration-from-separate-collections).
+
+## 8. Kind selection applies to discovery and direct document access
+
+**Decision.** WoT Registries MUST support Core filters on `kind`, alone or
+ANDed with `wotid`, at collection, Resource, and Version scope. This includes
+the document view, not just `$details` metadata. Commas express HTTP AND;
+repeated `filter` parameters express OR. No new query API is introduced.
+
+**Why.** Merely exposing a discriminator would leave Consumers to fetch
+every document and filter locally. Filtering only discovery would also leave
+the document request unchecked. A kind-constrained singleton request returns
+the selected document or `404 Not Found`, never a different kind.
+
+**Review corrections.** The rubber-duck review identified cross-kind
+identifier collisions, per-kind media-type and lineage rules, migration
+breaks, and the earlier unsupported root-level `/thingmodels` lookup.
+Root-scoped queries now use Core's `thinggroups.things` filter path;
+Group-scoped queries use `/thinggroups/<id>/things`. Core string filters
+are case-insensitive. Kind filtering is selection, not authorization or
+proof of document conformance.
+
+**Consequence.** Collection counts and results reflect the filter.
+Consumers preserve it on pagination and document retrieval. Implementations
+SHOULD index `kind` and `(kind, wotid)`; fixed kind across Versions makes
+default and pinned retrieval consistent.
+
+See [Section 5.3.1](spec.md#531-kind-filtered-discovery-and-access).
