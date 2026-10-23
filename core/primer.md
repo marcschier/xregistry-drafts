@@ -751,7 +751,7 @@ In JSON, we can embed JSON-data like an Avro Schema into `schema` and we can
 also embed a single string for a text file into `schema` as long as we are
 applying appropriate escaping rules for JSON strings and we can use the same
 character encoding as the hosting JSON document. Any other document will be
-base64 encoded and stored in `schemabase64`. The `schemacontenttype` is meant
+base64 encoded and stored in `schemabase64`. The `contenttype` is meant
 to hold media-type and encoding of that data.
 
 You can also refer to the target document externally using `schemaurl` and
