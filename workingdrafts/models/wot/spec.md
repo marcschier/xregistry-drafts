@@ -128,11 +128,6 @@ still store and serve a document whose referent is absent. Consumers that
 compose a TD from its Thing Models or bind an affordance to an endpoint remain
 responsible for resolving those references.
 
-W3C WoT vocabularies and the xRegistry domain model are standardized
-independently. W3C ratification is not a prerequisite for publishing xRegistry
-Core or an OPC UA companion model; publication of either does not imply W3C
-approval. This specification has no OPC UA dependency.
-
 ### 1.3. Versioning
 
 Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
@@ -731,7 +726,7 @@ inference from a title or naming convention. Both `thingdescription` and
 the following OPTIONAL attributes:
 
 | Attribute | Type | Meaning |
-|---|---|---|---|
+|---|---|---|
 | `license` | string | The license the document is offered under, as an [SPDX][SPDX] license expression or a URL |
 | `publisher` | string | The organization that published the document |
 | `standardsbody` | string | The standards organization that defines or endorses the document, where one does |
@@ -791,10 +786,9 @@ that exchange document integrity and resolution evidence:
 The policy and record application formats defined by this draft are described
 in the [local schemas](schemas/README.md). Their profile identifier is
 `https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2`.
-These definitions are owned by this WoT domain draft and do not import a W3C
-proposal, OPC UA model, or external proposal schema. A registry MAY host the
-files using an existing artifact store; this model does not introduce another
-TD/TM Resource kind, media type, Core attribute, or HTTP endpoint.
+A registry MAY host the files using an existing artifact store; this model
+does not introduce another TD/TM Resource kind, media type, Core attribute, or
+HTTP endpoint.
 
 WoT document artifacts retrieved through this xRegistry adapter use the
 `file` representation and `decoded-file-octets` digest scope. A record from
