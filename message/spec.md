@@ -166,7 +166,7 @@ are distinguished by content-type (including parameters) or even only through
 whether payload schema definitions match an incoming message.
 
 Where attributes (or properties or headers; depending on protocol nomenclature)
-can be defined in `envelopemetadata` and `protocoloptions`, the general
+can be defined in the `envelopemetadata` and `protocoloptions`, the general
 pattern used in this model is that the attribute can have a name, a
 description, a type and a value. Setting a value makes that value constant for
 all instances of that message, which is useful for discriminators like AMQP’s
@@ -204,7 +204,7 @@ For example, let there be this definition:
 {
   "protocol": "MQTT/5.0",
   "protocoloptions": {
-    "topic_name": "/store/{storeid}/cashierdesk/{cdid}"
+    "topic_name": "/store/{storeid}/cashierdesk/{cdid}",
     "user_properties" : [
       { "name": "eventType", "type": "uritemplate", "value": "{eventType}" }
     ]
@@ -432,8 +432,6 @@ this form:
   "model": { ... }, ?
   "modelsource": { ... }, ?
 
-  "messagegroupsurl": "<URL>",
-  "messagegroupscount": <UINTEGER>,
   "messagegroups": {
     "<KEY>": {                                  # messagegroupid
       "messagegroupid": "<STRING>",             # xRegistry core attributes
@@ -453,8 +451,6 @@ this form:
       "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
       "protocol": "<STRING>", ?                 # e.g. HTTP/1.1
 
-      "messagesurl": "<URL>",
-      "messagescount": <UINTEGER>,
       "messages" : {
         "<KEY>": {                              # messageid
           "messageid": "<STRING>",              # xRegistry core attributes
@@ -510,12 +506,17 @@ this form:
           "metaurl": "<URL>",
           "meta": { ... }, ?
 
+          "versions": { ... }, ?
           "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
-          "versions": { ... } ?
-      } ?
+          "versionscount": <UINTEGER>
+        }
+      }, ?
+      "messagesurl": "<URL>",
+      "messagescount": <UINTEGER>
     } *
-  } ?
+  }, ?
+  "messagegroupsurl": "<URL>",
+  "messagegroupscount": <UINTEGER>,
 }
 ```
 
@@ -652,13 +653,10 @@ boundaries, this attribute is also REQUIRED and MUST be the same as the
 `envelope` attribute of the `messagegroup` object into which the message is
 embedded or referenced.
 
-The following abbreviated collection fragment uses the Core
-[`meta.xref`](../core/spec.md#cross-referencing-resources) representation for
-the borrowed Message. Only selected attributes are shown:
+The following abbreviated example uses the core specification's `meta.xref`
+feature to reference a Message defined in another Group.
 
 ```yaml
-"messagegroupsurl": "...",
-"messagegroupscount": 2,
 "messagegroups": {
   "com.example.abc": {
     "messagegroupid": "com.example.abc",
@@ -669,15 +667,15 @@ the borrowed Message. Only selected attributes are shown:
     "messages": {
       "com.example.abc.event1": {
         "messageid": "com.example.abc.event1",
-        "envelope": "CloudEvents/1.0",
-         # details ...
-        }
+        "envelope": "CloudEvents/1.0"
+        # details ...
       },
       "com.example.abc.event2": {
-        "messageid": "com.example.abc.event1",
-        "envelope": "CloudEvents/1.0",
+        "messageid": "com.example.abc.event2",
+        "envelope": "CloudEvents/1.0"
         # details ...
       }
+    }
   },
   "com.example.def": {
     "messagegroupid": "com.example.def",
@@ -695,7 +693,9 @@ the borrowed Message. Only selected attributes are shown:
       }
     }
   }
-}
+},
+"messagegroupsurl": "...",
+"messagegroupscount": 2
 ```
 
 #### `envelopemetadata`
@@ -891,7 +891,7 @@ the headers, properties or attributes defined for a message:
     - `any`: Any type of value, including `null`.
     - `binary`: CloudEvents "Binary" type.
     - `boolean`: CloudEvents "Boolean" type.
-    - `duration`: RFC3339 Duration.
+    - `duration`: ISO 8601 Duration.
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
     - `number`: IEEE754 Double.
     - `string`: CloudEvents "String" type.
@@ -937,22 +937,15 @@ This specification only defines one metadata envelope: "CloudEvents/1.0".
 ##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" envelope, the
-[`envelopemetadata`](#envelopemetadata) object contains one property
-declaration directly for each declared CloudEvents context attribute.
-For example, `envelopemetadata.source` is the declaration of the `source`
-attribute, and `envelopemetadata.type` is the declaration of the `type`
-attribute. There is no intervening `attributes` wrapper.
+[`envelopemetadata`](#envelopemetadata) object contains properties that
+correspond directly to the CloudEvents context attributes.
 
 As with the [CloudEvents specification][CloudEvents], the attributes form a
 flat list and extension attributes are allowed. Attribute names are restricted
 to lower-case alphanumerical characters without separators.
 
 [`envelopeoptions`](#envelopeoptions) holds serialization options such as mode
-and format, not these property declarations. Older examples that placed
-declarations in `envelopeoptions` or inside an `envelopemetadata.attributes`
-wrapper need to be migrated by moving each declaration directly under
-`envelopemetadata`. Those locations are not aliases for the modeled
-declarations.
+and format, not these property declarations.
 
 The base attributes are defined as follows:
 
@@ -1004,7 +997,7 @@ a message (see the [model file](model.json) for the complete definition):
 
 ```yaml
 "envelope": "CloudEvents/1.0",
-"envelopemetadata" {
+"envelopemetadata": {
   # "CloudEvents/1.0" envelope metadata
   "specversion": {
     "value": "1.0",
@@ -1299,17 +1292,17 @@ to the application properties collection of other protocols.
 The following properties are defined. The MQTT 3.1.1 and MQTT 5.0 columns
 indicate whether the property is supported for the respective MQTT version.
 
-| Property                  | Type          | MQTT 3.1.1 | MQTT 5.0 | Description                      |
-| ------------------------- | ------------- | ---------- | -------- | -------------------------------- |
-| `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
-| `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
-| `topic_name`              | `uritemplate` | yes        | yes      | Topic name                       |
+| Property                   | Type          | MQTT 3.1.1 | MQTT 5.0 | Description                      |
+| -------------------------- | ------------- | ---------- | -------- | -------------------------------- |
+| `qos`                      | `integer`     | yes        | yes      | Quality of Service level         |
+| `retain`                   | `boolean`     | yes        | yes      | Retain flag                      |
+| `topic_name`               | `uritemplate` | yes        | yes      | Topic name                       |
 | `payload_format_indicator` | `integer`     | no         | yes      | Payload format indicator         |
-| `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
-| `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
-| `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
-| `content_type`            | `string`      | no         | yes      | MIME content type of the payload |
-| `user_properties`         | Array         | no         | yes      | User properties                  |
+| `message_expiry_interval`  | `integer`     | no         | yes      | Message expiry interval          |
+| `response_topic`           | `uritemplate` | no         | yes      | Response topic                   |
+| `correlation_data`         | `binary`      | no         | yes      | Correlation data                 |
+| `content_type`             | `string`      | no         | yes      | MIME content type of the payload |
+| `user_properties`          | Array         | no         | yes      | User properties                  |
 
 The `content_type` property is a MIME string as defined by
 [MIME Content-Type][MIME Content-Type].

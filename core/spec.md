@@ -120,13 +120,11 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore, provided they are permitted by the model and pass applicable
-validation (see [Extensions](#extensions)). Specification-defined attributes
-and server-known extension attributes MUST generate an error if the
-corresponding feature is not supported or enabled. However, as with all
-attributes, if accepting the attribute results in a bad state (such as
-exceeding a size limit or resulting in a security issue), then the server MAY
-choose to reject the request.
+datastore. Specification-defined attributes and server-known extension
+attributes MUST generate an error if the corresponding feature is not supported
+or enabled. However, as with all attributes, if accepting the attribute results
+in a bad state (such as exceeding a size limit or resulting in a security
+issue), then the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
 `*` means the preceding item MAY appear zero or more times, and `+` means the
@@ -464,12 +462,14 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "attributes": {                     # Registry-level attributes/extensions
       "<STRING>": {                     # Attribute name (case-sensitive)
         "name": "<STRING>",             # Same as attribute's key
+        "description": "<STRING>", ?
         "type": "<TYPE>",               # string, decimal, array, object, ...
+
+        "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
+        "strict": <BOOLEAN>, ?          # Just value in "enum"? Default=true
         "target": "<XIDTYPE>", ?        # If "type" is "xid" or "url"
         "namecharset": "<STRING>", ?    # If "type" is "object"
-        "description": "<STRING>", ?
-        "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
-        "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
+
         "matchversions": <BOOLEAN>, ?   # Same for all Versions? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
@@ -479,8 +479,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "<TYPE>", ?           # map value type, or array type
+
+          "enum": [ <VALUE> * ], ?      # Array of scalars of this item `"type"`
+          "strict": <BOOLEAN>, ?        # Just value in "enum"? Default=true
           "target": "<XIDTYPE>", ?      # If this item "type" is xid/url
           "namecharset": "<STRING>", ?  # If this item "type" is object
+
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
         } ?
@@ -536,8 +540,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modelsource": { ... }, ?                        # Input model, if inlined
 
   # Repeat for each Group type
-  "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
-  "<GROUPS>count": <UINTEGER>,                     # e.g. "endpointscount"
   "<GROUPS>": {                                    # Only if inlined
     "<KEY>": {                                     # Key=the Group ID
       "<GROUP>id": "<STRING>",                     # The Group ID
@@ -567,8 +569,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       }, ?
 
       # Repeat for each Resource type in the Group
-      "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
-      "<RESOURCES>count": <UINTEGER>,              # e.g. "messagescount"
       "<RESOURCES>": {                             # Only if inlined
         "<KEY>": {                                 # The Resource ID
           "<RESOURCE>id": "<STRING>",
@@ -623,8 +623,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "defaultversionsticky": <BOOLEAN> ?    # Default=false
           }, ?
 
-          "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
             "<KEY>": {                             # The Version's versionid
               "<RESOURCE>id": "<STRING>",          # The Resource's ID
@@ -653,11 +651,17 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
               "<RESOURCE>base64": "<STRING>" ?           # If inlined & ~JSON
             } *
-          } ?
+          }, ?
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>
         } *
-      } ?
+      }, ?
+      "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
+      "<RESOURCES>count": <UINTEGER>               # e.g. "messagescount"
     } *
-  } ?
+  }, ?
+  "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
+  "<GROUPS>count": <UINTEGER>                      # e.g. "endpointscount"
 }
 ```
 
@@ -707,10 +711,9 @@ its parent entities do not exist, then they MUST be implicitly created. Each of
 those entities MUST be created with the appropriate `<SINGULAR>id` as specified
 by the protocol-specific mechanism by which the nested entity is identified.
 For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
-of the parent entities. If any of those entities have applicable REQUIRED
-attributes whose non-null values cannot be populated by the server or by
-default values (see the `required` aspect in the [model](./model.md)), then
-they cannot be implicitly created, and would need to be created directly.
+of the parent entities. If any of those entities have REQUIRED attributes whose
+values cannot be populated by the server or by defaults, then they cannot be
+implicitly created, and would need to be created directly.
 This also means that the creation of the original entity would fail and
 generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
@@ -1508,11 +1511,11 @@ The serialization of a collection is done as 3 attributes and they MUST adhere
 to their respective forms as follows:
 
 ```yaml
-"<COLLECTION>url": "<URL>",
-"<COLLECTION>count": <UINTEGER>,
 "<COLLECTION>": {
   # Map of entities in the collection, key is the "<SINGULAR>id" of the entity
-}
+},
+"<COLLECTION>url": "<URL>",
+"<COLLECTION>count": <UINTEGER>
 ```
 
 Where:
@@ -1552,8 +1555,6 @@ entities is an indication of those entities being deleted or not.
 Sample `schemagroups` collection attributes, with `schemagroups` inlined.
 
 ```yaml
-"schemagroupsurl": "http://registry.example.com/schemagroups",
-"schemagroupscount": 8
 "schemagroups": {
   "Contoso.ERP": {...},
   "Fabrikam.InkJetPrinter": {...},
@@ -1564,6 +1565,8 @@ Sample `schemagroups` collection attributes, with `schemagroups` inlined.
   "WaterBoiler": {...},
   "WindGenerator": {...}
 },
+"schemagroupsurl": "http://registry.example.com/schemagroups",
+"schemagroupscount": 8
 ```
 
 The requirements on the presence of the 3 `<COLLECTION>*` attributes varies
@@ -1709,9 +1712,9 @@ The serialization of the Registry entity MUST adhere to this form:
   "modelsource": { Registry model }, ?           # Only if inlined
 
   # Repeat for each Group type
+  "<GROUPS>": { Groups collection }, ?           # Only if inlined
   "<GROUPS>url": "<URL>",                        # e.g. "endpointsurl"
-  "<GROUPS>count": <UINTEGER>,                   # e.g. "endpointscount"
-  "<GROUPS>": { Groups collection } ?            # Only if inlined
+  "<GROUPS>count": <UINTEGER>                    # e.g. "endpointscount"
 }
 ```
 
@@ -2012,6 +2015,9 @@ The following defines the specification-defined capabilities:
     `setdefaultversionid`, `sort`, `specversion`.
 - When not specified, the default value MUST be an empty list and no flags
   are supported.
+- Implementations MAY include additional values based on other supported
+  features. For example, if the [pagination](../pagination/spec.md)
+  specification is supported then the `limit` flag SHOULD also appear.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]`                   # All supported flags (requests only)
@@ -2049,7 +2055,16 @@ The following defines the specification-defined capabilities:
   protocol-specific "pagination" feature when querying xRegistry collections.
   Each protocol binding specification will define which pagination
   specification(s) is to be supported, if any.
-- When not specified, the default value MUST be `false`.
+- When not specified, the default value MUST be `false` and the pagination
+  related flags SHOULD NOT appear in the `flags` capability.
+- When set to `true`, the pagination related flags SHOULD appear in the
+  `flags` capability.
+- During an update of the capabilities, if the `flags` and `pagination`
+  capabilities are inconsistent, then the `pagination` capability value
+  SHOULD result in changing the `flags` capability as needed to make them
+  consistent.
+- Use of a pagination type of feature on a non-collection result MUST generate
+  an error ([pagination_noncollection](#pagination_noncollection)).
 
 #### `shortself` Capability
 - Name: `shortself`
@@ -2259,8 +2274,7 @@ in the serialization of its capabilities offering map.
     }
   },
   "pagination": {
-    "type": "boolean",
-    "enum": [ false, true ]
+    "type": "boolean"
   },
   "shortself": {
     "type": "boolean",
@@ -2316,9 +2330,9 @@ The serialization of a Group entity MUST adhere to this form:
   }, ?
 
   # Repeat for each Resource type in the Group
+  "<RESOURCES>": { Resources collection }, ?  # If inlined
   "<RESOURCES>url": "<URL>",                  # e.g. "messagesurl"
-  "<RESOURCES>count": <UINTEGER>,             # e.g. "messagescount"
-  "<RESOURCES>": { Resources collection } ?   # If inlined
+  "<RESOURCES>count": <UINTEGER>              # e.g. "messagescount"
 }
 ```
 
@@ -2413,9 +2427,9 @@ it MUST adhere to the following:
   "metaurl": "<URL>",                        # URL to 'meta' entity
   "meta": { meta entity }, ?                 # Only if inlined
 
+  "versions": { map of Versions },           # Only if inlined
   "versionsurl": "<URL>",                    # Absolute URL to versions
-  "versionscount": <UINTEGER>,               # Size of versions collection
-  "versions": { map of Versions }            # Only if inlined
+  "versionscount": <UINTEGER>                # Size of versions collection
 }
 ```
 
@@ -2449,9 +2463,9 @@ it MUST adhere to the following:
   "metaurl": "<URL>",
   "meta": { meta entity }, ?                 # Only if inlined
 
+  "versions": { map of Versions }, ?         # Only if inlined
   "versionsurl": "<URL>",
-  "versionscount": <UINTEGER>,
-  "versions": { map of Versions } ?          # Only if inlined
+  "versionscount": <UINTEGER>
 }
 ```
 
@@ -2686,6 +2700,16 @@ The following provides additional details:
     specified in the
     [Cross Referencing Resources](#cross-referencing-resources) section.
 
+- Step 4 - Process the `meta` sub-object:
+  - If the operation isn't replacing the entire `meta` sub-object, but instead
+    is doing a "patch" type of operation, and it is changing the Resource's
+    `defaultversionsticky` flag from `false` to `true`, then the current
+    default Version (as defined prior to the start of the operation) is to be
+    made sticky. This aligns with the first sub-bullet of "Step 2" above,
+    to ensure that the same "default" Version is used for both updating
+    the "default Version attributes" as well as "making the default Version
+    sticky".
+
 See [Resource Update Samples](./resource.md) for examples.
 
 ##### `<RESOURCE>*` Attribute Processing
@@ -2750,20 +2774,20 @@ So, if the target Resource (`sharedSchema`) is defined as:
 
 ```yaml
 {
-  "resourceid": "sharedSchema",
+  "schemaid": "sharedSchema",
   "versionid": "v1",
   "self": "http://example.com/schemagroups/group2/schemas/sharedSchema$details",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00Z",
-  "modifiedat": "2024-01-01-T12:01:00Z",
+  "createdat": "2024-01-01T12:00:00Z",
+  "modifiedat": "2024-01-01T12:01:00Z",
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
 
-  "versionscount": 1,
-  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions"
+  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions",
+  "versionscount": 1
 }
 ```
 
@@ -2771,32 +2795,32 @@ then the resulting serialization of the source Resource would be:
 
 ```yaml
 {
-  "resourceid": "mySchema",
+  "schemaid": "mySchema",
   "versionid": "v1",
   "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00Z",
-  "modifiedat": "2024-01-01-T12:01:00Z",
+  "createdat": "2024-01-01T12:00:00Z",
+  "modifiedat": "2024-01-01T12:01:00Z",
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
-    "resourceid": "mySchema",
+    "schemaid": "mySchema",
     "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
     "xid": "/schemagroups/group1/schemas/mySchema/meta",
     "xref": "/schemagroups/group2/schemas/sharedSchema",
-    "createdat": "2024-01-01-T12:00:00Z",
-    "modifiedat": "2024-01-01-T12:01:00Z",
+    "createdat": "2024-01-01T12:00:00Z",
+    "modifiedat": "2024-01-01T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
     "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1$details",
     "defaultversionsticky": false
   },
 
-  "versionscount": 1,
-  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
+  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions",
+  "versionscount": 1
 }
 ```
 
@@ -2879,9 +2903,7 @@ Both the source and target Resources MUST be of the same Resource model type,
 simply having similar Resource type definitions is not sufficient. When the
 source and target Resources belong to different Group types, the
 [`ximportresources`](./model.md#groupsstringximportresources) feature MUST be
-used to share the Resource type definition. Resources in different instances
-of the same Group type already share the Resource type definition and do not
-require an import.
+used to share the Resource type definition.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted, never existed or the current client does not have permission
@@ -3093,8 +3115,11 @@ of the Resource in any of the following situations:
   `defaultversionsticky` with a value of `true`, but no `defaultversionid` was
   provided.
 - The processing patched the `meta` sub-object and the request modified
-  `defaultversionsticky` from `false` to `true`, but no `defaultversionid`
-  was provided.
+  `defaultversionsticky` from `false` to `true`, and a `defaultversionid`
+  value of `null` was provided for this attribute. Note that a patch request
+  with `defaultversionsticky` set to `true` but no `defaultversionid` specified
+  will make the default Version as defined prior to the start of the operation
+  sticky.
 
 Regardless of the reason for `defaultversionid` or `defaultversionsticky`
 being modified, those changes alone MUST NOT change any attributes in any
@@ -3483,7 +3508,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `compatibilityvalidated` Attribute
 - Type: Boolean
 - Description: When [`compatibility`
-  validation](./model.md#groupsstringresourcesstringvalidateformat)
+  validation](./model.md#groupsstringresourcesstringvalidatecompatibility)
   is enabled, this attribute will indicate whether or not the server has
   performed validation to ensure the Version conforms to the rules defined by
   its Resource's `meta.compatibility` attribute's value.
@@ -3540,7 +3565,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 - Description: When
   [`compatibilityvalidated`](#compatibilityvalidated-attribute) has a
   value of `false`, this attribute MUST provide information as to why the
-  format validation check was not performed.
+  compatibility validation check was not performed.
 
 - Constraints:
   - OPTIONAL
@@ -3577,26 +3602,29 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>` Attribute
 - Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
-  Version's domain-specific document's contents. For a non-empty document
-  [inlined](#inline-flag) in a response, the encoding of this attribute MUST
-  follow the Resource type's
-  [`typemap`](./model.md#groupsstringresourcesstringtypemap), including its
-  implicit mappings. The [Binary Flag](#binary-flag) MUST force the use of
-  `<RESOURCE>base64`.
+  Version's domain-specific document's contents. If the document's bytes
+  "as is" (without any additional processing such as escaping) allows for
+  them to appear as the value of this JSON attribute, then this attribute
+  MUST be used if the request asked for the document to be
+  [inlined](#inline-flag) in the response.
 
-  See [`typemap`](./model.md#groupsstringresourcesstringtypemap) for how mapping
-  values are processed. For example, the default `text/plain` string mapping
-  represents the bytes `Hello` as `"file": "Hello"` for a `file` Resource.
+  This is a convenience (optimization) attribute to make it easier to view the
+  document when it happens to be in the same format as the serialization of
+  the Version.
 
-  If no explicit or implicit `typemap` mapping applies, this attribute MAY
-  be used if the document's bytes "as is" are a valid value in the metadata
-  format. Document bytes MUST NOT be converted to a string merely to fit the
-  metadata format when no `string` mapping applies.
+  The model Resource attribute
+  [`typemap`](./model.md#groupsstringresourcesstringtypemap)
+  MAY be used to help the server determine if the document is in the
+  same format. If a Version has a matching `contenttype` attribute but the
+  contents of the Version's document do not successfully parse (e.g. it's
+  `application/json` but the JSON is invalid), then `<RESOURCE>`
+  MUST NOT be used and `<RESOURCE>base64` MUST be used instead.
 
 - Constraints
   - If the Version's document is to be serialized and is not empty,
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
-  - MUST only be used when permitted by the representation rules above.
+  - MUST only be used if the Version's document (bytes) is in the same
+    format as the serialization of the Version entity.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
@@ -3605,9 +3633,10 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 encoding of the corresponding
-  Version's domain-specific document. If the document cannot be represented
-  using `<RESOURCE>` under the `typemap` and binary-flag rules above, then
-  this attribute MUST be used instead.
+  Version's domain-specific document. If the Version's document (which is
+  stored as an array of bytes) is not conformant with the format being used
+  to serialize the Version (e.g. as a JSON value), then this attribute MUST be
+  used instead of the `<RESOURCE>` attribute.
 
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
@@ -3896,6 +3925,10 @@ relative and reference a Resource or Version, any protocol-specific
 modifications to the URLs (e.g. the HTTP `$details` suffix) MUST NOT be
 present despite the semantics of the suffix being applied (as noted below).
 
+When a relative URL references the root of the response, it MUST be `#`,
+which represents an empty JSON Pointer selecting the whole document, not
+`#/`, which selects an object member with an empty name.
+
 For clarity, if a Registry has a Schema Resource at
 `/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized
 in document view) would change based on the path specified on the `GET`
@@ -3907,7 +3940,7 @@ request:
 | `http://example.com/myreg/schemagroups` | `#/g1/schemas/s1` |
 | `http://example.com/myreg/schemagroups/g1/ ` | `#/schemas/s1` |
 | `http://example.com/myreg/schemagroups/g1/schemas ` | `#/s1` |
-| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#/` |
+| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#` |
 
 This feature is useful when a client wants to minimize the amount of data
 returned by a server because the duplication of that data (typically used for
@@ -4311,9 +4344,6 @@ contents of all specified inlineable attributes. Inlineable attributes include:
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
 
-Specifying the name of a known non-inlineable attribute MUST generate an error
-([inline_noninlineable](#inline_noninlineable)).
-
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
 separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
@@ -4387,8 +4417,8 @@ child appears, not all collections in the parent.
 When specifying a collection to be inlined, it MUST be specified using the
 plural name for the collection in its defined case.
 
-A malformed `<PATH>` value or a request to inline an unknown attribute MUST
-generate an error ([bad_inline](#bad_inline)).
+A request to inline an unknown, or non-inlineable, attribute MUST generate an
+error ([bad_inline](#bad_inline)).
 
 Note: If the Registry cannot return all expected data in one response because
 it is too large then it MUST generate an error ([too_large](#too_large)). In
@@ -5170,15 +5200,6 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `plural`: The "plural" type name of the Resource being processed.
 
-### inline_noninlineable
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#inline_noninlineable`
-* Code: `400 Bad Request`
-* Title: `Attempting to inline a non-inlineable attribute (<name>) on: <subject>.`
-* Subject: `<request_path>`
-* Args:
-  - `name`: The name of the attribute in question.
-
 ### invalid_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attribute`
@@ -5327,6 +5348,13 @@ error SHOULD be used instead.
 * Subject: `<entity_xid>`
 * Args:
   - `list`: Comma separated list of `<RESOURCE>*` attributes allowed.
+
+### pagination_noncollection
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#pagination_noncollection`
+* Code: `400 Bad Request`
+* Title: `Can't use pagination on a non-collection result set. Query path: <subject>.`
+* Subject: `<request_path>`
 
 ### parsing_data
 

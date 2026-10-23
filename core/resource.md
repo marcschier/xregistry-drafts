@@ -267,7 +267,7 @@ PUT /dirs/d1/files/f1
   alphabetically by their `versionid` values in order to set their `ancestorid`
   attributes.
 - Which means `v2` becomes the newest and therefore the default Version.
-- Ancestor order: `1` <- `v1` <- `v2`.
+- Ancestor order: `v1` <- `v2`.
 - Using `PATCH` would yield the exact same results.
 
 <hr>
@@ -551,7 +551,7 @@ PUT /dirs/d1/files/f1
   "versions": {
     "v0": {
       "epoch": 1,
-      "name": "foo"
+      "name": "foo",
       "createdat": "now",
       "modifiedat": "now",
       "ancestorid": "v1"
@@ -587,7 +587,7 @@ PUT /dirs/d1/files/f1
 {
   "fileid": "f1",
   "versionid": "v0",
-  "epoch": 1
+  "epoch": 1,
   "isdefault": true,
   "createdat": "2021",
   "modifiedat": "2021",
@@ -657,7 +657,7 @@ PUT /dirs/d1/files/f1
       "ancestorid": "v1"
     },
     "v1": { see Resource.* attrs },
-    "v2": { see Resource.* attrs }
+    "v2": {
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
@@ -744,7 +744,7 @@ PUT /dirs/d1/files/f1
       "modifiedat": "now",
       "ancestorid": "v1"
     },
-    "v1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs },
     "v2": {
       "epoch": 1,
       "createdat": "now",
@@ -767,7 +767,7 @@ PUT /dirs/d1/files/f1
   the resulting default Version. This means that in the previous example
   `versionid` was not needed, but in this example it is to yield the correct
   (same) net result.
-- Ancestor order: `v1` (2020) <- `v0` (now) <- `v2` (now).
+- Ancestor order: `v1` (2020) <- `v0` (2021) <- `v2` (now).
 
 <hr>
 
@@ -1124,10 +1124,8 @@ PUT /dirs/d1/files/f1
 - While the current default is `v2`, setting `defaultversionsticky` to `true`
   only takes effect after the default Version is recalculated. This is due to
   the fact that `PUT` is a complete replacement and `meta.defaultversionid`
-  not being in the request is akin to setting it to `null` in the request.
-  However, the next example also recalculates the default for a `PATCH` that
-  changes `meta.defaultversionsticky` from `false` to `true` without an explicit
-  ID.
+  not being in the request is akin to setting it to `null` in the request. In
+  the next example we'll see how `PATCH` changes this semantics.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>
@@ -1164,7 +1162,6 @@ PUT /dirs/d1/files/f1
       "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
-    }
   }
 }
 ```
@@ -1194,10 +1191,10 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "v1",
+  "versionid": "v2",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2025",
+  "createdat": "2020",
   "modifiedat": "now",
   "ancestorid": "v2",
 
@@ -1205,17 +1202,17 @@ PATCH /dirs/d1/files/f1
     "epoch": 2,
     "createdat": "2025",
     "modifiedat": "now",
-    "defaultversionid": "v1",
+    "defaultversionid": "v2",
     "defaultversionsticky": true
   },
   "versions": {
-    "v1": { see Resource.* attrs },
-    "v2": {
+    "v1": {
       "epoch": 2,
-      "createdat": "2020",
+      "createdat": "2025",
       "modifiedat": "now",
       "ancestorid": "v2"
-    }
+    },
+    "v2": { see Resource.* attrs }
   }
 }
 ```
@@ -1226,11 +1223,10 @@ PATCH /dirs/d1/files/f1
 
 - Resource.name is ignored due to `v2` (the current default Version) being in
   the request's `versions` collection.
-- Since this `PATCH` changes `meta.defaultversionsticky` from `false` to `true`
-  without specifying `meta.defaultversionid`, the default Version is
-  recalculated after the update using `versionmode`. Moving `v2`'s `createdat`
-  to `2020` makes `v1` (`2025`) the newest Version, so `v1` becomes the sticky
-  default.
+- Since this is a `PATCH`, unlike the previous example where
+  `meta.defaultversionid` was implicitly set to `null`, in this case its value
+  remains unchanged. So, when `meta.defaultversionsticky` is set to `true` the
+  current default Version becomes "sticky".
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>
@@ -1589,7 +1585,7 @@ PATCH /dirs/d1/files/f1
 PUT /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionsticky": true
   }
 }
@@ -1670,7 +1666,7 @@ PUT /dirs/d1/files/f1
 PATCH /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionsticky": true
   }
 }
@@ -1847,7 +1843,7 @@ PATCH /dirs/d1/files/f1/meta
 PATCH /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionid": "foo"
   }
 }
@@ -1910,7 +1906,7 @@ Error due to `foo` being an unknown Version.
 PUT /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionid": "foo",
     "defaultversionsticky": true
   }
@@ -1972,7 +1968,7 @@ PUT /dirs/d1/files/f1
 
 {
   "name": "foo",
-  "createdat": "1999"
+  "createdat": "1999",
   "meta": {
     "defaultversionsticky": true
   },

@@ -234,8 +234,6 @@ this form:
 
   "model": { ... }, ?
 
-  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
-  "schemagroupscount": <UINTEGER>,
   "schemagroups": {
     "KEY": {                                       # schemagroupid
       "schemagroupid": "<STRING>",                 # xRegistry core attributes
@@ -251,8 +249,6 @@ this form:
       "deprecated": { ... }, ?
       "format": "<STRING>", ?
 
-      "schemasurl": "<URL>",                       # Schemas collection
-      "schemascount": <UINTEGER>,
       "schemas": {
         "KEY": {                                   # schemaid
           "schemaid": "<STRING>",                  # xRegistry core attributes
@@ -284,13 +280,17 @@ this form:
           "metaurl": "<URL>",                      # Resource level attrs
           "meta": { ... }, ?
 
+          "versions": { ... }, ?
           "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
-          "versions": { ... } ?
+          "versionscount": <UINTEGER>
         } *
-      } ?
+      }, ?
+      "schemasurl": "<URL>",                       # Schemas collection
+      "schemascount": <UINTEGER>
     } *
-  } ?
+  }, ?
+  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
+  "schemagroupscount": <UINTEGER>
 }
 ```
 
@@ -313,8 +313,8 @@ The plural, used as the collection name, is `schemagroups`. The Schema Group
 defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. Without a value for the Group's `format`, a
-Schema Group MAY contain Schema Resources of different formats.
+some application-defined way. Without a value for the Group's `format`, a Schema
+Group MAY contain schemas of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
@@ -328,8 +328,6 @@ containing 5 schemas.
   "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
-  "schemagroupsurl": "http://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.schemas": {
       "schemagroupid": "com.example.schemas",
@@ -338,17 +336,15 @@ containing 5 schemas.
       "schemasurl": "https://example.com/schemagroups/com.example.schemas/schemas",
       "schemascount": 5
     }
-  }
+  },
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
 There might be cases where all schemas within a schemagroup need to have the
 same `format` value. To enable this, set the schemagroup's `format` value to
-the string that all schemas/Versions within that schemagroup need to use; the
-model expresses this as the `schemas.format` constraint with `equals` set to
-`format`.
-
-This equality constraint does not itself define a default value.
+the string that all schemas/Versions within that schemagroup need to use.
 
 Additionally, if desired, a schemagroup-instance level constraint MAY be added:
 
@@ -400,21 +396,19 @@ xRegistry specification for more information.
 
 ### 4.3. Schema Formats
 
+The `format` attribute in the [Core model](../core/spec.md#format-attribute)
+is defined as being OPTIONAL. However, this specification modifies it to be
+REQUIRED.
+
 This specification further refines the
 [core specification's `format`](../core/spec.md#format-attribute) for use
 in a Schema Registry by defining a set of common schema format names that MUST
 be used for the given formats, but applications MAY define extensions for
 other formats on their own.
 
-Every completed Schema Version MUST have a non-null `format` value, including
-the default Version projection on a Schema Resource. The model sets
-`required` and `matchversions` to `true` for `format`, so all Versions of a
-Schema Resource MUST use the same `format` value.
-
-Client input MAY omit `format` when the Schema Group declares a
-`constraints.schemas.format` default (see [Schema Groups](#41-schema-groups)).
-This does not make the completed value OPTIONAL: a completed Version without
-`format` is invalid.
+The Schema model is defined to require all Schema Versions to have non-null
+`format` values. The model MAY be modified to define a default value for
+`format` to avoid clients having to specify it each time.
 
 - Examples:
   - `JsonSchema/draft-07`
@@ -430,15 +424,11 @@ Versions for a schema named `com.example.telemetrydata`:
   "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
-  "schemagroupsurl": "http://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
       "schemagroupid": "com.example.telemetry",
       # other xRegistry group-level attributes excluded for brevity
 
-      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
-      "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
@@ -449,12 +439,10 @@ Versions for a schema named `com.example.telemetrydata`:
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
 
-          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
-          "versionscount": 3,
           "versions": {
             "1": {
               "schemaid": "com.example.telemetrydata",
@@ -465,7 +453,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
             },
             "2": {
               "schemaid": "com.example.telemetrydata",
@@ -476,7 +464,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; }"
             },
             "3": {
               "schemaid": "com.example.telemetrydata",
@@ -487,13 +475,19 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }"
             }
-          }
+          },
+          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
+          "versionscount": 3
         }
-      }
+      },
+      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
+      "schemascount": 1
     }
-  }
+  },
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
