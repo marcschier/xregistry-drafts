@@ -2,6 +2,7 @@
 
 <!-- words: WoT thingdescriptiongroups thingmodelgroups schemagroups messagegroups fabrikam lamp smartlamp -->
 <!-- words: wotid derivedfrom byom contoso standardsbody maturity -->
+<!-- words: wotprocessinggroups processingprofiles processingconfigurations -->
 
 This directory contains illustrative sample documents that exercise the
 WoT Registry model defined in [../model.json](../model.json):
@@ -24,7 +25,7 @@ WoT Registry model defined in [../model.json](../model.json):
   `standardsbody`, because Contoso publishes them itself; a `standardsbody` is
   a claim about who defines a document, not about who wrote it. The pump has
   two Versions, with `2` as the default, so retrieving the Resource yields the
-  latest while `.../versions/1` yields the earlier one. Because the pump
+  default while `.../versions/1` yields the earlier one. Because the pump
   supplies an explicit `versions` collection, its attributes — including the
   provenance attributes an agent uses to prefer an official model — are
   carried on each Version rather than on the Resource; the device, which has a
@@ -37,3 +38,13 @@ WoT Registry model defined in [../model.json](../model.json):
   single registry document, showing how `thingmodelgroups` and
   `thingdescriptiongroups` compose: the instance carries `derivedfrom` and a
   `links[].rel = "type"` reference to the Thing Model Resource.
+- [resolution-evidence.xreg.json](resolution-evidence.xreg.json) — a Thing
+  Model with nonnumeric Core Version IDs, a sticky default, per-Version
+  optional policy/record attachments, and a separately stored resolution
+  fixture. The record captures Version `7` while the later default is `8`;
+  replay is pinned to the retained Version-7 artifact, not the current
+  default. This is illustrative evidence, not a running resolver.
+- [processing](processing/README.md) — portable processing profile and
+  configuration documents, a WoT Processing Group, and local/imported
+  invocation evidence packages. Configurations are selected individually;
+  the samples do not merge them or authorize deployment.

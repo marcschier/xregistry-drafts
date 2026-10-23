@@ -1,0 +1,19 @@
+{
+  "formatVersion": "1",
+  "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+  "version": "1",
+  "definition": {
+    "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/definition/1",
+    "version": "1",
+    "digest": "sha-256:164dc82d02fdc39252ffbc30462374cc49ea8e2fa4b389fba33944c556828e4a"
+  },
+  "operations": [
+    "resolve-definition"
+  ],
+  "roles": [
+    "tm:ref"
+  ],
+  "representationProfiles": [
+    "decoded-file-octets"
+  ]
+}

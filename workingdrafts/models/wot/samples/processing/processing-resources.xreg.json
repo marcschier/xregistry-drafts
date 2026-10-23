@@ -1,0 +1,120 @@
+{
+  "wotprocessinggroups": {
+    "portable-reference-processing": {
+      "description": "Discoverable WoT processing descriptors; no implied use or trust",
+      "processingprofiles": {
+        "tm-property-reference": {
+          "stableprofileuri": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+          "format": "JSON",
+          "contenttype": "application/json",
+          "processingprofile": {
+            "formatVersion": "1",
+            "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+            "version": "1",
+            "definition": {
+              "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/definition/1",
+              "version": "1",
+              "digest": "sha-256:164dc82d02fdc39252ffbc30462374cc49ea8e2fa4b389fba33944c556828e4a"
+            },
+            "operations": [
+              "resolve-definition"
+            ],
+            "roles": [
+              "tm:ref"
+            ],
+            "representationProfiles": [
+              "decoded-file-octets"
+            ]
+          }
+        }
+      },
+      "processingconfigurations": {
+        "vendor-default": {
+          "configurationuri": "https://plant.example/configurations/vendor-sensors",
+          "format": "JSON",
+          "contenttype": "application/json",
+          "processingconfiguration": {
+            "formatVersion": "1",
+            "id": "https://plant.example/configurations/vendor-sensors",
+            "version": "approved-vendor-default",
+            "profile": {
+              "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+              "version": "1",
+              "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36"
+            },
+            "rules": [
+              {
+                "role": "tm:ref",
+                "expectedKind": "TM",
+                "expectedIdentity": "urn:example:sensors:model",
+                "authority": {
+                  "adapter": "https://xregistry.io/workingdrafts/models/wot/adapters/xregistry/1",
+                  "origin": "https://registry.example",
+                  "scope": {
+                    "groupCollection": "thingmodelgroups",
+                    "groupId": "vendor",
+                    "resourceCollection": "thingmodels",
+                    "resourceId": "sensors"
+                  }
+                },
+                "selection": {
+                  "mode": "registry-default"
+                }
+              }
+            ],
+            "limits": {
+              "maxDepth": 12,
+              "maxBytes": 4194304,
+              "maxMilliseconds": 10000
+            }
+          }
+        }
+      }
+    },
+    "plant-processing": {
+      "description": "Caller-owned processing configuration selected as one registry Version",
+      "processingconfigurations": {
+        "own-vendor-default": {
+          "configurationuri": "https://plant.example/configurations/own-registry-imports",
+          "format": "JSON",
+          "contenttype": "application/json",
+          "processingconfiguration": {
+            "formatVersion": "1",
+            "id": "https://plant.example/configurations/own-registry-imports",
+            "version": "approved-own-registry",
+            "profile": {
+              "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/1",
+              "version": "1",
+              "digest": "sha-256:2c83a8ae804ffc7159582045ae98c25d7f8fc4c69b8687d9dc1c01590a21be36"
+            },
+            "rules": [
+              {
+                "role": "tm:ref",
+                "expectedKind": "TM",
+                "expectedIdentity": "urn:example:sensors:model",
+                "authority": {
+                  "adapter": "https://xregistry.io/workingdrafts/models/wot/adapters/xregistry/1",
+                  "origin": "https://registry.example",
+                  "scope": {
+                    "groupCollection": "thingmodelgroups",
+                    "groupId": "vendor",
+                    "resourceCollection": "thingmodels",
+                    "resourceId": "sensors"
+                  }
+                },
+                "selection": {
+                  "mode": "registry-default"
+                }
+              }
+            ],
+            "limits": {
+              "maxDepth": 12,
+              "maxBytes": 4194304,
+              "maxMilliseconds": 10000
+            }
+          }
+        }
+      }
+    }
+  }
+}

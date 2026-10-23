@@ -3,7 +3,7 @@
   "groups": {
     "thingdescriptiongroups": {
       "singular": "thingdescriptiongroup",
-      "modelversion": "0.1",
+      "modelversion": "0.3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
       "description": "Thing Description containers. Each Group holds Thing Descriptions that are related in some application-defined way, such as all Things of a tenant, a fleet or a physical site",
 
@@ -17,12 +17,12 @@
       "resources": {
         "thingdescriptions": {
           "singular": "thingdescription",
-          "modelversion": "0.1",
+          "modelversion": "0.3",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
           "validateformat": true,
           "validatecompatibility": true,
           "strictvalidation": false,
-          "description": "A W3C WoT Thing Description, served as a document. Each Version holds one complete WoT-TD 1.1 JSON-LD document",
+          "description": "A W3C WoT Thing Description, served as a document. Each Version holds one complete WoT-TD 1.1 JSON-LD document; optional resolution-plan profiles do not create a third Resource kind or make an unresolved plan a validated result",
 
           "attributes": {
             "format": {
@@ -77,6 +77,88 @@
               "strict": true,
               "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
             },
+            "documentdigest": {
+              "name": "documentdigest",
+              "type": "object",
+              "readonly": true,
+              "description": "Server-computed digest of the exact stored document file octets. Present only when the registry implements the WoT digest-publication profile; not a Version immutability guarantee",
+              "attributes": {
+                "algorithm": {
+                  "type": "string",
+                  "required": true,
+                  "enum": [ "sha-256" ],
+                  "strict": true
+                },
+                "scope": {
+                  "type": "string",
+                  "required": true,
+                  "enum": [ "decoded-file-octets" ],
+                  "strict": true
+                },
+                "value": {
+                  "type": "string",
+                  "required": true,
+                  "description": "64 lowercase hexadecimal digits encoding the full SHA-256 digest"
+                }
+              }
+            },
+            "documentbase": {
+              "name": "documentbase",
+              "type": "uri",
+              "description": "Optional original absolute document location used as a document-loader starting location only under an authorized resolver profile; it does not override authored TD base or JSON-LD processing"
+            },
+            "resolutionpolicy": {
+              "name": "resolutionpolicy",
+              "type": "object",
+              "description": "Optional suggested policy attachment; never an authorization or activation instruction",
+              "attributes": {
+                "url": {
+                  "type": "url",
+                  "required": true
+                },
+                "digest": {
+                  "type": "string",
+                  "required": true,
+                  "description": "Full SHA-256 digest of the exact policy file octets"
+                },
+                "profile": {
+                  "type": "uri",
+                  "required": true
+                }
+              }
+            },
+            "resolutionrecords": {
+              "name": "resolutionrecords",
+              "type": "array",
+              "description": "Optional immutable, digest-pinned resolution-record attachments. Multiple records may describe separate approved uses of the same document",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "url": {
+                    "type": "url",
+                    "required": true
+                  },
+                  "digest": {
+                    "type": "string",
+                    "required": true,
+                    "description": "Full SHA-256 digest of the exact record file octets"
+                  },
+                  "profile": {
+                    "type": "uri",
+                    "required": true
+                  },
+                  "rootdigest": {
+                    "type": "string",
+                    "required": true,
+                    "description": "Full SHA-256 digest of the root document file octets bound by this record"
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "description": "Optional descriptive use label; not an authorization"
+                  }
+                }
+              }
+            },
             "*": {
               "name": "*",
               "type": "any"
@@ -88,7 +170,7 @@
 
     "thingmodelgroups": {
       "singular": "thingmodelgroup",
-      "modelversion": "0.1",
+      "modelversion": "0.3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
       "description": "Thing Model containers. Each Group holds Thing Models that are related in some application-defined way, such as all Thing Models published by one vendor or belonging to one product family",
 
@@ -102,12 +184,12 @@
       "resources": {
         "thingmodels": {
           "singular": "thingmodel",
-          "modelversion": "0.1",
+          "modelversion": "0.3",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
           "validateformat": true,
           "validatecompatibility": true,
           "strictvalidation": false,
-          "description": "A W3C WoT Thing Model, served as a document. Each Version holds one complete WoT-TM 1.1 JSON-LD document",
+          "description": "A W3C WoT Thing Model, served as a document. Each Version holds one complete WoT-TM 1.1 JSON-LD document; optional resolution-plan profiles do not create a third Resource kind or make an unresolved plan a validated result",
 
           "attributes": {
             "format": {
@@ -162,6 +244,88 @@
               "strict": true,
               "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
             },
+            "documentdigest": {
+              "name": "documentdigest",
+              "type": "object",
+              "readonly": true,
+              "description": "Server-computed digest of the exact stored document file octets. Present only when the registry implements the WoT digest-publication profile; not a Version immutability guarantee",
+              "attributes": {
+                "algorithm": {
+                  "type": "string",
+                  "required": true,
+                  "enum": [ "sha-256" ],
+                  "strict": true
+                },
+                "scope": {
+                  "type": "string",
+                  "required": true,
+                  "enum": [ "decoded-file-octets" ],
+                  "strict": true
+                },
+                "value": {
+                  "type": "string",
+                  "required": true,
+                  "description": "64 lowercase hexadecimal digits encoding the full SHA-256 digest"
+                }
+              }
+            },
+            "documentbase": {
+              "name": "documentbase",
+              "type": "uri",
+              "description": "Optional original absolute document location used as a document-loader starting location only under an authorized resolver profile; it does not override authored TD base or JSON-LD processing"
+            },
+            "resolutionpolicy": {
+              "name": "resolutionpolicy",
+              "type": "object",
+              "description": "Optional suggested policy attachment; never an authorization or activation instruction",
+              "attributes": {
+                "url": {
+                  "type": "url",
+                  "required": true
+                },
+                "digest": {
+                  "type": "string",
+                  "required": true,
+                  "description": "Full SHA-256 digest of the exact policy file octets"
+                },
+                "profile": {
+                  "type": "uri",
+                  "required": true
+                }
+              }
+            },
+            "resolutionrecords": {
+              "name": "resolutionrecords",
+              "type": "array",
+              "description": "Optional immutable, digest-pinned resolution-record attachments. Multiple records may describe separate approved uses of the same document",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "url": {
+                    "type": "url",
+                    "required": true
+                  },
+                  "digest": {
+                    "type": "string",
+                    "required": true,
+                    "description": "Full SHA-256 digest of the exact record file octets"
+                  },
+                  "profile": {
+                    "type": "uri",
+                    "required": true
+                  },
+                  "rootdigest": {
+                    "type": "string",
+                    "required": true,
+                    "description": "Full SHA-256 digest of the root document file octets bound by this record"
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "description": "Optional descriptive use label; not an authorization"
+                  }
+                }
+              }
+            },
             "*": {
               "name": "*",
               "type": "any"
@@ -169,6 +333,87 @@
           }
         }
       }
-    }
+    },
+
+    "wotprocessinggroups": {
+        "singular": "wotprocessinggroup",
+        "modelversion": "0.3",
+        "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+        "description": "WoT processing profile descriptors and reusable processing configurations. These documents are discoverable inputs, not executable code, authorization, or deployment instructions",
+
+        "attributes": {
+          "*": {
+            "name": "*",
+            "type": "any"
+          }
+        },
+
+        "resources": {
+          "processingprofiles": {
+            "singular": "processingprofile",
+            "modelversion": "0.3",
+            "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+            "validateformat": true,
+            "strictvalidation": true,
+            "description": "A WoT-domain processing profile descriptor, served as a JSON document. Its stable identity names the descriptor but does not make a mutable Core Version's document bytes immutable",
+
+            "attributes": {
+              "format": {
+                "name": "format",
+                "type": "string",
+                "required": true,
+                "enum": [ "JSON" ],
+                "strict": true,
+                "default": "JSON",
+                "matchversions": true,
+                "description": "The document format. All Versions of a processing profile share one format"
+              },
+              "stableprofileuri": {
+                "name": "stableprofileuri",
+                "type": "uri",
+                "required": true,
+                "matchversions": true,
+                "description": "The stable logical URI equal to the descriptor document's id. It identifies the profile across document revisions and is not a Core Version ID or byte-integrity guarantee"
+              },
+              "*": {
+                "name": "*",
+                "type": "any"
+              }
+            }
+          },
+          "processingconfigurations": {
+            "singular": "processingconfiguration",
+            "modelversion": "0.3",
+            "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+            "validateformat": true,
+            "strictvalidation": true,
+            "description": "A reusable, root-free WoT processing configuration, served as a JSON document. It does not select a root, target, operation, or deployment and must be explicitly selected by a consumer",
+
+            "attributes": {
+              "format": {
+                "name": "format",
+                "type": "string",
+                "required": true,
+                "enum": [ "JSON" ],
+                "strict": true,
+                "default": "JSON",
+                "matchversions": true,
+                "description": "The document format. All Versions of a processing configuration share one format"
+              },
+              "configurationuri": {
+                "name": "configurationuri",
+                "type": "uri",
+                "required": true,
+                "matchversions": true,
+                "description": "The stable logical URI equal to the configuration document's id. It identifies the configuration across document revisions and is not a Core Version ID or byte-integrity guarantee"
+              },
+              "*": {
+                "name": "*",
+                "type": "any"
+              }
+            }
+          }
+        }
+      }
   }
 }

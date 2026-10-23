@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/models/wot/schemas/processing-evidence.schema.json",
+  "title": "xRegistry WoT Processing Evidence Package",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "evidence",
+    "retainedArtifacts"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": "1"
+    },
+    "evidence": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/localDefinitionEvidence"
+        },
+        {
+          "$ref": "#/$defs/retainedResolutionEvidence"
+        }
+      ]
+    },
+    "retainedArtifacts": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/retainedArtifact"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha-256:[0-9a-f]{64}$"
+    },
+    "pointer": {
+      "type": "string",
+      "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+    },
+    "artifactDescriptor": {
+      "type": "object",
+      "required": [
+        "digestScope",
+        "digest",
+        "documentUrl",
+        "interpretationBase"
+      ],
+      "properties": {
+        "digestScope": {
+          "const": "decoded-file-octets"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "documentUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "interpretationBase": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "retainedArtifact": {
+      "type": "object",
+      "required": [
+        "artifactId",
+        "kind",
+        "identity",
+        "digestScope",
+        "digest",
+        "documentUrl",
+        "interpretationBase",
+        "archivePath"
+      ],
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._~-]+$"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "identity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digestScope": {
+          "const": "decoded-file-octets"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "documentUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "interpretationBase": {
+          "type": "string",
+          "format": "uri"
+        },
+        "archivePath": {
+          "type": "string",
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "descriptorBinding": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "digest",
+        "documentUrl",
+        "interpretationBase"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "documentUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "interpretationBase": {
+          "type": "string",
+          "format": "uri"
+        },
+        "source": {
+          "enum": [
+            "own",
+            "shared"
+          ]
+        },
+        "registry": {
+          "type": "object",
+          "required": [
+            "origin",
+            "groupCollection",
+            "groupId",
+            "resourceCollection",
+            "resourceId",
+            "versionId"
+          ],
+          "properties": {
+            "origin": {
+              "type": "string",
+              "format": "uri"
+            },
+            "groupCollection": {
+              "type": "string",
+              "minLength": 1
+            },
+            "groupId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resourceCollection": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resourceId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "versionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "configurationBinding": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/descriptorBinding"
+        },
+        {
+          "required": [
+            "source"
+          ]
+        }
+      ]
+    },
+    "profileBinding": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/descriptorBinding"
+        },
+        {
+          "not": {
+            "required": [
+              "source"
+            ]
+          }
+        }
+      ]
+    },
+    "rootBinding": {
+      "type": "object",
+      "required": [
+        "identity",
+        "digestScope",
+        "digest",
+        "documentUrl",
+        "interpretationBase"
+      ],
+      "properties": {
+        "identity": {
+          "type": "string",
+          "format": "uri"
+        },
+        "digestScope": {
+          "const": "decoded-file-octets"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "documentUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "interpretationBase": {
+          "type": "string",
+          "format": "uri"
+        },
+        "registry": {
+          "type": "object",
+          "required": [
+            "origin",
+            "groupCollection",
+            "groupId",
+            "resourceCollection",
+            "resourceId",
+            "versionId"
+          ],
+          "properties": {
+            "origin": {
+              "type": "string",
+              "format": "uri"
+            },
+            "groupCollection": {
+              "type": "string",
+              "minLength": 1
+            },
+            "groupId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resourceCollection": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resourceId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "versionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "invocation": {
+      "type": "object",
+      "required": [
+        "profile",
+        "configuration",
+        "root",
+        "request"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "#/$defs/profileBinding"
+        },
+        "configuration": {
+          "$ref": "#/$defs/configurationBinding"
+        },
+        "root": {
+          "$ref": "#/$defs/rootBinding"
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "operation",
+            "pointer"
+          ],
+          "properties": {
+            "operation": {
+              "const": "resolve-definition"
+            },
+            "pointer": {
+              "$ref": "#/$defs/pointer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "effectivePolicyDigest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false,
+      "description": "The invocation digest is SHA-256 over JCS UTF-8 bytes of exactly {profile, configuration, root, request}; effectivePolicyDigest is excluded from that preimage"
+    },
+    "localReference": {
+      "type": "object",
+      "required": [
+        "from",
+        "sourcePointer",
+        "targetPointer"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/artifactDescriptor"
+        },
+        "sourcePointer": {
+          "$ref": "#/$defs/pointer"
+        },
+        "targetPointer": {
+          "$ref": "#/$defs/pointer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "required": [
+        "digestScope",
+        "digest",
+        "value"
+      ],
+      "properties": {
+        "digestScope": {
+          "const": "json-jcs"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "policyBinding": {
+      "type": "object",
+      "description": "Complete existing resolution-policy document; validate independently against resolution-policy.schema.json"
+    },
+    "lockBinding": {
+      "type": "object",
+      "description": "Complete existing resolution-record document; validate independently against resolution-record.schema.json"
+    },
+    "localDefinitionEvidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "invocation",
+        "invocationDigest",
+        "localReferences",
+        "output"
+      ],
+      "properties": {
+        "kind": {
+          "const": "local-definition"
+        },
+        "invocation": {
+          "$ref": "#/$defs/invocation"
+        },
+        "invocationDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "localReferences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localReference"
+          }
+        },
+        "output": {
+          "$ref": "#/$defs/output"
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "policy"
+            ]
+          },
+          {
+            "required": [
+              "lock"
+            ]
+          },
+          {
+            "properties": {
+              "invocation": {
+                "required": [
+                  "effectivePolicyDigest"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "additionalProperties": false
+    },
+    "retainedResolutionEvidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "invocation",
+        "invocationDigest",
+        "localReferences",
+        "output",
+        "policy",
+        "lock"
+      ],
+      "properties": {
+        "kind": {
+          "const": "retained-resolution"
+        },
+        "invocation": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/invocation"
+            },
+            {
+              "required": [
+                "effectivePolicyDigest"
+              ]
+            }
+          ]
+        },
+        "invocationDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "localReferences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localReference"
+          }
+        },
+        "output": {
+          "$ref": "#/$defs/output"
+        },
+        "policy": {
+          "$ref": "#/$defs/policyBinding"
+        },
+        "lock": {
+          "$ref": "#/$defs/lockBinding"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

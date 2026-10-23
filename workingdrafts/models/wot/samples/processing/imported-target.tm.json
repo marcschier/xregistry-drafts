@@ -1,0 +1,15 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "tm": "https://www.w3.org/2022/wot/tm#"
+  },
+  "@type": "tm:ThingModel",
+  "id": "urn:example:sensors:model",
+  "properties": {
+    "temperature": {
+      "type": "number",
+      "unit": "degree Celsius",
+      "readOnly": true
+    }
+  }
+}

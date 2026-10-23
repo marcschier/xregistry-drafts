@@ -1,0 +1,123 @@
+{
+  "thingmodelgroups": {
+    "vendor": {
+      "description": "Vendor Thing Models used by the resolution evidence sample",
+      "thingmodels": {
+        "sensors": {
+          "meta": {
+            "defaultversionid": "8",
+            "defaultversionsticky": true
+          },
+          "versions": {
+            "7": {
+              "format": "JSON-LD/1.1",
+              "contenttype": "application/tm+json",
+              "wotid": "urn:example:sensors:model",
+              "publisher": "Example Sensors",
+              "maturity": "Vendor",
+              "thingmodel": {
+                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                "@type": "tm:ThingModel",
+                "id": "urn:example:sensors:model",
+                "title": "Sensor model",
+                "version": {
+                  "model": "2.1.0"
+                },
+                "properties": {
+                  "temperature": {
+                    "type": "number",
+                    "unit": "degree Celsius",
+                    "readOnly": true
+                  }
+                }
+              }
+            },
+            "8": {
+              "format": "JSON-LD/1.1",
+              "contenttype": "application/tm+json",
+              "wotid": "urn:example:sensors:model",
+              "publisher": "Example Sensors",
+              "maturity": "Vendor",
+              "thingmodel": {
+                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                "@type": "tm:ThingModel",
+                "id": "urn:example:sensors:model",
+                "title": "Sensor model",
+                "version": {
+                  "model": "2.2.0"
+                },
+                "properties": {
+                  "temperature": {
+                    "type": "number",
+                    "unit": "degree Celsius",
+                    "readOnly": true,
+                    "minimum": -40,
+                    "maximum": 125
+                  }
+                }
+              }
+            }
+          }
+        },
+        "controller": {
+          "meta": {
+            "defaultversionid": "release-B",
+            "defaultversionsticky": true
+          },
+          "versions": {
+            "release-A": {
+              "format": "JSON-LD/1.1",
+              "contenttype": "application/tm+json",
+              "wotid": "urn:example:plant:controller",
+              "documentbase": "https://plant.example/controller.tm.json",
+              "resolutionpolicy": {
+                "url": "https://registry.example/artifacts/resolution/policy.json",
+                "digest": "sha-256:e6a34cf07fa1f6cca95efd13080f95db8088fa392e38123167b61e64912a2a72",
+                "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2"
+              },
+              "resolutionrecords": [
+                {
+                  "url": "https://registry.example/artifacts/resolution/record.json",
+                  "digest": "sha-256:7a929f53890bbd9cc0de3901718576aee932f2f04e215d73b63a7f4ac20225b2",
+                  "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+                  "rootdigest": "sha-256:e180bfb9851d0d3910858fa22d2e04e05b614b2c17827d367ef8b007cf3a5ce9",
+                  "purpose": "line-1 reviewed import"
+                }
+              ],
+              "thingmodel": {
+                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                "@type": "tm:ThingModel",
+                "id": "urn:example:plant:controller",
+                "title": "Plant controller",
+                "properties": {
+                  "temperature": {
+                    "tm:ref": "urn:example:sensors:model#/properties/temperature"
+                  }
+                }
+              }
+            },
+            "release-B": {
+              "format": "JSON-LD/1.1",
+              "contenttype": "application/tm+json",
+              "wotid": "urn:example:plant:controller",
+              "thingmodel": {
+                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                "@type": "tm:ThingModel",
+                "id": "urn:example:plant:controller",
+                "title": "Plant controller",
+                "version": {
+                  "model": "1.1.0"
+                },
+                "properties": {
+                  "temperature": {
+                    "tm:ref": "urn:example:sensors:model#/properties/temperature"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

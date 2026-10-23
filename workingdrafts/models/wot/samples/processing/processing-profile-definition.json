@@ -1,0 +1,26 @@
+{
+  "formatVersion": "1",
+  "id": "https://xregistry.io/workingdrafts/models/wot/profiles/tm-property-reference/definition/1",
+  "version": "1",
+  "operations": [
+    "resolve-definition"
+  ],
+  "roles": [
+    "tm:ref"
+  ],
+  "representationProfiles": [
+    "decoded-file-octets"
+  ],
+  "context": {
+    "@version": 1.1,
+    "tm": "https://www.w3.org/2022/wot/tm#"
+  },
+  "processing": {
+    "input": "complete-property-definition-at-original-root-pointer",
+    "referenceValue": "absolute-uri-or-local-json-pointer",
+    "target": "complete-property-definition",
+    "siblingOverrides": "rfc7396-merge-patch",
+    "externalSchemas": "unsupported",
+    "remoteContexts": "unsupported"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "formatVersion": "1",
+  "core": {
+    "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+    "policyDigest": "sha-256:e6a34cf07fa1f6cca95efd13080f95db8088fa392e38123167b61e64912a2a72",
+    "rootArtifact": "a2",
+    "artifacts": [
+      {
+        "artifactId": "a0",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:0bc244390f4a0318d26b1ac534661ef54442270d2a71182d660b91a304d9f7cf",
+        "byteLength": "180",
+        "mediaType": "application/json",
+        "kind": "processing-configuration",
+        "documentUrl": "https://plant.example/processing-config.json",
+        "interpretationBase": "https://plant.example/"
+      },
+      {
+        "artifactId": "a1",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:3a1af3104b88726c339a9f02224e3c63972cc1d4ccd5da94b30e1e9f49509a32",
+        "byteLength": "297",
+        "mediaType": "application/tm+json",
+        "kind": "TM",
+        "identity": "urn:example:plant:controller"
+      },
+      {
+        "artifactId": "a2",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:e180bfb9851d0d3910858fa22d2e04e05b614b2c17827d367ef8b007cf3a5ce9",
+        "byteLength": "284",
+        "mediaType": "application/tm+json",
+        "kind": "TM",
+        "identity": "urn:example:plant:controller",
+        "documentUrl": "https://plant.example/controller.tm.json",
+        "interpretationBase": "https://plant.example/"
+      },
+      {
+        "artifactId": "a3",
+        "representation": "file",
+        "digestScope": "decoded-file-octets",
+        "digest": "sha-256:f7caf9f057a591830c03b21eb50725e08cf5f57d89ef59f3104b43cb7d3a7479",
+        "byteLength": "334",
+        "mediaType": "application/tm+json",
+        "kind": "TM",
+        "identity": "urn:example:sensors:model",
+        "documentUrl": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+        "interpretationBase": "https://registry.example/thingmodelgroups/vendor/thingmodels/sensors/versions/7",
+        "registry": {
+          "origin": "https://registry.example",
+          "groupCollection": "thingmodelgroups",
+          "groupId": "vendor",
+          "resourceCollection": "thingmodels",
+          "resourceId": "sensors",
+          "versionId": "7"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "a2",
+        "sourcePointer": "/properties/temperature/tm:ref",
+        "authoredReference": "urn:example:sensors:model#/properties/temperature",
+        "role": "tm:ref",
+        "selection": {
+          "mode": "registry-default"
+        },
+        "to": "a3",
+        "fragment": "/properties/temperature"
+      }
+    ],
+    "transformations": [
+      {
+        "inputs": [
+          "a0",
+          "a2",
+          "a3"
+        ],
+        "output": "a1",
+        "profile": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2",
+        "configurationDigest": "sha-256:0bc244390f4a0318d26b1ac534661ef54442270d2a71182d660b91a304d9f7cf",
+        "mappings": [
+          {
+            "outputPointer": "/properties/temperature",
+            "sourceArtifact": "a3",
+            "sourcePointer": "/properties/temperature"
+          }
+        ]
+      }
+    ]
+  },
+  "observations": {
+    "defaults": [
+      {
+        "resourceArtifact": "a3",
+        "observedDefaultVersionId": "7",
+        "laterObservedDefaultVersionId": "8"
+      }
+    ]
+  }
+}

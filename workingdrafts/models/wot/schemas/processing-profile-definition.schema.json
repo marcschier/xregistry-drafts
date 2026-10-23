@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/models/wot/schemas/processing-profile-definition.schema.json",
+  "title": "xRegistry WoT Processing Profile Definition",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "id",
+    "version",
+    "operations",
+    "roles",
+    "representationProfiles",
+    "context",
+    "processing"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": "1"
+    },
+    "id": {
+      "type": "string",
+      "format": "uri"
+    },
+    "version": {
+      "const": "1"
+    },
+    "operations": {
+      "const": [
+        "resolve-definition"
+      ]
+    },
+    "roles": {
+      "const": [
+        "tm:ref"
+      ]
+    },
+    "representationProfiles": {
+      "const": [
+        "decoded-file-octets"
+      ]
+    },
+    "context": {
+      "const": {
+        "@version": 1.1,
+        "tm": "https://www.w3.org/2022/wot/tm#"
+      }
+    },
+    "processing": {
+      "const": {
+        "input": "complete-property-definition-at-original-root-pointer",
+        "referenceValue": "absolute-uri-or-local-json-pointer",
+        "target": "complete-property-definition",
+        "siblingOverrides": "rfc7396-merge-patch",
+        "externalSchemas": "unsupported",
+        "remoteContexts": "unsupported"
+      }
+    }
+  },
+  "additionalProperties": false
+}

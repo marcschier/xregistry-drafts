@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/models/wot/schemas/resolution-policy.schema.json",
+  "title": "xRegistry WoT Resolution Policy",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "profile",
+    "rootDigest",
+    "rules"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": "1"
+    },
+    "profile": {
+      "const": "https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2"
+    },
+    "rootDigest": {
+      "$ref": "#/$defs/fileDigest"
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "coreId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9._~:@-]{0,127}$"
+    },
+    "fileDigest": {
+      "type": "string",
+      "pattern": "^sha-256:[0-9a-f]{64}$"
+    },
+    "jsonPointer": {
+      "type": "string",
+      "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+    },
+    "rule": {
+      "type": "object",
+      "required": [
+        "sourcePointer",
+        "role",
+        "expectedKind",
+        "expectedIdentity",
+        "resolver",
+        "selection"
+      ],
+      "properties": {
+        "sourcePointer": {
+          "$ref": "#/$defs/jsonPointer"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedKind": {
+          "enum": [
+            "TD",
+            "TM"
+          ]
+        },
+        "expectedIdentity": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "expectedDigest": {
+          "$ref": "#/$defs/fileDigest"
+        },
+        "resolver": {
+          "$ref": "#/$defs/resolver"
+        },
+        "selection": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "mode"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "registry-default"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "mode",
+                "versionId"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "exact"
+                },
+                "versionId": {
+                  "$ref": "#/$defs/coreId"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolver": {
+      "type": "object",
+      "required": [
+        "adapter",
+        "registry",
+        "groupCollection",
+        "groupId",
+        "resourceCollection"
+      ],
+      "properties": {
+        "adapter": {
+          "const": "xregistry-wot"
+        },
+        "registry": {
+          "type": "string",
+          "format": "uri"
+        },
+        "groupCollection": {
+          "enum": [
+            "thingdescriptiongroups",
+            "thingmodelgroups"
+          ]
+        },
+        "groupId": {
+          "$ref": "#/$defs/coreId"
+        },
+        "resourceCollection": {
+          "enum": [
+            "thingdescriptions",
+            "thingmodels"
+          ]
+        },
+        "resourceId": {
+          "$ref": "#/$defs/coreId"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
