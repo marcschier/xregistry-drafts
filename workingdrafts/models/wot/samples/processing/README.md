@@ -1,5 +1,7 @@
 # Portable Processing Samples
 
+<!-- words: archivepath configurationuri retainedartifacts stableprofileuri wotprocessinggroups -->
+
 These fixtures show the WoT model's `wotprocessinggroups` Resources and the
 processing evidence envelope defined in
 [spec.md](../../spec.md#54-processing-invocation-and-evidence).

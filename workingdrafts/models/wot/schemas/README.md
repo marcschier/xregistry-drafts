@@ -1,5 +1,8 @@
 # WoT Resolution and Processing Application Schemas
 
+<!-- words: bytelength configurationuri jcs opc representationprofile -->
+<!-- words: stableprofileuri ua workingdrafts -->
+
 These Draft 2020-12 JSON Schemas and fixtures define this xRegistry WoT
 draft's reference-resolution evidence and portable processing
 descriptor/configuration formats. The draft owns these definitions; they do
@@ -37,7 +40,7 @@ references only; they do not fetch schemas from sibling proposals. The archive
 stores retained artifact bytes as separate files. Its manifest lists their
 descriptors and paths, not credentials. Schema validation does not prove that
 archive files exist or match their digests, that a closure is complete, that a
-configuration rule is unique, or that replay is authorized. Consumers must
+configuration rule is unique, or that replay is authorized. Consumers MUST
 check those semantics. Repository tests check the example evidence contract;
 they do not implement a resolver.
 

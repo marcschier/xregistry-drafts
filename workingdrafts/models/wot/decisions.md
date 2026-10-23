@@ -3,6 +3,8 @@
 <!-- words: WoT wotid derivedfrom thingdescription thingmodel -->
 <!-- words: thingdescriptionid thingmodelid canonicalurl standardsbody -->
 <!-- words: openusd href td tm matchversions repointing -->
+<!-- words: configurationuri opc processingconfigurations processingprofiles -->
+<!-- words: resolutionpolicy resolutionrecords stableprofileuri ua wotprocessinggroups -->
 
 This document records the identity, versioning, lookup and provenance
 decisions behind the [WoT Registry specification](spec.md) and its
@@ -165,7 +167,7 @@ If a deployment uses a major-version token, it is authored once as part of a
 stable identifier and MUST NOT be added by rewriting an existing document's
 `id`.
 
-**Consequence.** A consumer may follow `deprecated` to a successor when
+**Consequence.** A consumer MAY follow `deprecated` to a successor when
 available, but this metadata does not guarantee that every historical Version
 remains retrievable.
 
@@ -173,7 +175,7 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
 ## 7. Resolution records are separate, scoped evidence
 
-**Decision.** An optional resolution record captures the exact Version
+**Decision.** An OPTIONAL resolution record captures the exact Version
 selected for each authored reference occurrence, including a registry default
 when one is used. Replay uses the approved retained artifact instead of
 looking up the default again.
@@ -184,10 +186,10 @@ unchanged. Reproducible processing therefore needs the selected Version, its
 verified retained bytes, and the interpretation inputs that give those bytes
 meaning.
 
-**Consequence.** The optional `resolutionpolicy` attachment is a suggestion,
+**Consequence.** The OPTIONAL `resolutionpolicy` attachment is a suggestion,
 not authority. The deployment host imports authoritative policy bytes as an
 immutable revision into protected state. The separate `resolutionrecords`
-list may point to multiple digest-pinned records; it defines no default and
+list MAY point to multiple digest-pinned records; it defines no default and
 does not activate anything. This draft defines the format in its
 [local schemas](schemas/README.md), independently of W3C and OPC UA proposals.
 

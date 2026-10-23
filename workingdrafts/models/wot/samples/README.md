@@ -33,7 +33,7 @@ The sample documents illustrate the WoT Registry model in
   document. The instance records `derivedfrom` and a `links[].rel = "type"`
   reference to the Thing Model Resource.
 - [resolution-evidence.xreg.json](resolution-evidence.xreg.json) — a Thing
-  Model with nonnumeric Core Version IDs, a sticky default, optional policy
+  Model with nonnumeric Core Version IDs, a sticky default, OPTIONAL policy
   and record attachments on each Version, and a separate resolution fixture.
   The record captures Version `7` while the later default is `8`; replay uses
   the retained Version-7 artifact, not the current default. This evidence

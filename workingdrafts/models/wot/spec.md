@@ -13,6 +13,16 @@
 <!-- words: toolchain byom contoso maturity publisher nosniff validateformat -->
 <!-- words: shortself -->
 <!-- words: processingprofile processingconfiguration stableprofileuri configurationuri wotprocessinggroup -->
+<!-- words: archivepath digestscope documentbase documentdigest documenturl -->
+<!-- words: effectivepolicydigest expecteddigest expectedevidencedigest -->
+<!-- words: expectedinvocationdigest formatversion interpretationbase -->
+<!-- words: invocationdigest jcs localreferences maxbytes maxdepth maxmilliseconds -->
+<!-- words: plugin processingconfigurations processingprofiles rebased -->
+<!-- words: replayability replayable representationprofile representationprofiles -->
+<!-- words: resolutionpolicy resolutionrecords retainedartifacts rootdigest -->
+<!-- words: sourcepointer subdocument targetpointer toolchains workingdrafts -->
+<!-- words: wotprocessinggroupid wotprocessinggroups wotprocessinggroupscount -->
+<!-- words: wotprocessinggroupsurl -->
 
 ## Abstract
 
@@ -669,7 +679,7 @@ Thing Model extends another via a `tm:extends` link relation, or references
 one via `tm:ref`, the referenced Thing Models' `wotid`s SHOULD be listed in
 `derivedfrom`.
 
-As with Thing Descriptions, a `thingmodel` may be stored even when a
+As with Thing Descriptions, a `thingmodel` MAY be stored even when a
 referenced model is unavailable. Storage or structural validation of a
 recognized unresolved processing plan does not establish that its contents
 have been resolved or validated as an ordinary result. A processing profile
@@ -758,7 +768,7 @@ authenticated provenance. The preference order above is only a tie-break
 among documents the Consumer already trusts by Group, writer identity, or an
 out-of-band signature; it MUST NOT establish trust in a document from an
 untrusted writer. One `wotid` MAY match several Resources, as described in
-[Section 5.3](#53-lookup), so a Consumer may need to choose among documents
+[Section 5.3](#53-lookup), so a Consumer might need to choose among documents
 from different parties. See also
 [Section 7](#7-security).
 
@@ -804,7 +814,7 @@ verify `documentdigest` from the bytes it actually stores and update it in the
 same atomic operation as any byte change. It MUST NOT accept a producer's
 claimed digest as a server-computed value. If it cannot maintain that
 association, it MUST omit the attribute and MUST NOT claim the capability.
-The digest is not `matchversions`: it may differ between Versions and is not
+The digest is not `matchversions`: it MAY differ between Versions and is not
 an identity attribute. `readonly` prevents a client from setting the
 server-controlled attribute; it does not prevent Core-authorized updates to
 the Version or promise archival retention.
@@ -823,7 +833,7 @@ exact bytes. Editing a working file or attaching a policy in registry metadata
 does not import, approve, or activate it. The authoritative policy is the
 deployment host's protected durable state, not the registry attachment. A
 consumer replaying a record MUST use the approved retained policy and inputs.
-If required bytes are missing, changed, corrupt, or unauthorized, it MUST
+If REQUIRED bytes are missing, changed, corrupt, or unauthorized, it MUST
 fail rather than resolve today's default or choose another attachment.
 
 ### 4.7. Processing Profile and Configuration Resources
@@ -851,7 +861,7 @@ context value and bounded operation rules appear in
 and the corresponding sample. The profile does not load remote contexts or
 schemas. A context change or override, unsupported schema dependency,
 operation, role, or representation profile MUST fail explicitly. A caller
-MUST NOT claim an empty dependency closure when a required interpretation
+MUST NOT claim an empty dependency closure when a REQUIRED interpretation
 input is missing.
 
 The descriptor's declared operations, roles, and representation profiles are
@@ -880,7 +890,7 @@ When deriving the existing root-bound policy format, the adapter URI maps to
 the established `resolver.adapter` value `xregistry-wot`. The portable
 configuration does not change that policy schema or its attachment shape.
 
-Before acquiring a required reference, a consumer MUST find exactly one
+Before acquiring a REQUIRED reference, a consumer MUST find exactly one
 configuration rule matching its role, expected kind, and logical identity.
 Rules have no precedence, wildcard, first-match, fallback, or implicit
 inheritance. The consumer MUST fail on zero or multiple matching rules, an
@@ -913,7 +923,7 @@ requests, or occurrence pointers.
 
 These Resources make profiles and configurations discoverable and distributable.
 A registry need not become a composition, validation, authorization, or
-activation engine. The optional `resolutionpolicy` and `resolutionrecords`
+activation engine. The OPTIONAL `resolutionpolicy` and `resolutionrecords`
 attachments remain separate and root-bound on TD/TM Versions; this revision
 does not change their schemas or semantics. Attaching a policy to a reusable
 configuration does not grant authority. When a deployment requires a policy,
@@ -1002,8 +1012,7 @@ A `wotid` is REQUIRED. Populate it as follows:
   stable across registries.
 
 [Decision 4](decisions.md#4-wotid-is-a-required-indexed-first-party-attribute)
-leaves open whether a future revision should define a derivation for the
-second case.
+leaves a derivation for the second case undecided.
 
 #### 5.1.1. Breaking Changes and Successor Identifiers
 
@@ -1053,7 +1062,7 @@ For example, if a lamp's control interface changes incompatibly:
 ### 5.2. Preserving Customer Documents
 
 Registries store Thing Models and Thing Descriptions authored by vendors,
-standards bodies, or toolchains. Other artifacts may reference those documents
+standards bodies, or toolchains. Other artifacts can reference those documents
 without the registry's knowledge. The registry stores each document as
 authored.
 
@@ -1173,11 +1182,11 @@ an authorized registry origin, Group, Resource type, and exact authored
 candidate is ambiguous for this purpose; publisher, maturity, standards-body,
 or canonical-URL attributes MUST NOT be used to choose a candidate or grant
 trust. A consumer MUST distinguish no match, ambiguity, authorization
-failure, invalid/corrupt content, and a mismatch with a required kind,
+failure, invalid/corrupt content, and a mismatch with a REQUIRED kind,
 identity, or digest. A failed explicit selection MUST NOT be hidden by trying
 another Resource, alias, or provider.
 
-The optional resolution policy and record use the domain-owned schemas in
+The OPTIONAL resolution policy and record use the domain-owned schemas in
 `workingdrafts/models/wot/schemas/`. A policy binds the exact root file digest,
 the authored occurrence (including its source JSON Pointer), expected TD/TM
 kind and identity, authorized registry/Group scope, and either `exact` with a
@@ -1190,7 +1199,7 @@ the applicable WoT vocabulary or profile. Interaction forms and navigational
 Thing links are not automatically document imports. The consumer MUST resolve
 and verify the selected document before applying a fragment, check authored
 identity and digest constraints, and retain the exact bytes and
-interpretation inputs used. These inputs include required JSON-LD contexts,
+interpretation inputs used. These inputs include REQUIRED JSON-LD contexts,
 schemas, catalogs, base information, and semantic processing configuration.
 The consumer MUST preserve the authored document, reference strings, and
 occurrence pointers. A changed `documentbase` or registry location MUST NOT
@@ -1220,12 +1229,12 @@ existing resolution record; it does not define an xRegistry lock or a separate
 operation.
 
 A record digest, semantic-core digest, and document-file digest cover
-different data. The full-record digest covers the exact record file. An optional
+different data. The full-record digest covers the exact record file. An OPTIONAL
 semantic-core digest covers the domain profile's RFC 8785 JSON
 Canonicalization Scheme representation, with defined ordering for artifacts,
 edges, and transformations. For this profile, an artifact descriptor contains
 its digest, media type, document URL, interpretation base, context bindings,
-and scoped registry identity. Omit absent optional values. Sort descriptors
+and scoped registry identity. Omit absent OPTIONAL values. Sort descriptors
 by the unsigned UTF-8 octets of their JCS representation; reject contradictory
 duplicates and coalesce exact duplicates. Assign artifact IDs `a0`, `a1`, and
 so on in that order. Identify the root separately; it need not be `a0`.
@@ -1316,13 +1325,13 @@ policy/lock, local-reference, and result evidence unbound.
 
 The consumer MUST retain the exact bytes of each profile descriptor,
 reviewed profile definition, selected configuration, root, and every
-interpretation or imported document required by the operation. A separate
+interpretation or imported document REQUIRED by the operation. A separate
 `retainedArtifacts` archive manifest lists artifact descriptors and relative
 archive-entry names. It contains no credentials, embedded authentication
 material, or host filesystem paths. An `archivePath` MUST NOT be absolute,
 contain a drive prefix, use backslashes, or traverse above the archive root.
 On replay, the consumer MUST verify each retained file's digest and
-interpretation binding. A missing, changed, or unauthorized required artifact
+interpretation binding. A missing, changed, or unauthorized REQUIRED artifact
 MUST cause failure. The consumer MUST NOT switch to the current default,
 another configuration, or a newly discovered descriptor.
 
@@ -1343,7 +1352,7 @@ The evidence uses the disjoint branches defined by
 
 * **`local-definition`** applies only when the requested operation has no
   verified external definition imports. An empty closure does not mean that a
-  required context or interpretation input was ignored. This branch requires
+  REQUIRED context or interpretation input was ignored. This branch requires
   `invocation`, `invocationDigest`, `localReferences`, and `output`. It MUST
   omit `effectivePolicyDigest`, `policy`, and `lock`. Set
   `output.digestScope` to `json-jcs`; `output.digest` is SHA-256 of the exact
@@ -1363,11 +1372,11 @@ The evidence uses the disjoint branches defined by
 
 The initial profile definition contains the complete fixed inline context
 mapping used to recognize `tm:ref`. It does not load a remote JSON-LD context.
-If a required context is absent, changed, remotely overridden, or outside
+If a REQUIRED context is absent, changed, remotely overridden, or outside
 that definition, processing MUST fail with `missing-interpretation-input` or
 an equivalent diagnostic. An empty caller-supplied import list does not prove
 that the closure is empty. The profile MUST inspect the retained root and
-supported reference syntax, and fail on any unknown required dependency.
+supported reference syntax, and fail on any unknown REQUIRED dependency.
 
 For a supported `tm:ref`, the authored value identifies a complete property
 definition in the same retained document or an authorized external Thing
