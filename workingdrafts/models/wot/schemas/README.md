@@ -1,9 +1,9 @@
 # WoT Resolution and Processing Application Schemas
 
-These Draft 2020-12 JSON Schemas and fixtures define the xRegistry WoT
-domain's local reference-resolution evidence and portable processing
-descriptor/configuration formats. They are owned by this working draft and
-are not normative imports from W3C WoT proposals or OPC UA specifications.
+These Draft 2020-12 JSON Schemas and fixtures define this xRegistry WoT
+draft's reference-resolution evidence and portable processing
+descriptor/configuration formats. The draft owns these definitions; they do
+not normatively import W3C WoT proposals or OPC UA specifications.
 
 | File | Purpose |
 |---|---|
@@ -16,44 +16,43 @@ are not normative imports from W3C WoT proposals or OPC UA specifications.
 | [processing-evidence.schema.json](processing-evidence.schema.json) | Disjoint local-definition and retained-resolution evidence branches plus retained-artifact manifest |
 | [processing samples](../samples/processing) | Profile/configuration Resources, single-config selection, local and imported evidence |
 
-The root-bound resolution-policy profile identifier is
+The root-bound resolution-policy profile uses the identifier
 `https://xregistry.io/workingdrafts/models/wot/profiles/reference-resolution/0.2`.
-Both schemas use standard JSON Schema 2020-12; they do not reference an
-external proposal schema. Schema validation checks shape, not authorization,
-URI resolution, pointer existence, digest correctness, artifact references,
-or record approval. An implementation MUST perform those semantic checks
-before claiming a successful lock or replay.
+The schemas use JSON Schema 2020-12 and reference no external proposal
+schema. Schema validation checks structure, not authorization, URI resolution,
+pointer existence, digest correctness, artifact references, or record
+approval. An implementation MUST complete those semantic checks before it
+claims a successful lock or replay.
 
-Portable descriptor versions are opaque labels. The profile and configuration
-schemas do not define SemVer constraints or merge/inheritance behavior. A
-registry's `stableprofileuri`/`configurationuri` attributes identify document
-logical identity only; consumer invocation evidence binds exact Core Version
-IDs where present, complete file digests, document URLs, and interpretation
-bases. A local or shared configuration is selected explicitly and alone.
+Portable descriptor versions are opaque labels; the schemas define neither
+SemVer constraints nor merge or inheritance behavior. Registry attributes
+`stableprofileuri` and `configurationuri` identify logical documents only.
+Invocation evidence binds each selected document to its exact Core Version
+ID, where present, full file digest, document URL, and interpretation base.
+The consumer explicitly selects one `own` or `shared` configuration.
 
-The processing evidence schema is a local owner definition. The profile,
-configuration, definition, and evidence schemas use only local JSON Schema
-references and do not fetch sibling proposal schemas. Retained artifact bytes
-are separate files in the archive; the manifest records their descriptors and
-paths but does not carry credentials. Schema validation alone does not prove
-that archive files exist or match digests, that a closure is complete, that a
-configuration rule is unique, or that replay is authorized. Those are
-consumer-side semantic checks; the repository tests validate the example
-evidence contract only and do not implement a resolver.
+The processing evidence schema is defined locally. The profile,
+configuration, definition, and evidence schemas use local JSON Schema
+references only; they do not fetch schemas from sibling proposals. The archive
+stores retained artifact bytes as separate files. Its manifest lists their
+descriptors and paths, not credentials. Schema validation does not prove that
+archive files exist or match their digests, that a closure is complete, that a
+configuration rule is unique, or that replay is authorized. Consumers must
+check those semantics. Repository tests check the example evidence contract;
+they do not implement a resolver.
 
-Replay callers pin both the invocation digest and the complete evidence
-object's JCS digest independently of the evidence being checked. These
-expected digest values are trust inputs to a consumer API, not serialized
-members of the descriptor, configuration, or evidence schemas.
+Before replay, the caller independently pins the invocation digest and the
+JCS digest of the complete evidence object. These expected digests are trust
+inputs to the consumer API, not serialized members of the descriptor,
+configuration, or evidence.
 
-For file artifacts, `digest` is the full SHA-256 of the complete decoded file
-octets before parsing or normalization, and `byteLength` is the decimal
-length of those exact octets. Native metadata artifacts use the separately
-named `frozen-native-metadata-v1` digest scope and MUST identify a
-`representationProfile` that specifies the complete frozen semantic
-representation, lossless field mapping, and exact canonical encoding. They do
-not claim to recover original source-file bytes. The xRegistry WoT adapter
-itself emits file artifacts only.
+For file artifacts, `digest` is SHA-256 over all decoded file octets, before
+parsing or normalization. `byteLength` is the decimal length of those bytes.
+Native metadata artifacts use the separate `frozen-native-metadata-v1` digest
+scope and MUST identify a `representationProfile` defining the complete
+frozen semantic representation, lossless field mapping, and exact canonical
+encoding. This digest does not claim to recover source-file bytes. The
+xRegistry WoT adapter emits file artifacts only.
 
 Three digests remain distinct:
 
@@ -65,6 +64,6 @@ Three digests remain distinct:
 - Each artifact digest covers its declared file or frozen native
   representation. It is not a compact SchemaId or a registry Version ID.
 
-The fixtures are illustrative evidence, not an implementation of a registry
-resolver. The focused repository test checks their internal digest, identity,
-and default-drift relationships in addition to schema validity.
+The fixtures illustrate evidence; they do not implement a registry resolver.
+In addition to schema validation, the focused repository test checks their
+digest, identity, and default-drift relationships.

@@ -173,24 +173,23 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
 ## 7. Resolution records are separate, scoped evidence
 
-**Decision.** Exact and registry-default selection are recorded per authored
-reference occurrence in an optional resolution record. A registry default is
-observed only while creating a lock; replay uses the approved exact retained
-artifact, not a fresh default lookup.
+**Decision.** An optional resolution record captures exact or registry-default
+selection for each authored reference occurrence. A lock observes the registry
+default when it is created. Replay uses the approved retained artifact; it
+does not look up the default again.
 
-**Why.** A `versionid` can identify a mutable Version, registry defaults can
-move, and an epoch on a Resource does not establish that the contents of an
-existing child Version stayed the same. Reproducibility therefore requires
-both the selected Version and retained verified bytes, along with the
-interpretation inputs that affect their meaning.
+**Why.** A `versionid` can identify a mutable Version, defaults can change,
+and a Resource epoch does not prove that an existing Version's contents are
+unchanged. Reproducible processing therefore needs the selected Version, its
+verified retained bytes, and the interpretation inputs that give those bytes
+meaning.
 
 **Consequence.** The optional `resolutionpolicy` attachment is a suggestion,
-not authority. Authoritative policy bytes are imported as an immutable
-revision into the deployment host's protected state. The separate
-`resolutionrecords` list can point to multiple digest-pinned records; it has
-no implied default and is not an activation command. The format is defined by
-this draft's [local schemas](schemas/README.md), independently of W3C and OPC
-UA proposals.
+not authority. The deployment host imports authoritative policy bytes as an
+immutable revision into protected state. The separate `resolutionrecords`
+list may point to multiple digest-pinned records; it defines no default and
+does not activate anything. This draft defines the format in its
+[local schemas](schemas/README.md), independently of W3C and OPC UA proposals.
 
 See [Section 4.6](spec.md#46-provenance-and-selection-metadata) and
 [5.3](spec.md#53-lookup).
@@ -199,23 +198,23 @@ See [Section 4.6](spec.md#46-provenance-and-selection-metadata) and
 
 **Decision.** Store processing descriptors and root-free reusable
 configurations in `wotprocessinggroups/{processingprofiles,
-processingconfigurations}`. The profile's stable identity is
-`stableprofileuri`; the configuration's is `configurationuri`. Keep
-root-bound `resolutionpolicy` and `resolutionrecords` attachments separate.
+processingconfigurations}`. Identify profiles with `stableprofileuri` and
+configurations with `configurationuri`. Keep the root-bound
+`resolutionpolicy` and `resolutionrecords` attachments separate.
 
 **Why.** Profile definitions and configurations can be shared independently of
-any one root document or deployment. Keeping them in the WoT model lets
-consumers discover them using ordinary xRegistry document Resources without
-adding a third TD/TM Resource kind or changing Core/HTTP. A separate
-domain-neutral model is deferred.
+any one root document or deployment. The WoT model exposes them through
+ordinary xRegistry document Resources. This avoids a third TD/TM Resource
+kind and requires no Core/HTTP change. A separate domain-neutral model is
+deferred.
 
 **Consequence.** A consumer explicitly selects exactly one own or shared
-configuration per invocation; it never implicitly merges or falls back to
-another. A stable URI or matching Core identity does not make mutable document
-bytes immutable: the invocation binds exact Core Version IDs, byte digests,
-document locations, and interpretation bases. Descriptors do not bootstrap
-profile support, trust, or authority. Deployment policy remains an immutable
-authorized revision in deployment-host protected state.
+configuration for each invocation; it does not merge configurations or fall
+back to another. A stable URI or matching Core identity does not freeze
+mutable document bytes. Each invocation binds the exact Core Version IDs,
+byte digests, document locations, and interpretation bases. Descriptors do
+not establish profile support, trust, or authority. Deployment policy remains
+an authorized immutable revision in deployment-host protected state.
 
 See [Section 4.7](spec.md#47-processing-profile-and-configuration-resources)
 and [Section 5.4](spec.md#54-processing-invocation-and-evidence).

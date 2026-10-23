@@ -16,12 +16,12 @@
 
 ## Abstract
 
-This specification defines a WoT (Web of Things) Registry extension to the
-xRegistry document format and API [specification][xRegistry Core]. A WoT
-Registry allows for the storage, management and discovery of W3C
+This specification extends the xRegistry document format and API
+[specification][xRegistry Core] with a WoT (Web of Things) Registry model. A
+WoT Registry stores, manages, and discovers W3C
 [WoT Thing Description (WoT-TD)][WoT-TD-1.1] and
-[WoT Thing Model (WoT-TM)][WoT-TM-1.1] documents, WoT-domain processing profile
-descriptors, and reusable configuration documents.
+[WoT Thing Model (WoT-TM)][WoT-TM-1.1] documents, together with WoT processing
+profile descriptors and reusable configuration documents.
 
 ## Table of Contents
 
@@ -70,11 +70,10 @@ descriptors, and reusable configuration documents.
 
 ## 1. Overview
 
-A WoT Registry provides a repository for managing W3C Web of Things documents:
-**Thing Descriptions** (TDs), which describe concrete network-facing instances
-of Things; **Thing Models** (TMs), which describe reusable, abstract templates
-for classes of Things; and WoT-domain processing profile descriptors and
-reusable configuration documents.
+A WoT Registry stores and manages W3C Web of Things documents. A **Thing
+Description** (TD) describes a deployed Thing; a **Thing Model** (TM) describes
+a reusable class of Things. The registry also stores WoT processing profile
+descriptors and reusable configuration documents.
 
 A WoT Registry is generally used to share Thing metadata amongst multiple
 parties: device fleets, gateways, integrators, and consuming applications. The
@@ -93,22 +92,20 @@ those interaction affordances to network endpoints over specific protocols
 (HTTP, MQTT, CoAP, OPC-UA, Modbus, etc.).
 
 A **Thing Model** (TM) is a JSON-LD 1.1 document conforming to
-[WoT-TM 1.1][WoT-TM-1.1]. It is an **abstract** description of a class of
-Things, typically without `href` values in its forms. Thing Models are
-intended to be reused through the mechanisms defined for Thing Models. A
-Thing Description's `links` member can associate it with a Thing Model using
-`rel: "type"`; this association and JSON-LD `@type` declarations do not by
-themselves import or merge another document.
+[WoT-TM 1.1][WoT-TM-1.1]. It describes an **abstract** class of Things and
+typically has no concrete `href` values in its forms. A Thing Description can
+associate itself with a Thing Model through a `links` entry with
+`rel: "type"`. That link and a JSON-LD `@type` declaration identify a
+relationship; neither imports or merges another document.
 
-Both document classes are JSON-LD; they share a common subset of vocabulary,
-but a WoT Registry MUST treat them as distinct Resource types because their
-intended use, validation rules, and lifecycle are different. The published
-WoT-TM operators apply to Thing Models; a TD `links` entry with `rel: "type"`
-associates a Thing Description with a Thing Model and does not itself import or
-merge that model. A JSON-LD `@type` gives semantic type information; it is not,
-by itself, an instruction to fetch or compose a document. Any TD composition
-operators or unresolved-plan markers remain specific to a separately identified
-processing profile and do not change ordinary TD/TM interpretation.
+Both document classes use JSON-LD and share some vocabulary, but their intended
+use, validation rules, and lifecycle differ. A WoT Registry MUST therefore
+treat them as distinct Resource types. WoT-TM operators apply to Thing Models.
+A TD's `rel: "type"` link associates it with a Thing Model, and JSON-LD
+`@type` supplies semantic type information; neither directs a consumer to
+fetch or compose another document. Any TD composition operator or
+unresolved-plan marker belongs to a separately identified processing profile
+and does not change ordinary TD or TM interpretation.
 
 ### 1.2. Relationship to Other xRegistry Specs
 
@@ -126,29 +123,27 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
   is derived; see [Section 6.1](#61-thing-description-to-thing-model).
 
 This specification does not require a registry to resolve or validate these
-cross-references: an implementation MAY check that a referent exists, but a
-document whose referents are absent is still stored and served. That is a
-statement about what the *registry* enforces, not about whether the
-references matter — a Consumer composing a TD from its Thing Models, or
-binding an affordance to an endpoint, depends on them.
+cross-references. An implementation MAY check that a referent exists, but MUST
+still store and serve a document whose referent is absent. Consumers that
+compose a TD from its Thing Models or bind an affordance to an endpoint remain
+responsible for resolving those references.
 
-The W3C WoT vocabularies and this xRegistry domain model are separately
-standardized artifacts with independent publication processes. W3C
-ratification is not a prerequisite for publication of xRegistry Core or an
-OPC UA companion model, and publication of either does not imply W3C approval.
-This specification defines no OPC UA dependency.
+W3C WoT vocabularies and the xRegistry domain model are standardized
+independently. W3C ratification is not a prerequisite for publishing xRegistry
+Core or an OPC UA companion model; publication of either does not imply W3C
+approval. This specification has no OPC UA dependency.
 
 ### 1.3. Versioning
 
 Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
 WoT-TD or WoT-TM document. This specification does not require a registry to
 parse the document in order to derive registry metadata; the document is
-stored as-is and the xRegistry [`versionid`][xRegistry version-ids] follows
-the xRegistry Core rules. Integer-looking, increasing IDs are a Core
-server-assignment default, not the only permissible Version ID form: clients
-may supply IDs where the Resource's `setversionid` policy permits it, and the
-Resource's `versionmode` governs its ancestor/default ordering semantics.
-This specification selects no independent version mode.
+stored as supplied, and the xRegistry [`versionid`][xRegistry version-ids]
+follows the Core rules. Core's server-assignment default uses increasing,
+integer-looking IDs, but clients MAY supply IDs when the Resource's
+`setversionid` policy permits it. The Resource's `versionmode` determines how
+Version ancestry and default selection are handled. This specification defines
+no separate version mode.
 
 A Version's identifier — its [`versionid`][xRegistry version-ids] — is never
 part of a Resource's identity. A Resource's `wotid`, `thingdescriptionid` and
@@ -175,13 +170,13 @@ records where the successor lives; see
 [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
 
 The `processingprofile` and `processingconfiguration` Resources introduced
-in [Section 4.7](#47-processing-profile-and-configuration-resources) also
-use ordinary Core Versions. Their document `version` labels are opaque
-application values, not Core Version IDs, SemVer constraints, or a substitute
-for a digest. A replayable invocation MUST bind the exact Core Version ID,
-complete document-file digest, document URL, and interpretation base of each
-selected descriptor and configuration. A matching stable URI or unchanged
-Core Version ID MUST NOT be treated as proof that the bytes are unchanged.
+in [Section 4.7](#47-processing-profile-and-configuration-resources) also use
+ordinary Core Versions. Their document `version` labels are opaque application
+values; they are neither Core Version IDs nor SemVer constraints, and they do
+not replace a digest. A replayable invocation MUST bind each selected
+descriptor and configuration to its exact Core Version ID, complete
+document-file digest, document URL, and interpretation base. A stable URI or
+unchanged Core Version ID does not prove that the bytes are unchanged.
 
 ### 1.4. Document Store
 
@@ -202,10 +197,9 @@ Such a Resource is exposed through two views:
   xRegistry HTTP Binding uses the `$details` URL suffix to select the
   metadata view.
 
-Processing profile descriptors and configurations are JSON documents with
-the same Core document/metadata-view distinction. Unlike TD and TM documents,
-they are not JSON-LD documents and do not acquire TD/TM media types or
-validation claims.
+Processing profile descriptors and configurations are JSON documents and use
+the same Core document/metadata-view distinction. They are not JSON-LD, do not
+use TD or TM media types, and carry no TD/TM validation claim.
 
 Because these document Resources have a document, an entity's
 [`self`][xRegistry self] URL is its **metadata-view** URL — in the HTTP
@@ -214,27 +208,25 @@ same URL *without* the `$details` suffix, which is also what
 [`shortself`][xRegistry shortself] is an alternative for where a deployment
 enables that capability.
 
-An xRegistry-unaware WoT consumer MAY be handed a `thingdescription` or
-`thingmodel` Version's `self` URL with the `$details` suffix removed — or its
-`shortself` URL — and treat it as a regular WoT TD or TM URL. Handing that
-consumer the `self` URL unchanged would return xRegistry metadata rather than
-the document, so the two are not interchangeable. Processing profile and
-configuration documents are not TDs or TMs.
+A WoT consumer that does not understand xRegistry MAY use a
+`thingdescription` or `thingmodel` Version's `self` URL with the `$details`
+suffix removed, or its `shortself` URL, as a regular WoT document URL. The
+unchanged `self` URL returns xRegistry metadata instead. Processing profile
+and configuration documents are not TDs or TMs.
 
 Addressing a `thingdescription` or `thingmodel` Resource without naming a
 Version serves that Resource's [default Version][xRegistry version-ids];
 [Section 5.3](#53-lookup) describes both forms of retrieval.
 
-If the registry exposes a `documentdigest` under
-[Section 4.6](#46-provenance-and-selection-metadata), it identifies the exact stored
-decoded file octets; it does not make that Version immutable. A registry MAY
-offer a stronger, explicitly advertised reproducible-publication capability.
-That capability MUST state its retention term, deletion/revocation behavior,
-and whether existing document bytes and interpretation-critical bindings can
-be replaced. Ordinary Core Version update, deletion, and pruning semantics
-remain in force when no such commitment is advertised. A `maxversions` value
-of zero, a sticky default, or a temporarily read-only attribute is not by
-itself a retention commitment.
+If a registry exposes `documentdigest` under
+[Section 4.6](#46-provenance-and-selection-metadata), the value identifies the
+stored, decoded file octets. It does not make the Version immutable. A registry
+MAY advertise a reproducible-publication capability. It MUST state the
+retention term, how deletion and revocation work, and whether the document
+bytes or interpretation bindings can change. Without that commitment, Core
+rules for Version updates, deletion, and pruning apply. A `maxversions` value
+of zero, a sticky default, or a temporarily read-only attribute does not
+commit the registry to retain a Version.
 
 ## 2. Notations and Terminology
 
@@ -732,10 +724,10 @@ the Resource type (`thingdescriptions` versus `thingmodels`) and by the
 
 ### 4.6. Provenance and Selection Metadata
 
-A registry is consumed by tools and by autonomous agents that have to choose
-between several documents describing similar Things. Choosing well needs
-metadata that is *explicit*, rather than inferred from a title or a naming
-convention. Both `thingdescription` and `thingmodel` Resources therefore carry
+A registry serves tools and autonomous agents that choose among documents
+describing similar Things. That choice needs explicit metadata rather than
+inference from a title or naming convention. Both `thingdescription` and
+`thingmodel` Resources therefore carry
 the following OPTIONAL attributes:
 
 | Attribute | Type | Meaning |
@@ -763,18 +755,16 @@ this set; a Consumer that nonetheless encounters one — from a federated
 registry, for example — MUST NOT rank it above `Experimental`, because this
 specification defines no precedence for it.
 
-These attributes are **advisory and unverified**. They describe where a
-document claims to have come from and how established its writer says it is.
-They are asserted by whoever writes the Resource, and this specification
-defines no mechanism by which a registry validates that a `publisher` or
-`standardsbody` claim is genuine; a registry MUST NOT be assumed to have done
-so. A Consumer MUST NOT treat them as authenticated provenance, and the
-preference order above is a tie-break among documents the Consumer has
-*already* decided to trust — by Group, by writer identity, or by an
-out-of-band signature. It MUST NOT be used to establish trust in a document
-from an untrusted writer. [Section 5.3](#53-lookup) notes that one `wotid`
-MAY legitimately match several Resources, so this is a real choice among
-candidates written by different parties; see also
+These attributes are **advisory and unverified**. The Resource writer asserts
+the document's origin and maturity. This specification defines no way for a
+registry to verify a `publisher` or `standardsbody` claim, and a registry MUST
+NOT be assumed to have verified one. A Consumer MUST NOT treat these values as
+authenticated provenance. The preference order above is only a tie-break
+among documents the Consumer already trusts by Group, writer identity, or an
+out-of-band signature; it MUST NOT establish trust in a document from an
+untrusted writer. One `wotid` MAY match several Resources, as described in
+[Section 5.3](#53-lookup), so a Consumer may need to choose among documents
+from different parties. See also
 [Section 7](#7-security).
 
 These attributes are also not part of a document's semantic identity. A
@@ -844,32 +834,31 @@ than resolve today's default or choose another attachment.
 
 ### 4.7. Processing Profile and Configuration Resources
 
-The WoT model adds `wotprocessinggroups`, containing the document Resource
-collections `processingprofiles` and `processingconfigurations`. These are
-ordinary Core document Resources with `format: "JSON"`. The
-`stableprofileuri` and `configurationuri` attributes MUST equal the respective
-document's `id` and are declared with Core `matchversions: true`. They are
-stable logical identifiers only: they do not identify a Core Version, make
-bytes immutable, or prove that a producer or consumer is trusted.
-The `format` attribute MUST be `JSON` and the document view MUST use
-`application/json`.
+The WoT model adds `wotprocessinggroups`, which contains the document
+Resource collections `processingprofiles` and `processingconfigurations`.
+Both are ordinary Core document Resources with `format: "JSON"`. Their
+`stableprofileuri` and `configurationuri` attributes MUST equal the
+corresponding document's `id` and use Core `matchversions: true`. These
+attributes identify the logical document; they do not identify a Core Version,
+freeze its bytes, or establish trust in its producer or consumer. The document
+view MUST use `application/json`.
 
 A processing profile descriptor MUST conform to
-[processing-profile.schema.json](schemas/processing-profile.schema.json) and
-contain `formatVersion`, `id`, opaque `version`, `definition`, `operations`,
-`roles`, and `representationProfiles`. `definition` identifies the exact
-reviewed processing definition by URI, opaque version label, and SHA-256 of
-the complete definition file octets. The definition is owner-local and
-self-contained. This draft's initial profile is the
-`resolve-definition` operation for a complete property definition, with the
-`tm:ref` role and the `decoded-file-octets` representation profile. Its complete
-fixed context value and bounded operation rules are published in
+[processing-profile.schema.json](schemas/processing-profile.schema.json). It
+contains `formatVersion`, `id`, an opaque `version`, `definition`,
+`operations`, `roles`, and `representationProfiles`. The `definition` member
+identifies the exact reviewed processing definition by URI, opaque version
+label, and SHA-256 digest of the complete file octets. This owner-local
+definition is self-contained. The initial profile defines the
+`resolve-definition` operation for a complete property definition, the
+`tm:ref` role, and the `decoded-file-octets` representation profile. Its fixed
+context value and bounded operation rules appear in
 [the processing-profile definition schema](schemas/processing-profile-definition.schema.json)
-and the corresponding sample. This profile does not load remote contexts or
-schemas. A context change, override, unsupported schema dependency, operation,
-role, or representation profile MUST fail explicitly; a caller MUST NOT
-claim an empty dependency closure when required interpretation inputs are
-missing.
+and the corresponding sample. The profile does not load remote contexts or
+schemas. A context change or override, unsupported schema dependency,
+operation, role, or representation profile MUST fail explicitly. A caller
+MUST NOT claim an empty dependency closure when a required interpretation
+input is missing.
 
 The descriptor's declared operations, roles, and representation profiles are
 claims, not an implementation capability. A consumer MUST independently
@@ -882,87 +871,83 @@ do not import a W3C proposal or OPC UA model.
 
 A reusable processing configuration MUST conform to
 [processing-configuration.schema.json](schemas/processing-configuration.schema.json).
-It contains `formatVersion`, `id`, opaque `version`, the exact supported
+It contains `formatVersion`, `id`, an opaque `version`, the exact supported
 `profile` descriptor binding (`id`, `version`, and full document digest),
 `rules`, and finite positive `limits` named `maxDepth`, `maxBytes`, and
-`maxMilliseconds`. Its rules are root-free and target-free. Each rule requires one role,
-expected document kind, expected authored identity, a closed authority scope,
-and either an exact Core Version ID or the `registry-default` selection;
-`expectedDigest` MAY add a content pin. For the xRegistry WoT adapter, a
-scope names exactly one adapter URI
+`maxMilliseconds`. Each rule is independent of a root or deployment target.
+It specifies one role, expected document kind and authored identity, a closed
+authority scope, and either an exact Core Version ID or the `registry-default`
+selection. `expectedDigest` MAY add a content pin. A scope for the xRegistry
+WoT adapter names exactly one adapter URI
 (`https://xregistry.io/workingdrafts/models/wot/adapters/xregistry/1`),
-registry origin, `thingmodelgroups` Group id, and
-`thingmodels` collection, with an optional exact Resource id. The optional
-Resource id is an additional pin, never a search fallback.
-When deriving the existing root-bound policy format, this adapter URI maps
-to that format's established `resolver.adapter` value `xregistry-wot`; the
-portable configuration does not alter the policy schema or its attachment
-shape.
+registry origin, `thingmodelgroups` Group id, and `thingmodels` collection; it
+MAY also pin an exact Resource id. That pin does not permit a search fallback.
+When deriving the existing root-bound policy format, the adapter URI maps to
+the established `resolver.adapter` value `xregistry-wot`. The portable
+configuration does not change that policy schema or its attachment shape.
 
-For each required reference occurrence, a consumer MUST find exactly one
-configuration rule matching its role, expected kind, and logical identity
-before acquisition. No precedence, wildcard, first-match, fallback, or
-implicit rule inheritance is defined. Zero matching rules, multiple matching
-rules, unsupported adapters, out-of-scope sources, and mismatched authored
-pins fail; the consumer MUST NOT search another Group, collection, origin, or
-provider to recover. The selected configuration itself MUST be explicitly
-chosen as `own` or `shared`. A consumer MUST use that one document only: it
-MUST NOT implicitly merge, overlay, extend, or fall back to another
-configuration. A caller that wants a different configuration begins a
-separate invocation.
+Before acquiring a required reference, a consumer MUST find exactly one
+configuration rule matching its role, expected kind, and logical identity.
+Rules have no precedence, wildcard, first-match, fallback, or implicit
+inheritance. The consumer MUST fail on zero or multiple matching rules, an
+unsupported adapter, an out-of-scope source, or a mismatched authored pin. It
+MUST NOT search another Group, collection, origin, or provider to recover.
+The caller MUST explicitly select the configuration as `own` or `shared`,
+and the consumer MUST use only that configuration. It MUST NOT merge, overlay,
+extend, or fall back to another configuration. A different configuration
+requires a separate invocation.
 
-The `version` labels in descriptors and configurations are opaque and MUST be
-compared exactly; this draft defines no SemVer ranges or compatible-version
-constraint syntax. For an invocation and replay, consumers MUST bind the
-selected descriptor and configuration to their exact registry Version IDs
-where applicable, full document-file digests, document URLs, and
-interpretation bases. They MUST verify those bindings against the retained
-bytes. If bytes change while a Core Version ID remains unchanged, the
-invocation MUST fail integrity validation. A stable URI, `matchversions`,
-sticky default, registry epoch, or read-only metadata flag does not make the
-document immutable or guarantee retention.
+The `version` labels in descriptors and configurations are opaque and MUST
+match exactly. This draft defines no SemVer ranges or compatible-version
+constraints. For invocation and replay, consumers MUST bind each selected
+descriptor and configuration to its exact registry Version ID, where
+applicable, full document-file digest, document URL, and interpretation base.
+They MUST verify these bindings against the retained bytes. If the bytes
+change while a Core Version ID remains the same, integrity validation MUST
+fail. A stable URI, `matchversions`, sticky default, registry epoch, or
+read-only metadata flag does not make the document immutable or guarantee
+retention.
 
-The configuration's finite limits are additionally constrained by local
-consumer ceilings and MUST be checked before retrieval or descent and after
-decoding. A missing, zero, or unbounded limit MUST NOT be treated as
-permission. An empty `rules` array is valid for an invocation whose requested
-closure contains no external reference requiring provider selection; an
-external acquisition without exactly one matching rule fails. Credentials, deployment targets, approvals, activation commands,
-root documents, operation requests, and occurrence pointers MUST NOT be
-stored in reusable configurations.
+The consumer MUST enforce the configuration's finite limits alongside its
+own ceilings, checking them before retrieval or descent and after decoding. A
+missing, zero, or unbounded limit MUST NOT grant permission. An empty `rules`
+array is valid when the requested closure has no external reference that
+requires provider selection. Any external acquisition without exactly one
+matching rule MUST fail. Reusable configurations MUST NOT contain credentials,
+deployment targets, approvals, activation commands, root documents, operation
+requests, or occurrence pointers.
 
-These Resources are for profile and configuration discoverability and
-distribution. A registry is not required to become a composition, validation,
-authorization, or activation engine. `resolutionpolicy` and
-`resolutionrecords` remain distinct, optional, root-bound attachment
-attributes on TD/TM Versions; this revision does not relax their existing
-schemas or semantics. An attachment to a reusable configuration does not
-grant authority. The authoritative deployment policy, when one is required,
-is imported as an immutable revision into the deployment host's protected
-state. A `resolutionpolicy` attachment remains advisory until that authorized
-local import and approval occur.
+These Resources make profiles and configurations discoverable and distributable.
+A registry need not become a composition, validation, authorization, or
+activation engine. The optional `resolutionpolicy` and `resolutionrecords`
+attachments remain separate and root-bound on TD/TM Versions; this revision
+does not change their schemas or semantics. Attaching a policy to a reusable
+configuration does not grant authority. When a deployment requires a policy,
+the deployment host MUST import it as an immutable revision into protected
+state. A `resolutionpolicy` attachment remains advisory until an authorized
+local import and approval.
 
 ## 5. Identity and Resolution
 
 ### 5.1. WoT Identifiers and Registry Ids
 
-xRegistry gives every entity an id — a `thingdescriptionid` or
+xRegistry assigns each entity an id — `thingdescriptionid` or
 `thingmodelid` for a Resource — and an [`xid`][xRegistry Core], the stable
-path those ids form within the registry. Each entity id is constrained to
+registry path formed from those ids. An entity id is constrained to
 [RFC 3986][RFC3986] `unreserved` characters plus `:` and `@`, starting with a
 letter, a digit or `_`, at most 128 characters long, and unique
 case-insensitively within its parent. A WoT identifier is the value of a TD's
 or TM's `id` member: a URI, most often a URN such as `urn:fabrikam:lamp:42`,
 but equally a URL such as `https://fabrikam.example/things/lamp-42`.
 
-The two express the same idea but are **not the same grammar**:
+The two identify the same document but use different grammars:
 `https://fabrikam.example/things/lamp-42` is not a valid entity id, so it is
 also not a valid `xid` component, and an `xid` is not what a Thing author
 writes. Where an authored identifier does satisfy the id grammar a client MAY
 use it as the Resource id, but a registry cannot rely on that.
 
-This specification therefore does not equate them, and does not define a
-mapping between them:
+This specification keeps the identifiers separate and defines no mapping
+between them:
 
 > A `thingdescription`'s `wotid` is its document's identity in the WoT
 > identifier space ([Section 2.2.3](#223-wot-identifier)). Its
@@ -972,27 +957,24 @@ mapping between them:
 > imposes. Neither is derived from the other. The same applies to a
 > `thingmodel`'s `wotid` and `thingmodelid`.
 
-A client creating a Resource therefore chooses its id the same way it chooses
-a Group id: it either names the id in the request path, or supplies it in the
-request body, or omits it and lets the registry assign one under the xRegistry
-Core rules. Nothing in the document dictates the choice, and nothing later
-depends on it, because `wotid` is a first-party attribute: a Consumer holding
-a WoT identifier finds the Resource by querying on it
+A client chooses a Resource id when creating it, just as it chooses a Group
+id: it can put the id in the request path, include it in the request body, or
+omit it and let the registry assign one under the Core rules. This document
+does not prescribe a mapping. A Consumer holding a WoT identifier finds the
+Resource by querying its first-party `wotid` attribute
 ([Section 5.3](#53-lookup)) rather than by reconstructing a path. A deployment
-MAY derive its Resource ids from `wotid` values by a convention of its own —
+MAY derive Resource ids from `wotid` values by a local convention —
 the [OpenUSD Artifact Registry][OpenUSD Draft] working draft defines one such
 construction — but no convention is mandated by this specification, and a
 Consumer MUST NOT assume that an id it did not assign was produced by one.
 
-A `wotid` MUST NOT encode a revision of the document it names. Encoding one —
-for example as a `:v2` suffix appended when the document is edited — makes the
-identifier change whenever the document changes, so the registry can no longer
-tell that two documents describe the same logical Thing,
-[`ancestorid`][xRegistry ancestorid] lineage is broken, and every consumer
-holding a reference has to be rewritten on each revision. The version of a
-document is carried by the xRegistry `versionid` and, where the document
-declares one, by its own WoT `version` member; neither is part of the
-identifier.
+A `wotid` MUST NOT encode a revision of the document it names. Appending a
+suffix such as `:v2` when editing the document changes its identifier, so the
+registry cannot identify revisions of the same logical Thing. It also breaks
+[`ancestorid`][xRegistry ancestorid] lineage and forces every consumer holding
+a reference to update it. The xRegistry `versionid` identifies the registry
+Version. A document's own WoT `version` member, when present, identifies its
+WoT version. Neither belongs in `wotid`.
 
 This is a prohibition on *versioning an identifier*, not on the characters
 that can appear in one. A vendor who deliberately publishes a second,
@@ -1001,20 +983,20 @@ identifier they author for it — which might well carry a `v2` token — is tha
 Thing's own stable `wotid`; see
 [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
 
-Consequently, when a document is revised:
+When a document is revised:
 
 - Its `wotid` is unchanged.
 - Its `thingdescriptionid` (or `thingmodelid`) is unchanged, because it is the
   same Resource.
 - A new Version is created under the same Resource.
 
-A `wotid` is REQUIRED, and the rule for populating it depends on the document:
+A `wotid` is REQUIRED. Populate it as follows:
 
 - Where the document carries an `id` member, `wotid` MUST equal it verbatim.
   A registry that parses the stored document MUST reject a write whose
-  `wotid` differs from that `id`, rather than storing two identities for one
+  `wotid` differs from `id`; it MUST NOT store two identities for one
   document. A registry that does not parse the document cannot detect the
-  disagreement; neither MUST resolve one by rewriting either value, because
+  mismatch and MUST NOT resolve it by rewriting either value, because
   [Section 5.2](#52-preserving-customer-documents) forbids editing the
   document.
 - Where the document carries no `id` member — which
@@ -1026,18 +1008,16 @@ A `wotid` is REQUIRED, and the rule for populating it depends on the document:
   stable across registries.
 
 [Decision 4](decisions.md#4-wotid-is-a-required-indexed-first-party-attribute)
-records that whether a future revision ought to define a derivation for the
-second case is not yet settled.
+leaves open whether a future revision should define a derivation for the
+second case.
 
 #### 5.1.1. Breaking Changes and Successor Identifiers
 
 [Section 1.3](#13-versioning) requires a breaking change that violates the
-Resource's [`compatibility`][xRegistry compatibility] policy to result in a
-new Resource rather than a new Version. Since a `wotid` does not change when
-its document is revised, and every Version of a Resource carries the same
-one, a successor cannot be produced by editing an existing document: it is
-produced by authoring a **new logical Thing** with its own `wotid`, stored as
-a new Resource.
+Resource's [`compatibility`][xRegistry compatibility] policy to use a new
+Resource, not a new Version. The `wotid` remains the same across a Resource's
+Versions. A successor therefore needs a new authored `wotid` and a new
+Resource; it is a **new logical Thing**.
 
 - The successor's `wotid` is a new authored identifier, distinct from the
   predecessor's. It is that Thing's permanent identity and is itself never
@@ -1054,8 +1034,8 @@ a new Resource.
   successor Resource, so a consumer holding the old identifier can find the
   new one without a side channel.
 
-Where a deployment wants to group related identifiers into a compatibility
-family, it MAY adopt an explicit naming policy such as a major-version token —
+To group related identifiers into a compatibility family, a deployment MAY
+adopt a naming convention such as a major-version token —
 `urn:fabrikam:lamp:v2`, or `https://fabrikam.example/tm/lamp/v2`. This is a
 domain/deployment convention, not a WoT identity rule, and does not establish
 that an interface change creates a different physical Thing. The registry
@@ -1067,7 +1047,7 @@ If a deployment uses such a convention, the token is chosen by the author as
 part of the stable authored identifier. Section 5.1 forbids a registry or
 Producer from mutating an identifier that a document already carries.
 
-For example, a lamp whose control interface changes incompatibly:
+For example, if a lamp's control interface changes incompatibly:
 
 | | Predecessor | Successor |
 |---|---|---|
@@ -1078,10 +1058,10 @@ For example, a lamp whose control interface changes incompatibly:
 
 ### 5.2. Preserving Customer Documents
 
-Registries are populated with Thing Models and Thing Descriptions that already
-exist: authored by a vendor, published by a standards body, or generated by a
-toolchain, and referenced from artifacts the registry never sees. Such a
-document is stored as it was authored.
+Registries store Thing Models and Thing Descriptions authored by vendors,
+standards bodies, or toolchains. Other artifacts may reference those documents
+without the registry's knowledge. The registry stores each document as
+authored.
 
 - A registry MUST store the WoT document byte-for-byte as supplied, apart from
   transformations the client explicitly requested.
@@ -1100,22 +1080,16 @@ document is stored as it was authored.
   `Content-Digest` or `Repr-Digest` MUST NOT be copied into `documentdigest`
   unless its defined byte scope is exactly the scope above.
 
-Rewriting is incompatible with these documents for three reasons. A TM
-published by a standards body is referenced by `id` from artifacts outside the
-registry, and rewriting the `id` would break those references while leaving
-the registry's own copy claiming to be the standard document. A TM's
-`tm:extends` target resolves in the WoT identifier space, so a rewritten
-target no longer matches what any other WoT tool would look for. And a
-document copied between two registries would acquire two different identities
-for the same bytes, so neither registry could tell the copies apart from
-genuinely distinct documents.
+Rewriting can break references from artifacts outside the registry and make
+the registry's copy misrepresent the published document. A TM's
+`tm:extends` target resolves in the WoT identifier space; changing it makes
+the target invisible to other WoT tools. If two registries rewrite the same
+document differently, they assign different identities to identical bytes.
 
-The registry's own identity for a document — its `thingdescriptionid` or
-`thingmodelid`, and the `xid` those form — therefore lives *outside* the
-document, and the identifiers the document itself authored are carried
-alongside it, unchanged, in the `wotid` and `derivedfrom` attributes. This
-keeps the authored identifier space and the registry identifier space
-separate and allows a document to round-trip unchanged.
+The registry's `thingdescriptionid` or `thingmodelid` and resulting `xid`
+remain outside the document. The WoT document's own identifiers travel beside
+it, unchanged, in `wotid` and `derivedfrom`. This separation lets the document
+round-trip without changing either identifier space.
 
 Where a registry wants the TD-to-TM link to be traversable without parsing the
 document, it records the referenced Thing Models' *authored* identifiers in
@@ -1218,66 +1192,65 @@ by the Resource's actual Core default at lock creation; it does not mean the
 largest ID, highest WoT version label, or currently active projection.
 
 When processing references, a consumer MUST traverse only roles defined by
-the applicable WoT vocabulary/profile. Interaction forms and navigational
-Thing links are not automatically document imports. It MUST resolve and
-verify the selected document before applying a fragment, check any authored
-identity/digest constraint, and retain the exact bytes and interpretation
-inputs used, including required JSON-LD contexts, schemas, catalogs, base
-information, and semantic processing configuration. It MUST preserve the
-authored document, reference strings, and occurrence pointers. A changed
-`documentbase` or registry location MUST NOT silently override authored TD
-`base` or JSON-LD context semantics.
+the applicable WoT vocabulary or profile. Interaction forms and navigational
+Thing links are not automatically document imports. The consumer MUST resolve
+and verify the selected document before applying a fragment, check authored
+identity and digest constraints, and retain the exact bytes and
+interpretation inputs used. These inputs include required JSON-LD contexts,
+schemas, catalogs, base information, and semantic processing configuration.
+The consumer MUST preserve the authored document, reference strings, and
+occurrence pointers. A changed `documentbase` or registry location MUST NOT
+override the authored TD `base` or JSON-LD context semantics.
 
-For each moving/default selection, a lock MUST record the selected exact
-Version ID and the associated retained artifact. Repeated default references
-to the same scoped Resource in one operation MUST reuse that recorded
-selection. Explicit different Versions may coexist when the consuming
-semantics permit them. A Resource or registry `epoch` is not a substitute for
-the selected Version's digest: Core does not require the Resource meta epoch
-to change when an existing Version's document changes.
+For each moving or default selection, a lock MUST record the exact selected
+Version ID and its retained artifact. Repeated default references to the same
+scoped Resource in one operation MUST reuse that selection. Different
+explicit Versions MAY coexist when the consuming semantics permit them. A
+Resource or registry `epoch` cannot replace the selected Version's digest:
+Core does not require a Resource meta epoch to change when an existing
+Version's document changes.
 
-A `create-lock` operation MAY consult a moving default and MUST retain the
-verified input closure before claiming replayability. A subsequent `locked`
-operation MUST use the approved record and its exact retained inputs without
-rechecking the current default. It MUST fail if an input is absent, corrupt,
-unauthorized, or inconsistent with the approved digest; it MUST NOT fall back
-to a new default. An upgrade is a new lock and a new explicit approval.
-Retained inputs make the captured selection reproducible, but do not establish
-that defaults across multiple Resources were observed at one simultaneous
-instant.
+A `create-lock` operation MAY consult a moving default. Before claiming
+replayability, it MUST retain the verified input closure. A later `locked`
+operation MUST use the approved record and exact retained inputs; it does not
+recheck the current default. It MUST fail if an input is absent, corrupt,
+unauthorized, or inconsistent with the approved digest. It MUST NOT select a
+new default. An upgrade requires a new lock and explicit approval. Retained
+inputs reproduce the captured selections but do not prove that defaults across
+multiple Resources were observed at the same instant.
 
-A lock digest, semantic-core digest, and document-file digest have distinct
-scopes. The full-record digest protects the exact record file; an optional
-canonical semantic-core digest uses the domain profile's RFC 8785 JSON
-Canonicalization Scheme representation and explicitly defined artifact,
-edge, and transformation ordering. For this profile, artifact descriptors
-are formed from the digest, media type, document URL, interpretation base,
-context bindings, and scoped registry identity; absent optional values are
-omitted. Sort descriptors by the unsigned UTF-8 octets of their JCS
-representation, reject contradictory duplicates, coalesce exact duplicates,
-and assign artifact IDs `a0`, `a1`, and so on in that order. The root is
-identified separately and need not be `a0`. Sort edges by `(from,
-sourcePointer, role, to, fragment)` and reject conflicting duplicates;
-preserve semantically ordered inputs with an explicit position. Order
-transformations topologically, breaking independent ties by their canonical
-profile/configuration/input descriptors. Cycles in recursive imports fail.
-Move registry observations and retrieval timestamps outside `core`.
-Neither digest is the xRegistry
-`documentdigest`, and neither establishes publisher authenticity or
-activation authorization. The locked result MUST be validated separately
-from the authored unresolved plan; a plan-validation flag alone MUST NOT be
-reported as validation of the resolved output.
+A lock digest, semantic-core digest, and document-file digest cover different
+data. The full-record digest covers the exact record file. An optional
+semantic-core digest covers the domain profile's RFC 8785 JSON
+Canonicalization Scheme representation, with defined ordering for artifacts,
+edges, and transformations. For this profile, an artifact descriptor contains
+its digest, media type, document URL, interpretation base, context bindings,
+and scoped registry identity. Omit absent optional values. Sort descriptors
+by the unsigned UTF-8 octets of their JCS representation; reject contradictory
+duplicates and coalesce exact duplicates. Assign artifact IDs `a0`, `a1`, and
+so on in that order. Identify the root separately; it need not be `a0`.
+Sort edges by `(from, sourcePointer, role, to, fragment)` and reject
+conflicting duplicates. Record an explicit position for semantically ordered
+inputs. Order transformations topologically; break independent ties using
+their canonical profile, configuration, and input descriptors. Reject cycles
+in recursive imports. Keep registry observations and retrieval timestamps
+outside `core`.
+
+Neither digest is the xRegistry `documentdigest`, and neither authenticates a
+publisher or authorizes activation. The locked result MUST be validated
+separately from the authored unresolved plan. A plan-validation flag alone
+MUST NOT be reported as validation of the resolved output.
 
 ### 5.4. Processing Invocation and Evidence
 
-A processing invocation MUST name exactly one supported profile, exactly one
-selected configuration, one root document, and one request. The initial
-profile's only operation is `resolve-definition`, whose `pointer` is an
-absolute RFC 6901 JSON Pointer into the original root document and selects a
-complete property definition. A pointer is not rebased to a detached
-subdocument. Unsupported operations, parts, reference roles, profile
-identities, or definition versions fail; this operation is not a general
-Thing Model, JSON-LD, or schema processor.
+A processing invocation MUST identify one supported profile, one selected
+configuration, one root document, and one request. The initial profile
+supports only `resolve-definition`. Its `pointer` is an absolute RFC 6901 JSON
+Pointer into the original root document and selects a complete property
+definition; it is not rebased to a detached subdocument. Unsupported
+operations, parts, reference roles, profile identities, or definition
+versions fail. This operation is not a general Thing Model, JSON-LD, or schema
+processor.
 
 The `invocation` object contains exactly these semantic inputs:
 
@@ -1312,122 +1285,119 @@ The `invocation` object contains exactly these semantic inputs:
 }
 ```
 
-For registry-shaped documents, the profile, configuration, and root bindings
-also retain the exact registry origin, Group and Resource identity, and
-selected Core Version ID. The configuration binding additionally records
-`source` as exactly `own` or `shared`; this is evidence of caller selection,
-not an authorization level. Local files use the same byte digest, document
-location, and interpretation-base requirements without invented registry
-coordinates. `stableprofileuri` and `configurationuri` identify the
-descriptors logically but do not replace the document digest or location.
+For registry documents, the profile, configuration, and root bindings also
+record the exact registry origin, Group and Resource identity, and selected
+Core Version ID. The configuration binding records `source` as `own` or
+`shared` to show the caller's selection; it does not indicate authorization.
+For local files, record the same byte digest, document location, and
+interpretation base without adding registry coordinates. `stableprofileuri`
+and `configurationuri` identify descriptors logically, but do not replace
+their document digest or location.
 
-`invocationDigest` is SHA-256 over the UTF-8 bytes of RFC 8785 JCS
-serialization of exactly `{profile, configuration, root, request}`. It
-excludes `effectivePolicyDigest`, output, local-reference evidence, policy and
-lock bindings, and retained-artifact descriptors. In the
-`retained-resolution` branch, `effectivePolicyDigest` is included as a
-separate member of `invocation` and binds the digest of the exact derived
-root-bound policy bytes. The invocation digest does not include that member;
-the existing lock's semantic configuration MUST bind the invocation digest
-and exact retained profile, configuration, root, and request inputs without
-creating a digest cycle.
+`invocationDigest` is SHA-256 over the UTF-8 bytes of the RFC 8785 JCS
+serialization of exactly `{profile, configuration, root, request}`. It omits
+`effectivePolicyDigest`, output, local-reference evidence, policy and lock
+bindings, and retained-artifact descriptors. In the `retained-resolution`
+branch, `invocation` also contains `effectivePolicyDigest`, which binds the
+exact derived root-bound policy bytes. This member is not part of
+`invocationDigest`. The existing lock's semantic configuration MUST bind the
+invocation digest and exact retained profile, configuration, root, and
+request inputs without creating a digest cycle.
 
-Before replay, the consumer MUST receive both `expectedInvocationDigest` and
-`expectedEvidenceDigest` as independent caller-pinned trust inputs. The former
-MUST equal the JCS digest of the invocation preimage and its serialized
-`invocationDigest`; the latter MUST equal the JCS digest of the complete
-serialized `evidence` object, not the enclosing archive manifest. Neither expected value is a profile,
-configuration, or evidence member, and a consumer MUST NOT learn either
-expected value from the untrusted evidence it is checking. Binding only the
-invocation does not pin selected-source, policy/lock, local-reference, or
-result evidence.
+Before replay, the consumer MUST receive independently caller-pinned
+`expectedInvocationDigest` and `expectedEvidenceDigest` trust inputs.
+`expectedInvocationDigest` MUST match both the JCS digest of the invocation
+preimage and the serialized `invocationDigest`. `expectedEvidenceDigest` MUST
+match the JCS digest of the complete serialized `evidence` object, not the
+archive manifest. Neither value is a profile, configuration, or evidence
+member. A consumer MUST NOT take either expected value from the untrusted
+evidence under review. Pinning only the invocation leaves selected-source,
+policy/lock, local-reference, and result evidence unbound.
 
-The consumer MUST retain the exact bytes for each profile descriptor,
+The consumer MUST retain the exact bytes of each profile descriptor,
 reviewed profile definition, selected configuration, root, and every
-interpretation or imported document required by the requested operation.
-`retainedArtifacts` accompanies the evidence as a separate archive manifest;
-it contains artifact descriptors and relative archive-entry names, not
-credentials, embedded authentication material, or host filesystem paths. An
-`archivePath` MUST NOT be absolute, contain a drive prefix, use backslashes, or
-traverse above the archive root. On replay, the consumer MUST verify every
-retained file digest and interpretation binding. A missing, changed, or
-unauthorized required artifact MUST fail; the consumer MUST NOT switch to a
-current default, another configuration, or a newly discovered descriptor.
+interpretation or imported document required by the operation. A separate
+`retainedArtifacts` archive manifest lists artifact descriptors and relative
+archive-entry names. It contains no credentials, embedded authentication
+material, or host filesystem paths. An `archivePath` MUST NOT be absolute,
+contain a drive prefix, use backslashes, or traverse above the archive root.
+On replay, the consumer MUST verify each retained file's digest and
+interpretation binding. A missing, changed, or unauthorized required artifact
+MUST cause failure. The consumer MUST NOT switch to the current default,
+another configuration, or a newly discovered descriptor.
 
-For each same-document `tm:ref`, evidence carries a `localReferences` entry
+For each same-document `tm:ref`, evidence records a `localReferences` entry
 with the original containing artifact descriptor, original-root
-`sourcePointer`, and local `targetPointer`. This entry is retained separately
-from external provider-selection edges. It does not cause a registry lookup
-or require a fictitious provider rule. The consumer MUST verify that both
-pointers resolve in the exact retained containing document and that
-reconstruction yields the same mapping. A nested occurrence is identified by
-its containing artifact as well as its pointer; equal pointers in different
-documents or interpretation bases are distinct. This profile resolves only
-references in its declared closure and MUST NOT rewrite authored reference
-strings or occurrence pointers.
+`sourcePointer`, and local `targetPointer`. Keep this mapping separate from
+external provider-selection edges; it requires neither a registry lookup nor
+a provider rule. The consumer MUST verify that both pointers resolve in the
+retained containing document and that reconstruction produces the same
+mapping. Identify each nested occurrence by its containing artifact and
+pointer. Equal pointers in different documents or interpretation bases refer
+to different occurrences. This profile resolves only references in its
+declared closure and MUST NOT rewrite authored reference strings or occurrence
+pointers.
 
 The evidence uses the disjoint branches defined by
 [processing-evidence.schema.json](schemas/processing-evidence.schema.json):
 
-* **`local-definition`** is valid only when the requested operation's
-  verified external definition-import closure is empty. That means no
-  required external import exists; it does not mean a required context or
-  interpretation input was ignored. The branch requires `invocation`,
-  `invocationDigest`, `localReferences`, and `output`, and MUST NOT contain
-  `effectivePolicyDigest`, `policy`, or `lock`. `output.digestScope` is
-  `json-jcs`; `output.digest` is SHA-256 of the exact JCS UTF-8 representation
-  of `output.value`. Replay re-derives the requested definition from the
-  retained root and verifies the output digest and local occurrence mappings.
-* **`retained-resolution`** is used when the requested closure has external
-  imports. It requires `effectivePolicyDigest`, a binding to the existing
-  root-bound `resolutionpolicy`, and a binding to the existing
-  `resolutionrecords` lock. Their exact bytes and digest bindings, as well as
-  all imported and interpretation inputs, MUST be retained. The policy MUST
-  be derived from the selected configuration for this root and request; it
-  MUST conform to the existing policy schema. The lock MUST conform to the
-  existing resolution-record schema and its semantic configuration MUST bind
-  the invocation digest and selected portable inputs. Neither existing
-  schema is weakened, and no fake policy or lock is created for the
+* **`local-definition`** applies only when the requested operation has no
+  verified external definition imports. An empty closure does not mean that a
+  required context or interpretation input was ignored. This branch requires
+  `invocation`, `invocationDigest`, `localReferences`, and `output`. It MUST
+  omit `effectivePolicyDigest`, `policy`, and `lock`. Set
+  `output.digestScope` to `json-jcs`; `output.digest` is SHA-256 of the exact
+  JCS UTF-8 representation of `output.value`. Replay re-derives the requested
+  definition from the retained root and verifies the output digest and local
+  occurrence mappings.
+* **`retained-resolution`** applies when the requested closure has external
+  imports. It requires `effectivePolicyDigest` and bindings to the existing
+  root-bound `resolutionpolicy` and `resolutionrecords` lock. Retain their
+  exact bytes and digest bindings, along with all imported and interpretation
+  inputs. Derive the policy from the selected configuration for this root and
+  request; it MUST conform to the existing policy schema. The lock MUST
+  conform to the existing resolution-record schema, and its semantic
+  configuration MUST bind the invocation digest and selected portable inputs.
+  Neither schema is weakened. Do not create a policy or lock for the
   no-import branch.
 
 The initial profile definition contains the complete fixed inline context
-mapping needed to recognize `tm:ref`; it does not load a remote JSON-LD
-context. A document whose required context is absent, changed, remotely
-overridden, or otherwise outside that exact definition MUST fail with
-`missing-interpretation-input` or an equivalent explicit diagnostic. The
-profile does not treat an empty caller-supplied import list as proof that
-closure is empty. It MUST inspect the retained root and the supported
-reference syntax, and fail on an unknown required dependency.
+mapping used to recognize `tm:ref`. It does not load a remote JSON-LD context.
+If a required context is absent, changed, remotely overridden, or outside
+that definition, processing MUST fail with `missing-interpretation-input` or
+an equivalent diagnostic. An empty caller-supplied import list does not prove
+that the closure is empty. The profile MUST inspect the retained root and
+supported reference syntax, and fail on any unknown required dependency.
 
 For a supported `tm:ref`, the authored value identifies a complete property
-definition either in the same retained document or in an authorized external
-Thing Model, optionally followed by a JSON Pointer fragment. The profile
-selects that complete definition and applies the referencing property's
-remaining siblings as an RFC 7396 Merge Patch. It preserves the source
-document, reference string, and original source and target pointers. It does
-not apply other Thing Model operators or treat a link, form, schema reference,
-or arbitrary JSON-LD term as an import.
+definition in the same retained document or an authorized external Thing
+Model. It MAY include a JSON Pointer fragment. The profile selects the
+complete definition and applies the referencing property's remaining
+siblings as an RFC 7396 Merge Patch. It preserves the source document,
+reference string, and original source and target pointers. It does not apply
+other Thing Model operators or treat links, forms, schema references, or
+arbitrary JSON-LD terms as imports.
 
-A consumer MUST use one per-invocation frozen acquisition/default-choice
-cache for both rule derivation and transformation. It MUST resolve each
-external occurrence only after exactly one configuration rule matches its
-role, expected kind, and authored identity and the source is within the rule's
-closed authority scope. An exact selection uses the named Core Version ID;
-`registry-default` observes the Core default once and records the exact
-Version ID and bytes. Repeated references to one scoped Resource reuse that
-choice. The consumer MUST NOT perform a second moving lookup during
-transformation or replay. It MUST reject cycles using the exact containing
-artifact and property pointer, not a URL or pointer alone, and enforce the
-positive finite limits in the selected configuration in addition to local
-ceilings.
+A consumer MUST use one frozen acquisition/default-choice cache per
+invocation for both rule derivation and transformation. Before resolving an
+external occurrence, it MUST find exactly one configuration rule matching
+the occurrence's role, expected kind, and authored identity, and verify that
+the source is within that rule's authority scope. An exact selection uses the
+named Core Version ID. `registry-default` observes the Core default once and
+records the exact Version ID and bytes. Repeated references to the same
+scoped Resource reuse that choice. The consumer MUST NOT make a second moving
+lookup during transformation or replay. It MUST detect cycles using the exact
+containing artifact and property pointer, not only a URL or pointer. It MUST
+enforce the selected configuration's positive finite limits alongside its
+own ceilings.
 
-These operations produce definition data only; they do not validate an
-ordinary complete WoT-TM, execute actions, resolve TD interaction forms,
-authorize an endpoint, or activate a deployment. Registry metadata and
-reusable configurations are discoverability inputs, not authority. Any
-deployment policy is stored as an authorized, immutable revision in
-deployment-host protected state. Deployment binding, approval, target
-selection, and activation remain outside this WoT registry model.
+These operations produce definition data only. They do not validate a
+complete WoT-TM, execute actions, resolve TD interaction forms, authorize an
+endpoint, or activate a deployment. Registry metadata and reusable
+configurations support discovery; they do not grant authority. Deployment
+policy remains an authorized immutable revision in deployment-host protected
+state. Deployment binding, approval, target selection, and activation are
+outside this WoT registry model.
 
 ## 6. Relationships and Cross-References
 

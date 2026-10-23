@@ -5,7 +5,7 @@
       "singular": "thingdescriptiongroup",
       "modelversion": "0.3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
-      "description": "Thing Description containers. Each Group holds Thing Descriptions that are related in some application-defined way, such as all Things of a tenant, a fleet or a physical site",
+      "description": "Containers for Thing Descriptions related by an application-defined grouping, such as a tenant, fleet, or physical site",
 
       "attributes": {
         "*": {
@@ -22,7 +22,7 @@
           "validateformat": true,
           "validatecompatibility": true,
           "strictvalidation": false,
-          "description": "A W3C WoT Thing Description, served as a document. Each Version holds one complete WoT-TD 1.1 JSON-LD document; optional resolution-plan profiles do not create a third Resource kind or make an unresolved plan a validated result",
+          "description": "A W3C WoT Thing Description served as a document. Each Version contains one complete WoT-TD 1.1 JSON-LD document. An optional resolution-plan profile does not create a third Resource kind or validate an unresolved plan as a result",
 
           "attributes": {
             "format": {
@@ -40,7 +40,7 @@
               "type": "string",
               "required": true,
               "matchversions": true,
-              "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+              "description": "The document's authored WoT identifier: the 'id' member, verbatim. It identifies the document in the WoT identifier space and is distinct from the client-chosen thingdescriptionid within this registry. All Versions share one wotid; it MUST NOT encode a document revision"
             },
             "derivedfrom": {
               "name": "derivedfrom",
@@ -48,7 +48,7 @@
               "item": {
                 "type": "string"
               },
-              "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+              "description": "Authored WoT identifiers of Thing Models this Thing Description extends or composes. These are document identifiers, not xids, and can be matched against the document's own references"
             },
             "license": {
               "name": "license",
@@ -75,13 +75,13 @@
               "type": "string",
               "enum": [ "Standard", "Vendor", "Community", "Experimental" ],
               "strict": true,
-              "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+              "description": "Advisory provenance metadata indicating whether the document is Standard, Vendor, Community, or Experimental. It does not affect the document's semantic identity"
             },
             "documentdigest": {
               "name": "documentdigest",
               "type": "object",
               "readonly": true,
-              "description": "Server-computed digest of the exact stored document file octets. Present only when the registry implements the WoT digest-publication profile; not a Version immutability guarantee",
+              "description": "Server-computed digest of the stored document file octets. Present only when the registry implements the WoT digest-publication profile; it does not make the Version immutable",
               "attributes": {
                 "algorithm": {
                   "type": "string",
@@ -105,12 +105,12 @@
             "documentbase": {
               "name": "documentbase",
               "type": "uri",
-              "description": "Optional original absolute document location used as a document-loader starting location only under an authorized resolver profile; it does not override authored TD base or JSON-LD processing"
+              "description": "Optional original absolute document location. An authorized resolver profile may use it as a document-loader starting location; it does not override the authored TD base or JSON-LD processing"
             },
             "resolutionpolicy": {
               "name": "resolutionpolicy",
               "type": "object",
-              "description": "Optional suggested policy attachment; never an authorization or activation instruction",
+              "description": "Optional suggested policy attachment; it does not authorize or activate processing",
               "attributes": {
                 "url": {
                   "type": "url",
@@ -130,7 +130,7 @@
             "resolutionrecords": {
               "name": "resolutionrecords",
               "type": "array",
-              "description": "Optional immutable, digest-pinned resolution-record attachments. Multiple records may describe separate approved uses of the same document",
+              "description": "Optional immutable, digest-pinned resolution-record attachments. Separate records may describe different approved uses of one document",
               "item": {
                 "type": "object",
                 "attributes": {
@@ -172,7 +172,7 @@
       "singular": "thingmodelgroup",
       "modelversion": "0.3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
-      "description": "Thing Model containers. Each Group holds Thing Models that are related in some application-defined way, such as all Thing Models published by one vendor or belonging to one product family",
+      "description": "Containers for Thing Models related by an application-defined grouping, such as a vendor or product family",
 
       "attributes": {
         "*": {
@@ -189,7 +189,7 @@
           "validateformat": true,
           "validatecompatibility": true,
           "strictvalidation": false,
-          "description": "A W3C WoT Thing Model, served as a document. Each Version holds one complete WoT-TM 1.1 JSON-LD document; optional resolution-plan profiles do not create a third Resource kind or make an unresolved plan a validated result",
+          "description": "A W3C WoT Thing Model served as a document. Each Version contains one complete WoT-TM 1.1 JSON-LD document. An optional resolution-plan profile does not create a third Resource kind or validate an unresolved plan as a result",
 
           "attributes": {
             "format": {
@@ -207,7 +207,7 @@
               "type": "string",
               "required": true,
               "matchversions": true,
-              "description": "The authored WoT identifier of this Thing Model - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingmodelid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Model share one wotid; it MUST NOT encode a revision of the document it names"
+              "description": "The document's authored WoT identifier: the 'id' member, verbatim. It identifies the document in the WoT identifier space and is distinct from the client-chosen thingmodelid within this registry. All Versions share one wotid; it MUST NOT encode a document revision"
             },
             "derivedfrom": {
               "name": "derivedfrom",
@@ -215,7 +215,7 @@
               "item": {
                 "type": "string"
               },
-              "description": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends' or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+              "description": "Authored WoT identifiers of Thing Models this Thing Model extends via 'tm:extends' or references via 'tm:ref'. These are document identifiers, not xids, and can be matched against the document's own references"
             },
             "license": {
               "name": "license",
@@ -242,13 +242,13 @@
               "type": "string",
               "enum": [ "Standard", "Vendor", "Community", "Experimental" ],
               "strict": true,
-              "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+              "description": "Advisory provenance metadata indicating whether the document is Standard, Vendor, Community, or Experimental. It does not affect the document's semantic identity"
             },
             "documentdigest": {
               "name": "documentdigest",
               "type": "object",
               "readonly": true,
-              "description": "Server-computed digest of the exact stored document file octets. Present only when the registry implements the WoT digest-publication profile; not a Version immutability guarantee",
+              "description": "Server-computed digest of the stored document file octets. Present only when the registry implements the WoT digest-publication profile; it does not make the Version immutable",
               "attributes": {
                 "algorithm": {
                   "type": "string",
@@ -272,12 +272,12 @@
             "documentbase": {
               "name": "documentbase",
               "type": "uri",
-              "description": "Optional original absolute document location used as a document-loader starting location only under an authorized resolver profile; it does not override authored TD base or JSON-LD processing"
+              "description": "Optional original absolute document location. An authorized resolver profile may use it as a document-loader starting location; it does not override the authored TD base or JSON-LD processing"
             },
             "resolutionpolicy": {
               "name": "resolutionpolicy",
               "type": "object",
-              "description": "Optional suggested policy attachment; never an authorization or activation instruction",
+              "description": "Optional suggested policy attachment; it does not authorize or activate processing",
               "attributes": {
                 "url": {
                   "type": "url",
@@ -297,7 +297,7 @@
             "resolutionrecords": {
               "name": "resolutionrecords",
               "type": "array",
-              "description": "Optional immutable, digest-pinned resolution-record attachments. Multiple records may describe separate approved uses of the same document",
+              "description": "Optional immutable, digest-pinned resolution-record attachments. Separate records may describe different approved uses of one document",
               "item": {
                 "type": "object",
                 "attributes": {
@@ -339,7 +339,7 @@
         "singular": "wotprocessinggroup",
         "modelversion": "0.3",
         "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
-        "description": "WoT processing profile descriptors and reusable processing configurations. These documents are discoverable inputs, not executable code, authorization, or deployment instructions",
+        "description": "Container for discoverable WoT processing profile descriptors and reusable configurations. These documents are not executable code, authorization, or deployment instructions",
 
         "attributes": {
           "*": {
@@ -355,7 +355,7 @@
             "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
             "validateformat": true,
             "strictvalidation": true,
-            "description": "A WoT-domain processing profile descriptor, served as a JSON document. Its stable identity names the descriptor but does not make a mutable Core Version's document bytes immutable",
+            "description": "A WoT processing profile descriptor served as a JSON document. Its stable identity does not freeze the bytes of a mutable Core Version",
 
             "attributes": {
               "format": {
@@ -373,7 +373,7 @@
                 "type": "uri",
                 "required": true,
                 "matchversions": true,
-                "description": "The stable logical URI equal to the descriptor document's id. It identifies the profile across document revisions and is not a Core Version ID or byte-integrity guarantee"
+                "description": "Stable logical URI equal to the descriptor document's id. It identifies the profile across revisions, not a Core Version or byte-integrity guarantee"
               },
               "*": {
                 "name": "*",
@@ -387,7 +387,7 @@
             "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
             "validateformat": true,
             "strictvalidation": true,
-            "description": "A reusable, root-free WoT processing configuration, served as a JSON document. It does not select a root, target, operation, or deployment and must be explicitly selected by a consumer",
+            "description": "A reusable, root-free WoT processing configuration served as a JSON document. A consumer must select it explicitly; it does not select a root, target, operation, or deployment",
 
             "attributes": {
               "format": {
@@ -405,7 +405,7 @@
                 "type": "uri",
                 "required": true,
                 "matchversions": true,
-                "description": "The stable logical URI equal to the configuration document's id. It identifies the configuration across document revisions and is not a Core Version ID or byte-integrity guarantee"
+                "description": "Stable logical URI equal to the configuration document's id. It identifies the configuration across revisions, not a Core Version or byte-integrity guarantee"
               },
               "*": {
                 "name": "*",
