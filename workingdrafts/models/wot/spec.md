@@ -828,9 +828,9 @@ deployment store as an immutable revision after validating and authorizing its
 exact bytes. Editing a working file or attaching a policy in registry metadata
 does not import, approve, or activate it. The authoritative policy is the
 deployment host's protected durable state, not the registry attachment. A
-locked consumer MUST use the approved retained policy and inputs; if required
-bytes are missing, changed, corrupt, or unauthorized, it MUST fail rather
-than resolve today's default or choose another attachment.
+consumer replaying a record MUST use the approved retained policy and inputs.
+If required bytes are missing, changed, corrupt, or unauthorized, it MUST
+fail rather than resolve today's default or choose another attachment.
 
 ### 4.7. Processing Profile and Configuration Resources
 
@@ -1188,7 +1188,7 @@ The optional resolution policy and record use the domain-owned schemas in
 the authored occurrence (including its source JSON Pointer), expected TD/TM
 kind and identity, authorized registry/Group scope, and either `exact` with a
 Version ID or `registry-default`. `registry-default` means the Version selected
-by the Resource's actual Core default at lock creation; it does not mean the
+by the Resource's actual Core default when the record is captured; it does not mean the
 largest ID, highest WoT version label, or currently active projection.
 
 When processing references, a consumer MUST traverse only roles defined by
@@ -1202,25 +1202,31 @@ The consumer MUST preserve the authored document, reference strings, and
 occurrence pointers. A changed `documentbase` or registry location MUST NOT
 override the authored TD `base` or JSON-LD context semantics.
 
-For each moving or default selection, a lock MUST record the exact selected
-Version ID and its retained artifact. Repeated default references to the same
-scoped Resource in one operation MUST reuse that selection. Different
-explicit Versions MAY coexist when the consuming semantics permit them. A
-Resource or registry `epoch` cannot replace the selected Version's digest:
-Core does not require a Resource meta epoch to change when an existing
-Version's document changes.
+For each moving or default selection, a resolution record MUST capture the
+exact selected Version ID and its retained artifact. Repeated default
+references to the same scoped Resource in one operation MUST reuse that
+selection. Different explicit Versions MAY coexist when the consuming
+semantics permit them. A Resource or registry `epoch` cannot replace the
+selected Version's digest: Core does not require a Resource meta epoch to
+change when an existing Version's document changes.
 
-A `create-lock` operation MAY consult a moving default. Before claiming
-replayability, it MUST retain the verified input closure. A later `locked`
-operation MUST use the approved record and exact retained inputs; it does not
-recheck the current default. It MUST fail if an input is absent, corrupt,
-unauthorized, or inconsistent with the approved digest. It MUST NOT select a
-new default. An upgrade requires a new lock and explicit approval. Retained
-inputs reproduce the captured selections but do not prove that defaults across
-multiple Resources were observed at the same instant.
+Record capture and replay are lifecycle steps, not separate xRegistry or
+processing-profile operations. A consumer MAY consult a moving default when
+capturing a record. To claim replayability, it MUST retain the verified input
+closure. During replay, it MUST use the approved record and exact retained
+inputs without checking the current default. Replay MUST fail if an input is
+absent, corrupt, unauthorized, or inconsistent with the approved digest; it
+MUST NOT select a new default. An upgrade requires a new record and explicit
+approval. This lifecycle applies only when a consumer offers replayable
+processing; one-time resolution against the current Core default does not
+require a record. Retained inputs reproduce the captured selections but do
+not prove that defaults across multiple Resources were observed at the same
+instant. The `lock` member in the processing-evidence schema binds an
+existing resolution record; it does not define an xRegistry lock or a separate
+operation.
 
-A lock digest, semantic-core digest, and document-file digest cover different
-data. The full-record digest covers the exact record file. An optional
+A record digest, semantic-core digest, and document-file digest cover
+different data. The full-record digest covers the exact record file. An optional
 semantic-core digest covers the domain profile's RFC 8785 JSON
 Canonicalization Scheme representation, with defined ordering for artifacts,
 edges, and transformations. For this profile, an artifact descriptor contains
@@ -1237,7 +1243,7 @@ in recursive imports. Keep registry observations and retrieval timestamps
 outside `core`.
 
 Neither digest is the xRegistry `documentdigest`, and neither authenticates a
-publisher or authorizes activation. The locked result MUST be validated
+publisher or authorizes activation. A replayed result MUST be validated
 separately from the authored unresolved plan. A plan-validation flag alone
 MUST NOT be reported as validation of the resolved output.
 
@@ -1300,7 +1306,7 @@ serialization of exactly `{profile, configuration, root, request}`. It omits
 bindings, and retained-artifact descriptors. In the `retained-resolution`
 branch, `invocation` also contains `effectivePolicyDigest`, which binds the
 exact derived root-bound policy bytes. This member is not part of
-`invocationDigest`. The existing lock's semantic configuration MUST bind the
+`invocationDigest`. The resolution record's semantic configuration MUST bind the
 invocation digest and exact retained profile, configuration, root, and
 request inputs without creating a digest cycle.
 
@@ -1352,10 +1358,10 @@ The evidence uses the disjoint branches defined by
   occurrence mappings.
 * **`retained-resolution`** applies when the requested closure has external
   imports. It requires `effectivePolicyDigest` and bindings to the existing
-  root-bound `resolutionpolicy` and `resolutionrecords` lock. Retain their
+  root-bound `resolutionpolicy` and `resolutionrecords` record. Retain their
   exact bytes and digest bindings, along with all imported and interpretation
   inputs. Derive the policy from the selected configuration for this root and
-  request; it MUST conform to the existing policy schema. The lock MUST
+  request; it MUST conform to the existing policy schema. The record MUST
   conform to the existing resolution-record schema, and its semantic
   configuration MUST bind the invocation digest and selected portable inputs.
   Neither schema is weakened. Do not create a policy or lock for the

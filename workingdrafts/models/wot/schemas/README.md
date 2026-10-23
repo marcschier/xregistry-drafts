@@ -9,7 +9,7 @@ not normatively import W3C WoT proposals or OPC UA specifications.
 |---|---|
 | [resolution-policy.schema.json](resolution-policy.schema.json) | Root-bound, scoped policy for exact or registry-default TD/TM selection |
 | [resolution-record.schema.json](resolution-record.schema.json) | Retained artifact, occurrence, transformation, and out-of-core observation record |
-| [samples](../samples/resolution) | Captured default selection and locked replay after the live default changes |
+| [samples](../samples/resolution) | Captured default selection and replay from the retained record after the live default changes |
 | [processing-profile.schema.json](processing-profile.schema.json) | Portable, non-executable processing profile descriptor |
 | [processing-profile-definition.schema.json](processing-profile-definition.schema.json) | Complete fixed definition for the bounded TM property-reference operation |
 | [processing-configuration.schema.json](processing-configuration.schema.json) | Root-free rules, closed xRegistry authority scope, exact/default selection, and finite limits |
@@ -22,7 +22,7 @@ The schemas use JSON Schema 2020-12 and reference no external proposal
 schema. Schema validation checks structure, not authorization, URI resolution,
 pointer existence, digest correctness, artifact references, or record
 approval. An implementation MUST complete those semantic checks before it
-claims a successful lock or replay.
+claims a successful record capture or replay.
 
 Portable descriptor versions are opaque labels; the schemas define neither
 SemVer constraints nor merge or inheritance behavior. Registry attributes

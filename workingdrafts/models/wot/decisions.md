@@ -173,10 +173,10 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
 ## 7. Resolution records are separate, scoped evidence
 
-**Decision.** An optional resolution record captures exact or registry-default
-selection for each authored reference occurrence. A lock observes the registry
-default when it is created. Replay uses the approved retained artifact; it
-does not look up the default again.
+**Decision.** An optional resolution record captures the exact Version
+selected for each authored reference occurrence, including a registry default
+when one is used. Replay uses the approved retained artifact instead of
+looking up the default again.
 
 **Why.** A `versionid` can identify a mutable Version, defaults can change,
 and a Resource epoch does not prove that an existing Version's contents are

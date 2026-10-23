@@ -14,9 +14,9 @@ processing evidence envelope defined in
 - `processing-resources.xreg.json` contains the separate WoT Processing Group
   and its `stableprofileuri` and `configurationuri` attributes.
 - `local-evidence.json` packages a local same-document `tm:ref`, with no
-  external import, policy, or lock. `imported-evidence.json` packages a
+  external import, policy, or resolution record. `imported-evidence.json` packages a
   shared-configuration registry-default reference with its root-bound policy
-  and lock. `own-imported-evidence.json` selects the same authority from a
+  and resolution record. `own-imported-evidence.json` selects the same authority from a
   caller-owned local configuration, without inventing registry coordinates
   for that configuration. `registry-configuration-evidence.json` selects a
   caller-owned configuration by exact registry Version.
