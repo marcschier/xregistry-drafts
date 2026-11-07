@@ -588,13 +588,15 @@ not validate authored bytes or prove dependency closure.
 
 ### Status and reading guide
 
-This informative design proposes an incremental profile for review. It does
-not implement that profile or make its vocabulary, diagnostics or mappings
-normative. The [WoT specification](../../models/wot/spec.md) defines the SemVer
-baseline, the [model](../../models/wot/model.json) describes its data model,
-and the
-[33 representative resolution vectors](../../models/wot/tests/resolution/README.md)
-test it. These vectors do not demonstrate the proposed incremental behavior.
+This informative design records the rationale and workflows behind the
+incremental profile. The [WoT specification](../../models/wot/spec.md) defines
+the SemVer baseline and, in its Section 5.5, the OPTIONAL Incremental profile.
+The [SemVer model](../../models/wot/model.json) and the
+[Incremental model](../../models/wot/model-incremental.json) describe their
+data models. The
+[resolution vectors](../../models/wot/tests/resolution/README.md) test both
+profiles. Where this design and the specification differ, the specification
+applies.
 
 The [two-page overview](#wot-versioning-design-overview) states the decision.
 The [mechanisms](#design-mechanisms) define the proposed contract. The
@@ -659,15 +661,17 @@ lockfile, exactly-once protocol or replacement for xRegistry Core.
 
 #### D1. Fixed endpoint profiles
 
-The proposed registry metadata `wotversionprofile` has strict values `semver`
-and `incremental`, declared read-only with a fixed default in each model.
-Absence means legacy SemVer; an unknown profile causes version-aware
-resolution to fail. Integer-looking content does not identify a profile.
+The Incremental model declares the registry metadata `wotversionprofile`
+with the single strict, read-only value `incremental`. The SemVer model
+declares no profile attribute; absence means SemVer. An unknown profile causes
+version-aware resolution to fail. Integer-looking content does not identify a
+profile.
 
-The design retains `../model.json` as the SemVer model and proposes a separate
-`model-incremental.json`. The latter is a planned artifact, not a file
-delivered by this review update. Providers and offline catalogs carry
-equivalent profile information for their candidate sets.
+The design retains `../model.json` as the SemVer model and adds
+`model-incremental.json` for the Incremental profile; Section 5.5.1 of the WoT
+specification lists the declarations in which the two differ. Providers and
+offline catalogs carry equivalent profile information for their candidate
+sets.
 
 Core's [`versionmode`][Core versionmode] aspect selects the Version mode.
 Its [`singleversionroot`][Core singleversionroot] aspect determines how many
