@@ -6,7 +6,7 @@
 <!-- words: subschema subschemas targetpointer versionid workingdrafts -->
 <!-- words: xid xids xregistry -->
 <!-- words: additionalproperties allof anyof contentschema dependentschemas -->
-<!-- words: href oneof patternproperties prefixitems propertynames py -->
+<!-- words: href minitems oneof patternproperties prefixitems propertynames py -->
 <!-- words: REQUIREDEXTENSIONS unevaluateditems unevaluatedproperties -->
 
 ## Abstract
@@ -148,8 +148,15 @@ a `$ref`, `$id` or `$anchor` inside such a value as a reference or identity.
 
 A Consumer MUST reject as `invalid-schema` a schema position that is neither
 an object nor a boolean, an object-valued keyword above whose value is not an
-object, an array-valued keyword above whose value is not a non-empty array,
-and a `$ref` whose value is not a string.
+object, an array-valued keyword above whose value is not an array or is an
+empty array, and a `$ref` whose value is not a string.
+
+The empty-array rule is the dialect's own rule, not a restriction this profile
+adds. [JSON Schema Core][JSON Schema Core] sections 10.2.1.1 to 10.2.1.3 and
+10.3.1.1 require `allOf`, `anyOf`, `oneOf` and `prefixItems` to be non-empty
+arrays, and the 2020-12 applicator metaschema enforces this with
+`minItems: 1`. A schema with `prefixItems: []` is therefore not a valid 2020-12
+schema.
 
 ## Identities
 

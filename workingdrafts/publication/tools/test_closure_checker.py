@@ -10,8 +10,9 @@ import pytest
 
 from workingdrafts.publication.tools import build_closure_corpus as corpus
 from workingdrafts.publication.tools.closure_checker import (
-    CORPUS, DESCRIPTOR_SCHEMAS, ClosureError, ExampleOpcUaMaterialization, check_closure,
-    decode_fragment, main, parse_pointer, resolve_uri, run_case, supported_extensions,
+    CORPUS, DESCRIPTOR_SCHEMAS, SCHEMA_ARRAYS, ClosureError, ExampleOpcUaMaterialization,
+    check_closure, decode_fragment, main, parse_pointer, resolve_uri, run_case,
+    supported_extensions,
 )
 from workingdrafts.publication.tools.publication_examples import (
     Channels, PublicationError, VersionDocuments, load_package,
@@ -253,11 +254,24 @@ def units(value, **members):
      "invalid-fragment"),
     (postal(corpus.address(), "street", "missing.json"), None, "missing-target"),
     (defs(corpus.address(), "list", {"allOf": []}), None, "invalid-schema"),
+    (defs(corpus.address(), "list", {"prefixItems": {"type": "string"}}), None,
+     "invalid-schema"),
+    (defs(corpus.address(), "pair", {"prefixItems": [True, {"$ref": "missing.json"}]}),
+     None, "missing-target"),
     (defs(corpus.address(), "list", {"properties": []}), None, "invalid-schema"),
 ])
 def test_static_schema_rejections(address, common, code):
     result = domain(schema_only(address, common))
     assert (result["result"], result["code"]) == ("incomplete", code)
+
+
+@pytest.mark.parametrize("keyword", SCHEMA_ARRAYS)
+def test_empty_schema_arrays_follow_the_2020_12_meta_schema(keyword):
+    with pytest.raises(jsonschema.SchemaError):
+        jsonschema.Draft202012Validator.check_schema({keyword: []})
+    jsonschema.Draft202012Validator.check_schema({keyword: [True]})
+    result = domain(schema_only(defs(corpus.address(), "list", {keyword: []})))
+    assert (result["result"], result["code"]) == ("incomplete", "invalid-schema")
 
 
 def test_version_format_selects_the_dialect():
