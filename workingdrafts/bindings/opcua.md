@@ -79,8 +79,9 @@ tunnel HTTP or CloudEvents payloads over OPC UA.
 **Status:** Unreleased working draft. The xRegistry Core, Events and OPC UA
 API dependencies use the `v1.0-rc4` baseline. The companion information model
 is OPC 30460-1 *xRegistry Part 1: Core*, Version `1.0.0`, Release Candidate 1.
-None of these drafts constitutes an OPC Foundation standard or endorsement. Section 10 defines federation behavior without
-overriding xRegistry Core or the OPC UA Parts.
+None of these drafts constitutes an OPC Foundation standard or endorsement.
+Section 10 defines federation behavior without overriding xRegistry Core or
+the OPC UA Parts.
 
 ## Table of Contents
 
@@ -241,7 +242,7 @@ capability paths.
   <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/native-documents.md" data-link-check="authenticated">native-document contract</a>
   and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/model/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a>.
   The repository requires member access. These links locate the pinned
-  source revision; the model identity and NodeSet digest below identify the
+  source revision. The model identity and NodeSet digest below identify the
   dependency. This Release Candidate is not approved for final publication
   and is not an OPC Foundation standard or endorsement.
 - [xRegistry Federation](../federation/spec.md) — common read resolution, advertisements, selectors, identity and resolver errors.

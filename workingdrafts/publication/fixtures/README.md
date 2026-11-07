@@ -58,8 +58,8 @@ compares its results with `cases.json`. The tests also check single
 conditions on in-memory variants of the corpus.
 
 The corpus is generated. To change it, edit the builder and run it without
-`--check`; it rewrites the corpus and the manifest. Do not edit corpus files
-by hand.
+`--check`. The builder rewrites the corpus and the manifest. Do not edit
+corpus files by hand.
 
 ## Vendoring
 

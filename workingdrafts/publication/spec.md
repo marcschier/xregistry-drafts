@@ -106,9 +106,10 @@ this document.
 
 A generic snapshot fixes bytes without interpreting them. The example
 snapshot captures the 36 bytes of `intro` without inspecting its references.
-Domain interpretation can need more. A Web of Things (WoT) Thing Description
-(TD) can reference a Thing Model (TM), and a WoT consumer needs the exact TM
-Version that the publisher validated. The WoT model's
+Interpreting a domain document can need more than its bytes. A Web of Things
+(WoT) Thing Description (TD) can reference a Thing Model (TM), and a WoT
+consumer needs the exact TM Version that the publisher validated. The WoT
+model's
 [publication closure](../models/wot/spec.md#544-publication-closure) defines
 a manifest extension that binds each WoT reference to an exact target
 Version. The experimental
@@ -496,7 +497,8 @@ reading its parent.
 Closure profiles, and companion specifications that consume publications,
 such as an OPC UA binding of WoT models, use the identities below. Each one
 answers a single question. A profile MUST NOT use one of them in place of
-another, and MUST NOT derive from one what its last column excludes.
+another. A profile MUST NOT derive from an identity what its last column
+excludes.
 
 | Identity | Carrier | Comparison | Does not establish |
 | --- | --- | --- | --- |
@@ -516,8 +518,8 @@ digest as 32 binary bytes, such as an OPC UA `ByteString`, those bytes are
 the SHA-256 value that the hexadecimal characters encode.
 
 A matching digest shows that the bytes are the ones the manifest describes.
-It does not show who published the manifest; trust in the publisher is
-supplied under caller policy.
+It does not show who published the manifest. Caller policy decides whether to
+trust the publisher.
 
 ### Capture Classification
 

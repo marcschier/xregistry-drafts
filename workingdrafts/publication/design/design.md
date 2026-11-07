@@ -663,14 +663,14 @@ lockfile, exactly-once protocol or replacement for xRegistry Core.
 
 The Incremental model declares the registry metadata `wotversionprofile`
 with the single strict, read-only value `incremental`. The SemVer model
-declares no profile attribute; absence means SemVer. An unknown profile causes
-version-aware resolution to fail. Integer-looking content does not identify a
-profile.
+declares no profile attribute, and absence means SemVer. An unknown profile
+causes version-aware resolution to fail. Integer-looking content does not
+identify a profile.
 
 The design retains `../model.json` as the SemVer model and adds
-`model-incremental.json` for the Incremental profile; Section 5.5.1 of the WoT
-specification lists the declarations in which the two differ. Providers and
-offline catalogs carry equivalent profile information for their candidate
+`model-incremental.json` for the Incremental profile. Section 5.5.1 of the
+WoT specification lists the declarations in which the two differ. Providers
+and offline catalogs carry equivalent profile information for their candidate
 sets.
 
 Core's [`versionmode`][Core versionmode] aspect selects the Version mode.

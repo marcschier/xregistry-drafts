@@ -1151,7 +1151,7 @@ resolution rules. If the closure cannot establish that result, the Consumer
 MUST obtain the published view or report failure. It MUST NOT substitute live
 dependencies or a pointer into an unresolved source document.
 Reconstruction needs a publication that satisfies the
-[composite closure contract][Publication composite closure];
+[composite closure contract][Publication composite closure].
 [Section 5.4.4](#544-publication-closure) alone covers only references between
 TDs and TMs.
 
@@ -1189,7 +1189,7 @@ a SemVer registry. [Section 5.5.4](#554-incremental-requirements-and-selection)
 defines the requirements and selection order for a target in an Incremental
 registry. The profile of the registry that stores the target decides which
 rules apply. For a configured external provider, the profile comes from
-trusted provider metadata recorded with the target; when that metadata is
+trusted provider metadata recorded with the target. When that metadata is
 missing or untrusted, resolution MUST fail as `unknown-profile`. A resolver
 MUST NOT infer the profile from the reference or from the target bytes.
 
@@ -1269,7 +1269,7 @@ A resolver MUST return
 `origin` identifies the registry from which the stored bytes were obtained,
 and `contentdigest` is the digest of those bytes. `versionprofile` is
 `semver` or `incremental`. `compatibilityline` is the selected Version's
-line; it is absent for a SemVer target and for a line-less Incremental
+line. It is absent for a SemVer target and for a line-less Incremental
 Version. A Consumer MAY retain this tuple outside the document and pass
 either a digest pin or a `versionid` pin on a subsequent resolution. A
 request MUST contain at most one kind of pin.
@@ -1521,7 +1521,7 @@ extension, and gives each mandatory reference occurrence one owner.
 A WoT closure binding is checked by snapshot-bound composition
 ([Section 5.4](#54-versioned-reference-resolution)). The Consumer first takes
 the bound target Version, then checks the reference's floor, line and TD major
-cap against it. A failed check produces `unsatisfied`; it does not authorize
+cap against it. A failed check produces `unsatisfied`. It does not authorize
 selecting another Version.
 
 The schema and sample validate descriptor shape only. They do not verify that
@@ -1574,8 +1574,8 @@ across the whole ancestry.
 
 The registry keeps a durable high-water mark for each Resource: the highest
 revision it has ever assigned there, or zero before the first assignment. The
-mark MUST survive Version deletion and registry restart, and the registry
-MUST NOT assign a number twice. The assignment for a TM's `version.model` or
+mark MUST survive Version deletion and registry restart. The registry MUST
+NOT assign a number twice. The assignment for a TM's `version.model` or
 a TD's `version.instance` is:
 
 - A canonical positive decimal integer, matching `[1-9][0-9]*`, that is
@@ -1589,16 +1589,16 @@ a TD's `version.instance` is:
 
 The registry MUST NOT rewrite the authored member. It MUST assign an omitted
 `versionid`. A supplied `versionid` that is not a canonical positive decimal
-integer MUST be rejected as `invalid-version`; one that differs from the
-assignment MUST be rejected as `version-mismatch`. Assignment, the mark update
-and creation MUST be atomic with respect to concurrent writes.
-`versionorigin` follows the read-only rules of
+integer MUST be rejected as `invalid-version`. A supplied `versionid` that
+differs from the assignment MUST be rejected as `version-mismatch`.
+Assignment, the mark update and creation MUST be atomic with respect to
+concurrent writes. `versionorigin` follows the read-only rules of
 [Section 1.3](#13-versioning).
 
 The registry MUST set the new Version's `ancestorid` to the existing Version
 with the highest revision, or to the new Version's own id when no Version
-exists, and MUST reject a request that supplies another value. Ancestry then
-follows revision order. It is not a compatibility statement.
+exists. It MUST reject a request that supplies another `ancestorid` value.
+Ancestry then follows revision order. It is not a compatibility statement.
 
 A generated revision is an ordinary revision. Unlike a generated SemVer id,
 it can satisfy a floor and can be selected.
@@ -1609,43 +1609,44 @@ A Version's compatibility line comes from the document's root
 `uav:compatibilityLine` member, which expands to
 `http://opcfoundation.org/UA/WoT-Binding/compatibilityLine`, or from
 `compatibilityline` metadata supplied at creation by a writer authorized to
-set it. A line MUST be an absolute IRI ([RFC3986]) and is compared as an
-exact string; otherwise the registry MUST reject the Version as
-`invalid-line`. If both sources are present, they MUST be equal, or the
-registry MUST reject the publication as `inconsistent-publication`.
+set it. A line MUST be an absolute IRI ([RFC3986]). The registry MUST reject
+a Version with any other line as `invalid-line`. Lines compare as exact
+strings. If both sources are present, they MUST be equal. The registry MUST
+reject a publication whose sources differ as `inconsistent-publication`.
 
-The registry MUST record the effective line in `compatibilityline` and MUST
-NOT change it afterward, including when the Version has no line. A request
-that changes it MUST fail as `inconsistent-publication`; a different line
-requires a new Version. A Version without a line remains available to raw
-exact replay but is not eligible for live selection or snapshot-bound
-composition.
+The registry MUST record the effective line in `compatibilityline`. It MUST
+NOT change that attribute afterward, including when the Version has no line.
+A request that changes it MUST fail as `inconsistent-publication`. A
+different line requires a new Version. A Version without a line remains
+available to raw exact replay but is not eligible for live selection or
+snapshot-bound composition.
 
 A Producer MUST add a Thing Model revision to a line only when it is
 backward compatible, under the rules of [Section 1.3](#13-versioning), with
 every earlier revision on that line. A root `uav:compatibilityLine` in a
 document stored in a SemVer registry MUST be rejected as `invalid-line`. The
-root line describes the containing document; it is not inherited by the
-document's references.
+root line describes the containing document. The document's references do
+not inherit it.
 
 #### 5.5.4. Incremental Requirements and Selection
 
 A reference to an Incremental target used in live selection or
-snapshot-bound composition MUST carry `uav:compatibilityLine` and MAY carry
-`uav:minVersion`, at the positions Section 5.4.1 defines for floors. The line
-is an absolute IRI compared as an exact string. The floor is a canonical
-positive decimal string compared as an integer; any other floor MUST produce
-`invalid-version`. A reference without a line, including one with only a
-floor, MUST produce `compatibility-required`. A line on a reference to a SemVer
-target, or at another position, MUST produce `invalid-line`. `tm:minVersion`
-and `td:minVersion` remain SemVer floors; on a reference to an Incremental
-target they MUST produce `invalid-floor`.
+snapshot-bound composition MUST carry `uav:compatibilityLine` at the
+positions Section 5.4.1 defines for floors. It MAY also carry
+`uav:minVersion` at those positions. The line is an absolute IRI compared as
+an exact string. The floor is a canonical positive decimal string compared as
+an integer. Any other floor MUST produce `invalid-version`. A reference
+without a line, including one with only a floor, MUST produce
+`compatibility-required`. A line on a reference to a SemVer target, or at
+another position, MUST produce `invalid-line`. `tm:minVersion` and
+`td:minVersion` remain SemVer floors. On a reference to an Incremental target
+they MUST produce `invalid-floor`.
 
 The referencing document's `version.model`, `version.instance` and root line
-MUST NOT supply a requirement. There is no TD major cap and no prerelease
-filter. In a TD with several type links, the `version.model` implicit floor
-and the `ambiguous-floor` rule of Section 5.4.1 apply only to the links whose
-targets are SemVer.
+MUST NOT supply a requirement. No TD major cap or prerelease filter applies.
+In a TD with several type links, the `version.model` implicit floor and the
+`ambiguous-floor` rule of Section 5.4.1 apply only to the links whose targets
+are SemVer.
 
 After steps 1 and 2 of Section 5.4.2, the resolver MUST apply these steps in
 order:
@@ -1664,7 +1665,7 @@ order:
 A digest selects the highest matching revision. Where a requirement still
 applies to a digest-selected Version, for example to a projection source that
 carries both a source digest and a line, the resolver checks that Version only.
-A mismatch produces `unsatisfied`; the resolver MUST NOT try another Version
+A mismatch produces `unsatisfied`. The resolver MUST NOT try another Version
 with the same digest.
 
 A document-local `tm:ref` or `td:ref` that carries a line or floor is checked

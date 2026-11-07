@@ -31,7 +31,7 @@ covers that chain, and two members could both bind the same occurrence.
 The composite descriptor lists its members. The Consumer derives every
 occurrence from the reached documents, assigns it to one member by its
 occurrence kind and captured target, and checks the member's binding. An
-occurrence with no binding, with a binding from the wrong member, or with
+occurrence with no binding, with a binding from the wrong member or with
 bindings from two members makes the domain result incomplete.
 
 ## Scope and Terminology
@@ -68,14 +68,17 @@ identifiers when the contract is accepted.
 
 ## Descriptor and Placement
 
-A publication that declares composite closure MUST store the composite
-descriptor and every member descriptor as Version documents, MUST add each
-extension URI to the manifest's `extensions` map, and MUST list each of them
-in `requiredExtensions`. A Consumer that does not support one of them rejects
-the manifest when it opens it, as the
-[manifest rules](../spec.md#manifest-format) require. A Consumer that
-supports the composite MUST evaluate the composite and its members together,
-not each member on its own.
+A publication that declares composite closure MUST:
+
+- Store the composite descriptor and every member descriptor as Version
+  documents.
+- Add each of their extension URIs to the manifest's `extensions` map.
+- List each of those extension URIs in `requiredExtensions`.
+
+A Consumer that does not support one of them rejects the manifest when it
+opens it, as the [manifest rules](../spec.md#manifest-format) require. A
+Consumer that supports the composite MUST evaluate the composite and its
+members together, not each member on its own.
 
 | Field | Meaning |
 | --- | --- |
@@ -96,16 +99,16 @@ not each member on its own.
 
 The WoT member descriptor is the `wot-publication-closure/1` descriptor
 unchanged. Its own rules continue to apply, including its binding key
-`(source, pointer)`. The composite adds the ownership rules below; it does not
+`(source, pointer)`. The composite adds the ownership rules below. It does not
 reinterpret WoT bindings.
 
 A Consumer MUST reject a composite descriptor that does not match its schema
 as `invalid-descriptor`. The schema fixes the extension of the `wot` and
 `schema` roles and the cardinality of each role. A Consumer MUST reject the
 composite as `invalid-composite` if a member extension is not listed in
-`requiredExtensions`, if the manifest has no descriptor for it, or if the
+`requiredExtensions`, if the manifest has no descriptor for it or if the
 Consumer supports the extension under another role. Every member's `entries`
-MUST equal the composite's `entries` as a set of Version identities; a
+MUST equal the composite's `entries` as a set of Version identities. A
 Consumer MUST reject a difference as `entry-mismatch`. An entry that is not a
 captured TM, TD or schema Version MUST be rejected as `invalid-entry`.
 
@@ -116,7 +119,7 @@ descriptor format, recognized members and target kinds. This contract defines
 only how the composite refers to it. A publication selects it by listing it
 as a member with the role `opcua-materialization`. A materialization
 extension that is listed in `requiredExtensions` but not as a member is not
-part of the composite's result; the manifest rules for that extension still
+part of the composite's result. The manifest rules for that extension still
 apply.
 
 For the composite, the materialization extension's definition MUST state:
@@ -135,7 +138,7 @@ them.
 The [closure corpus](../fixtures/README.md) uses the stand-in extension
 `urn:example:opcua-materialization`, which recognizes the member IRI
 `urn:example:opcua-materialization#nodeset` with the label `nodeset` and
-accepts captured NodeSet documents. It shows the plug-in shape only; it is
+accepts captured NodeSet documents. It shows the plug-in shape only. It is
 not the OPC UA WoT Binding's extension.
 
 ## Occurrence Keys and Ownership
@@ -187,7 +190,7 @@ Member names are expanded under the document's
 [contexts](#contexts). The names of `properties`, `actions`, `events`,
 `uriVariables`, `schemaDefinitions` and `securityDefinitions` entries are
 authored names, not terms, and are not expanded. The values of `const`,
-`default`, `enum` and `examples` are literal JSON; a reference member inside
+`default`, `enum` and `examples` are literal JSON. A reference member inside
 one is not an occurrence. A Consumer MUST reject two WoT reference members in
 one object as `ambiguous-occurrence`. A WoT reference and a materialization
 reference in one object are two occurrences with different labels.
@@ -197,9 +200,9 @@ base or `wotid`, is local and is not an occurrence. Other references resolve
 against the source document's base, and the URI without its fragment selects
 captured candidates by document base, `wotid` or schema root identity. No
 candidate is `missing-target`. Several candidates are allowed only when they
-are Versions of one WoT Resource; otherwise the Consumer MUST reject the
-reference as `ambiguous-identity`. A candidate of a kind that the operator
-does not accept is `invalid-reference`.
+are Versions of one WoT Resource. The Consumer MUST reject a reference with
+any other set of several candidates as `ambiguous-identity`. A candidate of a
+kind that the operator does not accept is `invalid-reference`.
 
 An ordinary `tm:ref` whose captured target is a schema is a mandatory schema
 dependency. The schema member owns it with the label `tm:ref`, the source
@@ -215,14 +218,15 @@ rejected as `unexpected-binding`. When the composite's `describedby` is
 
 ## Contexts
 
-A Consumer MUST determine the expanded IRI of each member name from captured
-bytes or a declared immutable context set, and MUST NOT fetch a context while
-opening or replaying a publication:
+A Consumer MUST NOT fetch a context while opening or replaying a
+publication. It MUST determine the expanded IRI of each member name from
+captured bytes or a declared immutable context set:
 
 - A context URI listed in `contexts` is read from its captured `target`
-  Version. That Version's document association `base` MUST equal the URI, and
-  each URI MUST appear once; a Consumer MUST reject a violation as
-  `invalid-composite`. A `target` that is not captured is `missing-target`.
+  Version. That Version's document association `base` MUST equal the URI.
+  Each URI MUST appear once in `contexts`. A Consumer MUST reject a violation
+  of either rule as `invalid-composite`. A `target` that is not captured is
+  `missing-target`.
 - A context URI listed in `immutableContexts` is resolved from the Consumer's
   own copy of that context. A Consumer without such a copy rejects it as
   `unsupported-context`.
@@ -234,7 +238,7 @@ A Consumer that cannot determine expanded IRIs under a context rejects it as
 ## Version Profiles
 
 The captured Registry JSON selects the WoT version profile. A Registry
-without `wotversionprofile` uses the SemVer base model; the value
+without `wotversionprofile` uses the SemVer base model. The value
 `incremental` selects the
 [Incremental Version Profile](../../models/wot/spec.md#55-incremental-version-profile).
 The spelling of Version IDs is not profile discovery. A Consumer MUST reject
@@ -252,8 +256,8 @@ floor, compatibility line and TD major cap against that Version and reports a
 failure with the WoT resolver's code, such as `unsatisfied`, `invalid-floor`,
 `invalid-line` or `inconsistent-publication`. A generated `0.0.0-N` Version
 ID does not satisfy a floor. A failed check makes the domain result
-incomplete; it never selects another Version. Live selection of a newer
-Version is outside this contract.
+incomplete, and the Consumer does not select another Version in its place.
+Live selection of a newer Version is outside this contract.
 
 ## Results
 
@@ -283,7 +287,7 @@ entry. Its reached occurrences and their owners are:
 | Schema `address` 1.0.0 | Four positions | `$ref` | `schema` | Schema `common` 2.1.0 |
 | Schema `common` 2.1.0 | `/$defs/a~1b~0c%d` | `$ref` | `schema` | Schema `address` 1.0.0 |
 
-The TM spells the schema reference `model:ref`; its context maps `model` to
+The TM spells the schema reference `model:ref`. Its context maps `model` to
 the TM namespace, so the member expands to `tm:ref`. The `describedby` link
 at `/links/1` of the TM is advisory and has no binding. The `tm:ref` inside
 the `default` value of `/properties/mode` is literal JSON and has no binding.

@@ -6,7 +6,8 @@
 <!-- words: subschema subschemas targetpointer versionid workingdrafts -->
 <!-- words: xid xids xregistry -->
 <!-- words: additionalproperties allof anyof contentschema dependentschemas -->
-<!-- words: href minitems oneof patternproperties prefixitems propertynames py -->
+<!-- words: href minitems oneof patternproperties prefixitems -->
+<!-- words: propertynames py -->
 <!-- words: REQUIREDEXTENSIONS unevaluateditems unevaluatedproperties -->
 
 ## Abstract
@@ -31,8 +32,8 @@ that depends on when it asks.
 This profile adds a closure descriptor that lists each cross-document schema
 reference with its exact target Version and target position. The Consumer
 walks the captured schema documents, finds every reference itself, resolves
-it with the identities in the snapshot, and compares the result with the
-descriptor. The descriptor states the publisher's binding; it is not the
+it with the identities in the snapshot and compares the result with the
+descriptor. The descriptor states the publisher's binding. It is not the
 source of the reference list.
 
 The profile is static. It covers the core identifier, anchor and reference
@@ -76,17 +77,20 @@ with another `format` value as `invalid-descriptor`.
 | Descriptor schema | [schema-closure.json](../schemas/schema-closure.json) |
 
 This profile does not validate instances, does not check schemas against the
-2020-12 metaschema, and does not cover other schema formats such as JSON
+2020-12 metaschema and does not cover other schema formats such as JSON
 Schema draft-07, XML Schema, Avro or Protobuf.
 
 ## Descriptor and Placement
 
-A publication that declares static schema closure MUST store the closure
-descriptor as a Version document, MUST add the extension URI to the
-manifest's `extensions` map with a byte descriptor of that document, and MUST
-list the URI in `requiredExtensions`. The
-[manifest rules](../spec.md#manifest-format) then apply: a Consumer that does
-not support the extension rejects the manifest when it opens it.
+A publication that declares static schema closure MUST:
+
+- Store the closure descriptor as a Version document.
+- Add the extension URI to the manifest's `extensions` map with a byte
+  descriptor of that document.
+- List the extension URI in `requiredExtensions`.
+
+The [manifest rules](../spec.md#manifest-format) then apply: a Consumer that
+does not support the extension rejects the manifest when it opens it.
 
 | Field | Meaning |
 | --- | --- |
@@ -146,10 +150,13 @@ No other member is a schema position. The values of `examples`, `default`,
 draft-07 `definitions`, are outside this vocabulary. A Consumer MUST NOT treat
 a `$ref`, `$id` or `$anchor` inside such a value as a reference or identity.
 
-A Consumer MUST reject as `invalid-schema` a schema position that is neither
-an object nor a boolean, an object-valued keyword above whose value is not an
-object, an array-valued keyword above whose value is not an array or is an
-empty array, and a `$ref` whose value is not a string.
+A Consumer MUST reject as `invalid-schema`:
+
+- A schema position that is neither an object nor a boolean.
+- An object-valued keyword above whose value is not an object.
+- An array-valued keyword above whose value is not an array or is an empty
+  array.
+- A `$ref` whose value is not a string.
 
 The empty-array rule is the dialect's own rule, not a restriction this profile
 adds. [JSON Schema Core][JSON Schema Core] sections 10.2.1.1 to 10.2.1.3 and
@@ -173,7 +180,7 @@ A Consumer MUST reject a `$id` that is not a string, or whose resolved value
 has a non-empty fragment, as `invalid-identifier`.
 
 An `$anchor` names its position within the nearest enclosing schema resource.
-Its value MUST match `[A-Za-z_][-A-Za-z0-9._]*`; a Consumer MUST reject
+Its value MUST match `[A-Za-z_][-A-Za-z0-9._]*`. A Consumer MUST reject
 another value as `invalid-identifier`. A Consumer MUST reject two anchors
 with the same name in one schema resource as `conflicting-anchor`. Anchors in
 different resources do not conflict.
@@ -181,7 +188,7 @@ different resources do not conflict.
 Identities come only from captured bytes and the captured document
 associations. A Consumer MUST NOT use a retrieval location, a live Registry
 or a network request to identify a schema. URIs compare as exact strings
-after resolution; this profile applies no case or percent-encoding
+after resolution. This profile applies no case or percent-encoding
 normalization.
 
 ## Resolving a Reference
@@ -228,7 +235,7 @@ holds the `$ref`, and the label `$ref`. Pointers use the authored member
 names with RFC 6901 escaping and no percent-encoding, so the member `a/b~c%d`
 of `$defs` has the pointer `/$defs/a~1b~0c%d`.
 
-Each occurrence MUST have exactly one edge, and that edge MUST record:
+Each occurrence MUST have exactly one edge. The edge MUST record:
 
 - `href` equal to the authored `$ref` string, without resolution or decoding.
 - `base` equal to the effective base used in step 1.
@@ -271,7 +278,7 @@ derivation over the same bytes and gives the same result.
 ## Rejections
 
 Each condition below makes the domain result incomplete. The reported code
-names the first condition found; a Consumer MAY stop there.
+names the first condition found. A Consumer MAY stop there.
 
 | Condition | Code |
 | --- | --- |
