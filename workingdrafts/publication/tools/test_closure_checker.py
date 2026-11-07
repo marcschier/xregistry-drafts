@@ -67,7 +67,7 @@ def test_corpus_manifest_pins_every_file():
     for item in manifest["files"]:
         raw = files[item["path"]]
         assert (item["size"], item["sha256"]) == (len(raw), sha256(raw))
-        assert b"\r" not in raw
+        assert 0x0D not in raw, "corpus files use LF line endings"
     lines = "".join(f"{item['sha256']}  {item['path']}\n" for item in manifest["files"])
     assert "sha256:" + sha256(lines.encode("ascii")) == manifest["corpusDigest"]
     assert manifest["corpusDigest"] == CORPUS_DIGEST
@@ -272,6 +272,8 @@ def test_empty_schema_arrays_follow_the_2020_12_meta_schema(keyword):
     jsonschema.Draft202012Validator.check_schema({keyword: [True]})
     result = domain(schema_only(defs(corpus.address(), "list", {keyword: []})))
     assert (result["result"], result["code"]) == ("incomplete", "invalid-schema")
+    assert domain(schema_only(defs(corpus.address(), "list", {keyword: [True]}))) == {
+        "result": "complete"}
 
 
 def test_version_format_selects_the_dialect():

@@ -23,7 +23,7 @@ RESOURCES = (
 
 
 def _load(path):
-    return json.loads(path.read_bytes().replace(b"\r\n", b"\n").decode("utf-8"))
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _strip_descriptions(value):
