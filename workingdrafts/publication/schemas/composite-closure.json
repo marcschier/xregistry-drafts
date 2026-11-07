@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/publication/schemas/composite-closure.json",
+  "title": "Experimental composite publication closure",
+  "type": "object",
+  "required": ["format", "entries", "members"],
+  "properties": {
+    "format": {"const": "xregistry-composite-closure/1-experimental"},
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/versionXid"}
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "extension"],
+        "properties": {
+          "role": {"enum": ["wot", "schema", "opcua-materialization"]},
+          "extension": {"$ref": "#/$defs/uri"}
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {"properties": {"role": {"const": "wot"}}},
+            "then": {
+              "properties": {
+                "extension": {
+                  "const": "http://opcfoundation.org/UA/WoT-Binding/publication-closure/1"
+                }
+              }
+            }
+          },
+          {
+            "if": {"properties": {"role": {"const": "schema"}}},
+            "then": {
+              "properties": {
+                "extension": {
+                  "const": "https://xregistry.io/workingdrafts/publication/profiles/schema-closure/1-experimental"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "allOf": [
+        {
+          "contains": {"properties": {"role": {"const": "wot"}}},
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {"properties": {"role": {"const": "schema"}}},
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {"properties": {"role": {"const": "opcua-materialization"}}},
+          "minContains": 0,
+          "maxContains": 1
+        }
+      ]
+    },
+    "describedby": {"enum": ["advisory", "mandatory"], "default": "advisory"},
+    "contexts": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["uri", "target"],
+        "properties": {
+          "uri": {"$ref": "#/$defs/uri"},
+          "target": {"$ref": "#/$defs/versionXid"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "immutableContexts": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "versionXid": {
+      "type": "string",
+      "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+/versions/[^/?#]+$"
+    },
+    "uri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
+    }
+  }
+}

@@ -8,6 +8,7 @@
 <!-- words: workingdrafts -->
 <!-- words: sequencediagram -->
 <!-- words: viewversion publication -->
+<!-- words: bytestring executability wotversionprofile -->
 
 ## Abstract
 
@@ -105,17 +106,19 @@ this document.
 
 A generic snapshot fixes bytes without interpreting them. The example
 snapshot captures the 36 bytes of `intro` without inspecting its references.
-Domain interpretation can require additional information. A Web of Things
-(WoT) Thing Description (TD) can reference a Thing Model (TM), and a WoT
-consumer needs the exact TM Version that the publisher validated. The
+Domain interpretation can need more. A Web of Things (WoT) Thing Description
+(TD) can reference a Thing Model (TM), and a WoT consumer needs the exact TM
+Version that the publisher validated. The WoT model's
+[publication closure](../models/wot/spec.md#544-publication-closure) defines
+a manifest extension that binds each WoT reference to an exact target
+Version. The experimental
+[static JSON Schema closure](profiles/schema-closure.md) profile does the same
+for references between captured schemas, and the experimental
+[composite closure](profiles/composite-closure.md) joins both, optionally with
+an OPC UA materialization extension. The
 [WoT companion design](design/design.md#wot-channels-snapshots-and-dependency-bindings)
-proposes a manifest closure extension that binds each recognized reference to
-an exact target Version and checks whether the caller accepts that target.
-The normative
-[WoT closure section](../models/wot/spec.md#544-publication-closure) records
-the prerequisites and unresolved mappings; the design does not establish a
-complete WoT closure profile. Other domains define their own closure rules
-without changing channel or snapshot identity.
+is informative. Other domains define their own closure rules without changing
+channel or snapshot identity.
 
 | Term | Meaning |
 | --- | --- |
@@ -487,6 +490,34 @@ changes the manifest's checked graph and therefore its ID. A parent records
 preparation history only; it establishes neither compatibility nor numeric
 order and defines no merge algorithm. Reading a snapshot MUST NOT require
 reading its parent.
+
+### Cross-Repository Identity Contract
+
+Closure profiles, and companion specifications that consume publications,
+such as an OPC UA binding of WoT models, use the identities below. Each one
+answers a single question. A profile MUST NOT use one of them in place of
+another, and MUST NOT derive from one what its last column excludes.
+
+| Identity | Carrier | Comparison | Does not establish |
+| --- | --- | --- | --- |
+| Exact Version identity | Version XID in the captured view: `viewVersion`, a byte descriptor's `version`, and closure entries, sources and targets | Core XID rules after one decoding step, as in [Reference Comparison](#reference-comparison) | Immutable content. A Version ID names a Version; the digest pins its bytes. |
+| Source base URI | The association's `base`, without fragment | Exact string after RFC 3986 resolution; no case or percent-encoding normalization | A retrieval location. The base resolves relative references and matches captured identities. |
+| Captured publication identity | Snapshot ID: the SHA-256 digest of the exact manifest bytes | Exact digest | The publisher's identity or authority. |
+| Profile version | Extension URI in `requiredExtensions` and the descriptor's `format`; for WoT, also the Registry's `wotversionprofile` attribute | Exact string | A profile from the spelling of Version IDs. ID spelling is not profile discovery. |
+| Origin | `originRegistry` and `originVersion` | Exact string | A target identity or a retrieval instruction. Origin fields are provenance. |
+| Digest domain | `sha256:` and 64 lowercase hexadecimal characters, computed over the exact retained bytes of the described document | Exact string | Equality of JSON values, or publisher authentication. |
+
+A publication digest covers exact bytes. A digest of a canonical JSON value,
+such as one computed after RFC 8785 canonicalization, and a digest that a
+compiler records for its generated output are different operations over
+different inputs. Neither can stand in for a publication digest, and a
+publication digest cannot stand in for them. Where a companion carries a
+digest as 32 binary bytes, such as an OPC UA `ByteString`, those bytes are
+the SHA-256 value that the hexadecimal characters encode.
+
+A matching digest shows that the bytes are the ones the manifest describes.
+It does not show who published the manifest; trust in the publisher is
+supplied under caller policy.
 
 ### Capture Classification
 
@@ -952,6 +983,13 @@ Consumers requesting such a profile MUST reject absent or unsupported closure
 data. Exact selection and compatibility validation are separate operations.
 A snapshot fixes what to evaluate. It does not waive an authored floor,
 compatibility selector or caller acceptance policy.
+
+The [static JSON Schema closure](profiles/schema-closure.md) and
+[composite closure](profiles/composite-closure.md) profiles apply these rules
+to schema references and to WoT, schema and OPC UA materialization references
+together. They report package completeness, domain closure and runtime
+executability as separate results. The
+[closure fixtures](fixtures/README.md) pin the shared test corpus.
 
 One document revision MAY appear in several snapshots and channels. A channel
 name such as `stable` or `preview` does not establish a compatibility class.

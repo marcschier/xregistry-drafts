@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/publication/schemas/schema-closure.json",
+  "title": "Experimental static JSON Schema closure",
+  "type": "object",
+  "required": ["format", "entries", "edges"],
+  "properties": {
+    "format": {"const": "xregistry-schema-closure/1-experimental"},
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/versionXid"}
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "pointer",
+          "label",
+          "href",
+          "base",
+          "target",
+          "targetPointer"
+        ],
+        "properties": {
+          "source": {"$ref": "#/$defs/versionXid"},
+          "pointer": {"$ref": "#/$defs/pointer"},
+          "label": {"enum": ["$ref", "tm:ref", "describedby"]},
+          "href": {"type": "string"},
+          "base": {"$ref": "#/$defs/base"},
+          "target": {"$ref": "#/$defs/versionXid"},
+          "targetPointer": {"$ref": "#/$defs/pointer"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "versionXid": {
+      "type": "string",
+      "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+/versions/[^/?#]+$"
+    },
+    "pointer": {"type": "string", "pattern": "^(?:/(?:[^~/]|~[01])*)*$"},
+    "base": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$"
+    }
+  }
+}
