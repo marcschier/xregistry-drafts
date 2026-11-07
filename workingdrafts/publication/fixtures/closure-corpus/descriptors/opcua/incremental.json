@@ -1,0 +1,15 @@
+{
+  "format": "example-opcua-materialization/0",
+  "entries": [
+    "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3"
+  ],
+  "bindings": [
+    {
+      "source": "/thingmodelgroups/acme/thingmodels/pump/versions/4",
+      "pointer": "",
+      "label": "nodeset",
+      "href": "../nodesets/pump.xml",
+      "target": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0"
+    }
+  ]
+}

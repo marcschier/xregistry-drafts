@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.test/schemas/common.json",
+  "title": "Common definitions, published under another base",
+  "$defs": {
+    "text": {
+      "type": "string",
+      "maxLength": 80
+    }
+  }
+}

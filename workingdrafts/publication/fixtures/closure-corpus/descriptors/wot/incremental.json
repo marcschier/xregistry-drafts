@@ -1,0 +1,36 @@
+{
+  "format": "wot-publication-closure/1",
+  "entries": [
+    "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3"
+  ],
+  "bindings": [
+    {
+      "source": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3",
+      "pointer": "/links/0",
+      "operator": "type",
+      "href": "urn:example:pump",
+      "target": "/thingmodelgroups/acme/thingmodels/pump/versions/4"
+    },
+    {
+      "source": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3",
+      "pointer": "/links/1",
+      "operator": "td:extends",
+      "href": "./pump-template.td.json",
+      "target": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2"
+    },
+    {
+      "source": "/thingmodelgroups/acme/thingmodels/pump/versions/4",
+      "pointer": "/links/0",
+      "operator": "tm:extends",
+      "href": "./base.tm.json",
+      "target": "/thingmodelgroups/acme/thingmodels/base/versions/2"
+    },
+    {
+      "source": "/thingmodelgroups/acme/thingmodels/pump/versions/4",
+      "pointer": "/properties/status",
+      "operator": "tm:ref",
+      "href": "./base.tm.json#/properties/status",
+      "target": "/thingmodelgroups/acme/thingmodels/base/versions/2"
+    }
+  ]
+}

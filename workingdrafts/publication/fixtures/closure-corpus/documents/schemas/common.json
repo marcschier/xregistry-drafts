@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.test/schemas/common.json",
+  "title": "Common definitions",
+  "$defs": {
+    "text": {
+      "type": "string"
+    },
+    "country": {
+      "$anchor": "country",
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "a/b~c%d": {
+      "$ref": "address.json#/$defs/postal"
+    },
+    "units": {
+      "$id": "units/v2",
+      "$defs": {
+        "length": {
+          "$ref": "#meter"
+        },
+        "meter": {
+          "$anchor": "meter",
+          "type": "number"
+        }
+      }
+    }
+  }
+}

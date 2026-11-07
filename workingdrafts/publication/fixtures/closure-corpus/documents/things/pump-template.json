@@ -1,0 +1,29 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1"
+  ],
+  "@type": "Thing",
+  "id": "urn:example:pump-template",
+  "title": "Pump template",
+  "version": {
+    "instance": "2.1.0"
+  },
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  },
+  "security": [
+    "nosec_sc"
+  ],
+  "properties": {
+    "running": {
+      "type": "boolean",
+      "forms": [
+        {
+          "href": "https://pump-7.example.test/running"
+        }
+      ]
+    }
+  }
+}

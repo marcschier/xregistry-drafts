@@ -1,0 +1,44 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1"
+  ],
+  "@type": "Thing",
+  "id": "urn:example:pump-7",
+  "title": "Pump 7",
+  "version": {
+    "instance": "1.0.0",
+    "model": "1.4.0"
+  },
+  "links": [
+    {
+      "rel": "type",
+      "href": "urn:example:pump",
+      "type": "application/tm+json",
+      "tm:minVersion": "1.2.0"
+    },
+    {
+      "rel": "td:extends",
+      "href": "./pump-template.td.json",
+      "type": "application/td+json",
+      "td:minVersion": "2.0.0"
+    }
+  ],
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  },
+  "security": [
+    "nosec_sc"
+  ],
+  "properties": {
+    "speed": {
+      "type": "number",
+      "forms": [
+        {
+          "href": "https://pump-7.example.test/speed"
+        }
+      ]
+    }
+  }
+}

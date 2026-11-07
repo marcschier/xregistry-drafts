@@ -1,0 +1,205 @@
+{
+  "specversion": "1.0",
+  "registryid": "closure-corpus",
+  "model": {
+    "groups": {
+      "thingmodelgroups": {
+        "singular": "thingmodelgroup",
+        "resources": {
+          "thingmodels": {
+            "singular": "thingmodel",
+            "hasdocument": true,
+            "versionmode": "semver"
+          }
+        }
+      },
+      "thingdescriptiongroups": {
+        "singular": "thingdescriptiongroup",
+        "resources": {
+          "thingdescriptions": {
+            "singular": "thingdescription",
+            "hasdocument": true,
+            "versionmode": "semver"
+          }
+        }
+      },
+      "schemagroups": {
+        "singular": "schemagroup",
+        "resources": {
+          "schemas": {
+            "singular": "schema",
+            "hasdocument": true,
+            "versionmode": "manual"
+          }
+        }
+      },
+      "contextgroups": {
+        "singular": "contextgroup",
+        "resources": {
+          "contexts": {
+            "singular": "context",
+            "hasdocument": true,
+            "versionmode": "manual"
+          }
+        }
+      },
+      "nodesetgroups": {
+        "singular": "nodesetgroup",
+        "resources": {
+          "nodesets": {
+            "singular": "nodeset",
+            "hasdocument": true,
+            "versionmode": "manual"
+          }
+        }
+      }
+    }
+  },
+  "thingmodelgroups": {
+    "acme": {
+      "thingmodelgroupid": "acme",
+      "thingmodels": {
+        "pump": {
+          "thingmodelid": "pump",
+          "meta": {
+            "defaultversionid": "1.4.0"
+          },
+          "versions": {
+            "1.3.0": {
+              "versionid": "1.3.0",
+              "versionorigin": "authored",
+              "format": "JSON-LD/1.1",
+              "wotid": "urn:example:pump"
+            },
+            "1.4.0": {
+              "versionid": "1.4.0",
+              "versionorigin": "authored",
+              "format": "JSON-LD/1.1",
+              "wotid": "urn:example:pump"
+            }
+          }
+        },
+        "base": {
+          "thingmodelid": "base",
+          "meta": {
+            "defaultversionid": "1.2.0"
+          },
+          "versions": {
+            "1.2.0": {
+              "versionid": "1.2.0",
+              "versionorigin": "authored",
+              "format": "JSON-LD/1.1",
+              "wotid": "urn:example:pump:base"
+            }
+          }
+        }
+      }
+    }
+  },
+  "thingdescriptiongroups": {
+    "plant": {
+      "thingdescriptiongroupid": "plant",
+      "thingdescriptions": {
+        "pump-7": {
+          "thingdescriptionid": "pump-7",
+          "meta": {
+            "defaultversionid": "1.0.0"
+          },
+          "versions": {
+            "1.0.0": {
+              "versionid": "1.0.0",
+              "versionorigin": "authored",
+              "format": "JSON-LD/1.1",
+              "wotid": "urn:example:pump-7"
+            }
+          }
+        },
+        "pump-template": {
+          "thingdescriptionid": "pump-template",
+          "meta": {
+            "defaultversionid": "2.1.0"
+          },
+          "versions": {
+            "2.1.0": {
+              "versionid": "2.1.0",
+              "versionorigin": "authored",
+              "format": "JSON-LD/1.1",
+              "wotid": "urn:example:pump-template"
+            }
+          }
+        }
+      }
+    }
+  },
+  "schemagroups": {
+    "acme": {
+      "schemagroupid": "acme",
+      "schemas": {
+        "address": {
+          "schemaid": "address",
+          "meta": {
+            "defaultversionid": "1.0.0"
+          },
+          "versions": {
+            "1.0.0": {
+              "versionid": "1.0.0",
+              "format": "JsonSchema/draft/2020-12",
+              "contenttype": "application/schema+json"
+            }
+          }
+        },
+        "common": {
+          "schemaid": "common",
+          "meta": {
+            "defaultversionid": "2.1.0"
+          },
+          "versions": {
+            "2.1.0": {
+              "versionid": "2.1.0",
+              "format": "JsonSchema/draft/2020-12",
+              "contenttype": "application/schema+json"
+            }
+          }
+        }
+      }
+    }
+  },
+  "contextgroups": {
+    "acme": {
+      "contextgroupid": "acme",
+      "contexts": {
+        "pump": {
+          "contextid": "pump",
+          "meta": {
+            "defaultversionid": "1.0.0"
+          },
+          "versions": {
+            "1.0.0": {
+              "versionid": "1.0.0",
+              "contenttype": "application/ld+json"
+            }
+          }
+        }
+      }
+    }
+  },
+  "nodesetgroups": {
+    "acme": {
+      "nodesetgroupid": "acme",
+      "nodesets": {
+        "pump": {
+          "nodesetid": "pump",
+          "meta": {
+            "defaultversionid": "1.0.0"
+          },
+          "versions": {
+            "1.0.0": {
+              "versionid": "1.0.0",
+              "contenttype": "application/xml"
+            }
+          }
+        }
+      }
+    }
+  }
+}

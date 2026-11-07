@@ -1,0 +1,7 @@
+{
+  "@context": {
+    "model": "https://www.w3.org/2019/wot/tm#",
+    "exopc": "urn:example:opcua-materialization#",
+    "uav": "http://opcfoundation.org/UA/WoT-Binding/"
+  }
+}

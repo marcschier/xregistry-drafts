@@ -1,0 +1,62 @@
+{
+  "format": "xregistry-schema-closure/1-experimental",
+  "entries": [
+    "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3"
+  ],
+  "edges": [
+    {
+      "source": "/thingmodelgroups/acme/thingmodels/pump/versions/4",
+      "pointer": "/properties/location",
+      "label": "tm:ref",
+      "href": "../schemas/address.json#/$defs/postal",
+      "base": "https://example.test/models/pump.tm.json",
+      "target": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "targetPointer": "/$defs/postal"
+    },
+    {
+      "source": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "pointer": "/$defs/postal/properties/street",
+      "label": "$ref",
+      "href": "common.json#/$defs/text",
+      "base": "https://example.test/schemas/address.json",
+      "target": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "targetPointer": "/$defs/text"
+    },
+    {
+      "source": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "pointer": "/$defs/postal/properties/country",
+      "label": "$ref",
+      "href": "common.json#country",
+      "base": "https://example.test/schemas/address.json",
+      "target": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "targetPointer": "/$defs/country"
+    },
+    {
+      "source": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "pointer": "/$defs/postal/properties/unit",
+      "label": "$ref",
+      "href": "units/v2#/$defs/length",
+      "base": "https://example.test/schemas/address.json",
+      "target": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "targetPointer": "/$defs/units/$defs/length"
+    },
+    {
+      "source": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "pointer": "/$defs/postal/properties/weird",
+      "label": "$ref",
+      "href": "common.json#/$defs/a~1b~0c%25d",
+      "base": "https://example.test/schemas/address.json",
+      "target": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "targetPointer": "/$defs/a~1b~0c%d"
+    },
+    {
+      "source": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "pointer": "/$defs/a~1b~0c%d",
+      "label": "$ref",
+      "href": "address.json#/$defs/postal",
+      "base": "https://example.test/schemas/common.json",
+      "target": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "targetPointer": "/$defs/postal"
+    }
+  ]
+}

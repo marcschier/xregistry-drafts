@@ -1,0 +1,7 @@
+{
+  "format": "example-opcua-materialization/0",
+  "entries": [
+    "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0"
+  ],
+  "bindings": []
+}
