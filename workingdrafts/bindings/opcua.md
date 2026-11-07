@@ -3,6 +3,7 @@
 <!-- words: bytestrings compatibilityvalidated firstregistry formatvalidated identifiertype methodid modellingrules namespaces namespaceversion objectid qualifiedname readme referencetype reserializing standalone -->
 
 <!-- words: xregistry addressspace browsename browsenames browsepath -->
+<!-- words: modeluri publicationdate REQUIREDMODEL -->
 <!-- words: browsepaths nodeid nodeids nodeclass typedefinition opc ua -->
 <!-- words: filetransfer versionid versionids groupid resourceid registryid -->
 <!-- words: xid xids epoch labels createdat modifiedat defaultversionid -->
@@ -77,8 +78,8 @@ tunnel HTTP or CloudEvents payloads over OPC UA.
 
 **Status:** Unreleased working draft. The xRegistry Core, Events and OPC UA
 API dependencies use the `v1.0-rc4` baseline. The companion information model
-is Version `0.11.0`, Draft. None of these drafts constitutes an OPC Foundation
-standard or endorsement. Section 10 defines federation behavior without
+is OPC 30460-1 *xRegistry Part 1: Core*, Version `1.0.0`, Release Candidate 1.
+None of these drafts constitutes an OPC Foundation standard or endorsement. Section 10 defines federation behavior without
 overriding xRegistry Core or the OPC UA Parts.
 
 ## Table of Contents
@@ -158,7 +159,7 @@ overriding xRegistry Core or the OPC UA Parts.
 The API maps the xRegistry Core model, Version `v1.0-rc4`
 to OPC UA Services, AddressSpace nodes and FileTransfer. It exposes
 Registries, Groups, Resources, Versions, documents and attributes using
-the Version 0.11.0 Draft companion dependency identified in
+the Version 1.0.0 Release Candidate 1 companion dependency identified in
 [§2](#2-normative-references).
 
 The information model distinguishes the following entities:
@@ -234,14 +235,15 @@ capability paths.
 - [xRegistry Core specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
 - [xRegistry Events specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
 - [xRegistry primer, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/primer.md) — xRegistry concepts, representations, request-shaping concepts and federation model.
-- <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/source/xregistry/spec.md" data-link-check="authenticated">OPC 30452 — OPC UA for xRegistry, Version 0.11.0 Draft</a>,
-  dated `2026-10-28`, including its
-  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/source/xregistry/information-model.md" data-link-check="authenticated">information model</a>,
-  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/source/xregistry/native-documents.md" data-link-check="authenticated">native-document contract</a>
-  and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/model/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a>.
-  The repository requires member access. These links locate the source;
-  the stated document version identifies the dependency. This is an
-  unadopted working draft, not an OPC Foundation standard or endorsement.
+- <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/spec.md" data-link-check="authenticated">OPC 30460-1 — xRegistry Part 1: Core, Version 1.0.0, Release Candidate 1</a>,
+  dated `2026-11-04`, including its
+  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/information-model.md" data-link-check="authenticated">information model</a>,
+  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/native-documents.md" data-link-check="authenticated">native-document contract</a>
+  and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/model/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a>.
+  The repository requires member access. These links locate the pinned
+  source revision; the model identity and NodeSet digest below identify the
+  dependency. This Release Candidate is not approved for final publication
+  and is not an OPC Foundation standard or endorsement.
 - [xRegistry Federation](../federation/spec.md) — common read resolution, advertisements, selectors, identity and resolver errors.
 - [xRegistry Publication](../publication/spec.md) — OPTIONAL retained-publication behavior used by §10.4.
 - [OPC 10000-3, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-3/v1.05.06/) — Address Space Model, including URI identities, NodeIds, References and TypeDefinitions.
@@ -250,10 +252,27 @@ capability paths.
 - [OPC 10000-6, v1.05.07](https://reference.opcfoundation.org/specs/OPC-10000-6/v1.05.07/5.1.12) — portable QualifiedName, NodeId and ExpandedNodeId string encodings.
 - [OPC 10000-20, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-20/v1.05.06/4.2) — File Transfer, including `FileType` and its `Open` / `Read` / `Write` / `Close` Methods.
 
-The companion dependency is identified by its model version, `0.11.0`, rather
-than a source-control revision. It remains a working draft subject to change
-before publication. This binding does not imply OPC Foundation adoption or a
-public release of that companion model.
+The companion dependency is pinned as follows:
+
+| Field | Value |
+| --- | --- |
+| `ModelUri` | `http://opcfoundation.org/UA/xRegistry/` |
+| `Version` | `1.0.0` |
+| `PublicationDate` | `2026-11-04T00:00:00Z` |
+| `RequiredModel` | `http://opcfoundation.org/UA/`, Version `1.05.06`, `2025-11-08T00:00:00Z` |
+| Source revision | `OPCF-Members/OPC30450-CloudIntegration` commit `f8d7dae89660961b66d9fdd372e84dd8edb55c3b` |
+| NodeSet | `model/Opc.Ua.XRegistry.NodeSet2.xml` at that revision, 288787 bytes, SHA-256 `48522fea0821e4b36633a4c99e45880e4a00925e26b2dc7aab583d50a20c9a7a` |
+
+`ModelUri`, `Version` and `PublicationDate` identify the model that a NodeSet
+declares. The source revision and the SHA-256 of the NodeSet bytes at that
+revision identify the exact model this binding was checked against. A NodeSet
+that declares the same model identity with different bytes was not checked.
+The Release Candidate can change before final publication. This binding does
+not imply OPC Foundation adoption or a public release of that companion model.
+
+Examples in this binding address companion types, Properties and Methods by
+BrowseName and use no numeric NodeId from the companion namespace, so the
+companion's NodeId assignments do not change them.
 
 This binding and the companion draft use xRegistry Core and Events
 `v1.0-rc4` as their baseline. Section 9.1 records the binding's event
@@ -473,8 +492,8 @@ respectively. `Name` is OPTIONAL. When it is present, the Server sets
 role-specific identifier used by `BrowseName`.
 
 A `groupid` or `resourceid` is a symbolic identifier constructed from the
-entity's domain source identity, never from a document. The Version 0.11.0
-Draft companion specifies the entity-identifier construction that makes these
+entity's domain source identity, never from a document. The Version 1.0.0
+companion specifies the entity-identifier construction that makes these
 identifiers readable and safe in a URL, on a command line and as a file name.
 
 A Browse result includes BrowseName, DisplayName, NodeClass, TypeDefinition
@@ -600,7 +619,7 @@ Version attributes also change.
 
 On creation, the server MUST initialize the applicable `CreatedAt`,
 `ModifiedAt`, `Epoch`, `MetaCreatedAt`, `MetaModifiedAt`, `MetaEpoch`, `Xid`
-and identifier Properties under Core and the Version 0.11.0 companion's
+and identifier Properties under Core and the Version 1.0.0 companion's
 auto-bootstrap rules.
 
 ### 4.4. OPC UA-specific attribute processing
@@ -646,7 +665,7 @@ The creation and mutation Method signatures used by this API are:
 - The `Delete` Method on `GroupType` and `ResourceType`.
 - The `AddAttribute` and `RemoveAttribute` Methods on `AttributesType`.
 - The OPTIONAL native-document Methods on `NativeRegistryAccessType` as
-  defined by the Version 0.11.0 companion model.
+  defined by the Version 1.0.0 companion model.
 - The inherited `Open` / `Read` / `Write` / `Close` Methods of `ResourceType`,
   whose exact argument definitions are normative in OPC 10000-20.
 
@@ -1046,7 +1065,7 @@ A client reads the full xRegistry model definition through the
 repeats `Read` until it has the complete JSON byte stream, then calls
 `Close`. Before browsing entities, clients MAY use this definition to map
 domain collection names to `GroupType` and `ResourceType` subtype
-BrowseNames. The Version 0.11.0 companion also offers typed named and generic
+BrowseNames. The Version 1.0.0 companion also offers typed named and generic
 native-document views through `NativeRegistryAccessType`; those views
 complement rather than replace the raw FileType document.
 
@@ -1865,7 +1884,7 @@ and Resource Meta `MetaEpoch` /`MetaCreatedAt` /`MetaModifiedAt` where those
 values are not explicitly supplied or are server-managed.
 
 Serialization MUST preserve the three-representation symmetry defined by
-the xRegistry Primer and the Version 0.11.0 companion model. An entity keeps
+the xRegistry Primer and the Version 1.0.0 companion model. An entity keeps
 the same `Xid` and identity when accessed as a file, through OPC UA Services
 or in an exported xRegistry document.
 
@@ -1875,7 +1894,7 @@ or in an exported xRegistry document.
 
 An event-capable server reports xRegistry changes through native OPC UA
 EventTypes. It MUST NOT encapsulate a CloudEvent or another protocol payload
-in the event body. Version 0.11.0 of the OPC UA — xRegistry companion model
+in the event body. Version 1.0.0 of the OPC 30460-1 companion model
 defines the concrete EventTypes and fields
 ([source and access boundary](#2-normative-references)).
 The table maps each canonical xRegistry event `type` to its concrete leaf
@@ -2166,7 +2185,7 @@ capability separately.
 
 The [common federation contract][federation] uses this binding's addressing
 and read operations for native federation, without an HTTP facade. The
-Version 0.11.0 companion supplies `OriginRegistry`, `ExternalReference` and
+Version 1.0.0 companion supplies `OriginRegistry`, `ExternalReference` and
 `ResourceUrl` Properties as inputs. The following clauses constrain their
 interpretation.
 
@@ -2432,7 +2451,7 @@ A successful multi-Property Write or a client-side
 read/write sequence does not prove atomic head replacement. An adapter
 without that guarantee MUST NOT advertise writable publication support.
 This extension assigns no new standard Method, Property or NodeId to the
-Version 0.11.0 Draft companion model.
+Version 1.0.0 companion model.
 
 ### 10.5. Namespace export is separate
 
@@ -2463,8 +2482,9 @@ or gateway.
 ### 10.6. Companion model alignment
 
 This binding uses xRegistry Core, Events and OPC UA API Version `v1.0-rc4`
-with the Version `0.11.0` Draft companion model. The companion defines the
-base mappings this binding uses:
+with the Version `1.0.0` Release Candidate 1 companion model pinned in
+[§2](#2-normative-references). The companion defines the base mappings this
+binding uses:
 
 | Companion surface | Binding mapping |
 | --- | --- |
@@ -2715,13 +2735,13 @@ exercise these mappings without a live UA connection; they do not certify
 a Server.
 
 A conforming implementation MUST NOT assume additional node or Method names.
-The members it needs MUST come from the Version 0.11.0 Draft companion model,
+The members it needs MUST come from the Version 1.0.0 companion model,
 the normative OPC UA Parts in §2, or an explicitly documented domain mapping.
 The standard Server and namespace tables come from Part 5.
 Federation introduces no ReferenceType or Registry-discovery Method.
 
 A conforming implementation MUST NOT require a node or Method name absent
-from *OPC UA — xRegistry*, OPC 10000-20 or its own domain companion
+from OPC 30460-1, OPC 10000-20 or its own domain companion
 specification.
 
 ### 12.1. Offline Read and Reference Examples
@@ -2746,7 +2766,7 @@ python -B -m pytest workingdrafts\bindings\tools\test_opcua_examples.py -q
 The [helper](tools/opcua_examples.py) uses Python's standard library and the
 shared `FederationError` interfaces. It does not install a UA SDK, discover
 endpoints, verify certificates or TypeDefinitions, or connect to a Server.
-The structural/event dependency is the Version 0.11.0 Draft companion model
+The structural/event dependency is the Version 1.0.0 companion model
 identified in [§2](#2-normative-references). Passing these examples does not
 establish OPC Foundation adoption or live interoperability.
 
