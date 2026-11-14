@@ -3,11 +3,21 @@
 <!-- words: WoT readme -->
 <!-- words: py pytest workingdrafts -->
 <!-- words: workflows -->
+<!-- words: planurl -->
 
 The [WoT Registry specification][Spec] and [model][Model] define this draft's
 document storage, identity and resolution rules. The
 [decision record][Decisions] explains the design decisions. The informative
 [versioning design][Versioning] and [samples][Samples] provide supporting detail.
+
+The [WoT Descriptor profile](spec.md#66-wot-descriptor-profile) specializes
+the [Descriptor Registry draft](https://github.com/xregistry/spec/pull/796)
+when a deployment selects it. TD and TM References identify resolved
+documents; OPTIONAL `planurl` records projection provenance without replacing
+the result. The [CloudEvents WoT draft][CloudEvents WoT]
+owns event routing and subject syntax. Its direct TD route does not require a
+Descriptor. The CloudEvents link pins the committed draft used by this profile;
+neither draft is a released specification.
 
 The [publication companion][Publication] defines dependency binding and set
 publication using the [generic publication contract](../../publication/spec.md).
@@ -42,3 +52,4 @@ The vectors do not provide exhaustive regression coverage.
 [Decisions]: decisions.md
 [Versioning]: ../../publication/design/design.md#wot-versioning-design-overview
 [Samples]: samples/README.md
+[CloudEvents WoT]: https://github.com/marcschier/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/wot.md

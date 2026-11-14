@@ -4,7 +4,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import re
-from urllib.parse import quote, unquote, urldefrag, urljoin, urlsplit
+from urllib.parse import unquote, urldefrag, urljoin, urlsplit
 
 import jsonschema
 import pytest
@@ -510,48 +510,27 @@ def test_closure_requires_exact_version_xids(field, value):
 
 
 @pytest.mark.parametrize(
-    (
-        "index",
-        "expected_query",
-        "expected_subject",
-        "expected_scheme",
-        "expected_netloc",
-        "expected_path",
-        "expected_extra",
-        "expected_fragment",
-    ),
+    ("index", "expected_source", "expected_version", "expected_fragment"),
     [
         (
             0,
-            {"wotid": "urn:fabrikam:lamp:42", "wotversion": "1.0.0"},
-            "#/events/overheated",
-            "https",
-            "factory.example.com",
-            "/line1",
-            "site=north%2Fsouth",
-            "source-context",
+            "https://factory.example.com/line1",
+            "1.0.0",
+            "/events/overheated",
         ),
         (
             1,
-            {"wotid": "urn:fabrikam:lamp:42"},
-            "#",
-            "",
-            "",
-            "../things/lamp-42",
+            "urn:fabrikam:actor:telemetry-service",
             None,
             "",
         ),
     ],
-    ids=["absolute-source-fragment-and-extra", "relative-source-empty-fragment"],
+    ids=["direct-version-affordance", "direct-default-whole-thing"],
 )
 def test_cloudevents_source_and_subject_match_lamp_td(
     index,
-    expected_query,
-    expected_subject,
-    expected_scheme,
-    expected_netloc,
-    expected_path,
-    expected_extra,
+    expected_source,
+    expected_version,
     expected_fragment,
 ):
     events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
@@ -579,60 +558,34 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     assert type(event["data"]["temperature"]) is int
     assert event["datacontenttype"] == "application/json"
 
-    source = urlsplit(event["source"])
-    assert (source.scheme, source.netloc, source.path) == (
-        expected_scheme,
-        expected_netloc,
-        expected_path,
+    assert event["source"] == expected_source
+    prefix, delimiter, fragment = event["subject"].partition("#")
+    assert delimiter == "#"
+    subject_url = urlsplit(prefix)
+    assert (subject_url.scheme, subject_url.netloc) == ("https", "example.com")
+    assert subject_url.query == subject_url.fragment == ""
+    resource_path = (
+        "/thingdescriptiongroups/Fabrikam.FactoryFloor.01/"
+        "thingdescriptions/urn.fabrikam.lamp.42"
     )
-    assert source.fragment == expected_fragment
-    assert "#" in event["source"]
-    parameters = source.query.split(";")
-    parsed_parameters = [value.split("=", 1) for value in parameters]
-    query = {
-        name: unquote(value)
-        for name, value in parsed_parameters
-        if name in {"wotid", "wotversion"}
-    }
-    assert query == expected_query
-    names = [name for name, _ in parsed_parameters]
-    if "wotversion" in names:
-        assert names[:2] == ["wotid", "wotversion"]
-    else:
-        assert names[0] == "wotid"
-    additional = [
-        f"{name}={value}"
-        for name, value in parsed_parameters
-        if name not in {"wotid", "wotversion"}
-    ]
-    assert additional == ([expected_extra] if expected_extra else [])
-    safe = "!$'()*,:@/?"
-    expected_standardized = ";".join(
-        f"{key}={quote(value, safe=safe, encoding='utf-8', errors='strict')}"
-        for key, value in expected_query.items()
+    assert subject_url.path == resource_path + (
+        f"/versions/{expected_version}" if expected_version else ""
     )
-    assert source.query.startswith(expected_standardized)
-    assert "wotid=urn:fabrikam:lamp:42" in source.query
+    assert fragment == expected_fragment
 
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
     resources = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
         "thingdescriptions"
     ]
-    matches = [
-        value for value in resources.values() if value["wotid"] == query["wotid"]
-    ]
-    assert len(matches) == 1
-    resource = matches[0]
-    assert resource is resources["urn.fabrikam.lamp.42"]
+    resource = resources[subject_url.path.split("/")[4]]
     td = resource["thingdescription"]
-    assert td["id"] == query["wotid"]
+    assert td["id"] == resource["wotid"] == "urn:fabrikam:lamp:42"
     assert resource["versionid"] == td["version"]["instance"] == "1.0.0"
-    if "wotversion" in query:
-        assert query["wotversion"] == resource["versionid"]
+    if expected_version:
+        assert expected_version == resource["versionid"]
 
-    assert event["subject"] == expected_subject
     selected = td
-    pointer = unquote(event["subject"][1:])
+    pointer = unquote(fragment)
     for token in pointer.split("/")[1:]:
         selected = selected[token.replace("~1", "/").replace("~0", "~")]
     if index == 0:
