@@ -123,11 +123,10 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
 - A Thing Description MAY reference one or more Thing Models from which it
   is derived. See [Section 6.1](#61-thing-description-to-thing-model).
 
-The [xRegistry Publication working draft](../../publication/spec.md) defines
+The [xRegistry Publication specification](../../publication/spec.md) defines
 immutable snapshots and domain-closure requirements. Section
-[5.4.4](#544-publication-closure) defines prerequisites for WoT publication
-closure and records the mapping decisions still needed to reconstruct a
-pinned WoT view. It does not yet define a complete WoT closure profile.
+[5.4.4](#544-publication-closure) defines WoT publication closure, its
+reference mapping and the reference kinds it covers.
 
 This specification does not require the Registry to resolve or validate these
 cross-references. An implementation MAY check that a referent exists, but it
@@ -196,7 +195,7 @@ even when the target Version is absent.
 A TD's `version.model` describes a model dependency. Only a TD's
 `rel: "type"` link uses it as an implicit floor. It does not determine the
 TD's instance version or supply a floor for a TD-to-TD reference. The
-proposed TD composition operators `td:extends`, `td:subthing`, and `td:ref`
+TD composition operators `td:extends`, `td:subthing`, and `td:ref`
 resolve under Sections 5.4 and 6.2. A projection plan selects sources by
 target kind: `tm:minVersion` is uncapped for TMs, while `td:minVersion`
 uses a TD caret range. An unfloored TD source can cross major versions.
@@ -289,7 +288,7 @@ for callers holding pins, and establish a valid default before enabling
 `singleversionroot`. An operator MUST NOT claim that an unresolved multiple-root
 Resource conforms to this model.
 
-`tm:minVersion` and `td:minVersion` are proposed extensions to the W3C WoT
+`tm:minVersion` and `td:minVersion` are extensions to the W3C WoT
 Thing Description. They are not part of the published WoT 1.1 Recommendation.
 Sections 5.4 and 6.2 define their resolver and TD-composition behavior.
 
@@ -413,9 +412,9 @@ contains.
 ## 3. WoT Registry Model
 
 The authoritative xRegistry extension model of the WoT Registry resides in
-[model.json](model.json). Its `modelversion` is `0.1` while this remains a
-working draft. It versions the WoT model independently of the xRegistry Core
-specification version in a Registry's `specversion`.
+[model.json](model.json). Its `modelversion` is `0.1`. It versions the WoT
+model independently of the xRegistry Core specification version in a Registry's
+`specversion`.
 
 The JSON serialization of a WoT Registry adheres to this form:
 
@@ -850,7 +849,7 @@ depend on it. A Consumer holding a WoT identifier queries the first-party
 reconstructing its path.
 
 A deployment MAY derive its Resource ids from `wotid` values by a convention
-of its own. The [OpenUSD Artifact Registry][OpenUSD Draft] working draft
+of its own. The [OpenUSD Artifact Registry][OpenUSD Draft] specification
 defines one such construction. No convention is mandated by this
 specification, and a Consumer MUST NOT assume that an id it did not assign
 was produced by one.
@@ -886,10 +885,6 @@ A `wotid` is REQUIRED, and the rule for populating it depends on the document:
 - A registry MUST reject a write that supplies neither an `id` member nor a
   `wotid`, rather than inventing one, because an invented identifier is not
   stable across registries.
-
-[Decision 4](decisions.md#4-wotid-is-a-required-indexed-first-party-attribute)
-records that whether a future revision ought to define a derivation for the
-second case is not yet settled.
 
 #### 5.1.1. Breaking Changes and Successor Identifiers
 
@@ -1033,7 +1028,7 @@ attributes or query parameters for a WoT identifier or Version.
 
 #### 5.3.1. CloudEvents WoT Source Resolution
 
-The proposed CloudEvents WoT profile defines event source identity,
+The CloudEvents WoT profile defines event source identity,
 description selection, subject syntax and event-contract types. The
 CloudEvents Descriptor Reference extension defines `describedby` selection
 and decoding. This specification does not define a second mapping for those
@@ -1084,7 +1079,7 @@ logical view from a complete pinned source closure and the applicable
 resolution rules. If the closure cannot establish that result, the Consumer
 MUST obtain the published view or report failure. It MUST NOT substitute live
 dependencies or a pointer into an unresolved source document.
-[Section 5.4.4](#544-publication-closure) records unresolved closure mappings;
+[Section 5.4.4](#544-publication-closure) defines the closure mapping and scope;
 the existing closure extension and schema alone do not establish that such
 reconstruction is possible.
 
@@ -1233,9 +1228,8 @@ assignment.
 #### 5.4.4. Publication closure
 
 The requirements below define WoT closure data and its reference mapping.
-The [publication design](../../publication/design/design.md#a-complete-wot-publication)
-is informative. Passing the closure schema alone does not establish that a
-pinned WoT view is reconstructible.
+Passing the closure schema alone does not establish that a pinned WoT view
+is reconstructible.
 
 A WoT publication that claims domain-complete closure MUST include the
 `http://opcfoundation.org/UA/WoT-Binding/publication-closure/1` extension as
@@ -1296,7 +1290,7 @@ closure document:
 | Link with `rel: "td:subthing"` | `td:subthing` |
 | Ordinary member expanding to `https://www.w3.org/2019/wot/td#ref` | `td:ref` |
 | TD link with `rel: "type"` | `type` |
-| Experimental projection source-manifest entry | `https://raw.githubusercontent.com/marcschier/wot-thing-description/main/proposals/wot-projections/context.experimental-v1.jsonld#projects` |
+| Projection source-manifest entry | `https://raw.githubusercontent.com/marcschier/wot-thing-description/main/proposals/wot-projections/context.experimental-v1.jsonld#projects` |
 
 A Consumer MUST compare canonical operators as exact strings and MUST reject
 unknown or mismatched operators. Member names MUST be interpreted under
@@ -1315,12 +1309,12 @@ Recording `model:ref` as the binding operator is invalid. Binding `/links/0`
 twice is also invalid even if both records name the same Version. Omitting
 `/links/1` because it references that same Version leaves closure incomplete.
 
-The experimental projection mapping selects the
-[Projection Plans proposal at commit `79ddf72`](https://github.com/marcschier/wot-thing-description/blob/79ddf72d70eff97d9541afc83e20631cc3ba3567/proposals/wot-projections/spec.md)
+The projection mapping selects the
+[Projection Plans format at commit `79ddf72`](https://github.com/marcschier/wot-thing-description/blob/79ddf72d70eff97d9541afc83e20631cc3ba3567/proposals/wot-projections/spec.md)
 and its context artifact at that revision. This is a repository-controlled
-experiment, not a W3C or OPC Foundation vocabulary assignment. A Consumer
+format, not a W3C or OPC Foundation vocabulary assignment. A Consumer
 MUST identify its projection marker and `projects` member by the expanded
-IRIs defined there. The former placeholder namespace is not an alias.
+IRIs defined there.
 Consumers MUST use captured contexts or a supported immutable context set;
 opening a publication MUST NOT fetch live contexts.
 
@@ -1329,10 +1323,10 @@ dependency occurrence, in its authored array order. Its binding MUST record
 that entry's `href` and the projection operator above. The entry's expected
 media `type` determines whether the target is a TD or TM; the Consumer
 MUST verify the captured target's actual kind. A `tm:ref` affordance selector
-matched to that source under the selected proposal MUST use the entry's
+matched to that source under the selected format MUST use the entry's
 binding and MUST NOT have a second binding of its own. Ordinary `td:ref`
 occurrences remain separate dependencies. A marker, source entry, or selector
-that fails the selected proposal's rules MUST NOT be accepted by supplying
+that fails the selected format's rules MUST NOT be accepted by supplying
 an otherwise well-shaped closure binding.
 
 Before validating closure bindings, the Producer and Consumer MUST determine
@@ -1457,8 +1451,8 @@ This selection rule identifies the TD supplied to the composition operator.
 It does not change the operator's inheritance, child-relationship, or
 definition-reference semantics. A `td:minVersion` on a TM reference or a
 `tm:minVersion` on a TD-to-TD reference is `invalid-floor`. Other TD links are
-outside this rule. The W3C versioned-reference proposal defines the proposed
-vocabulary and processing model.
+outside this rule. The versioned-reference extension defines the vocabulary
+and processing model.
 
 ### 6.3. Thing Description to Endpoint Registry
 
@@ -1503,10 +1497,9 @@ by [WoT-TD 1.1][WoT-TD-1.1]. This specification requires nothing more:
 - Nothing in this specification — Resource layout, identity, versioning, or
   cross-referencing — depends on affordances being partitioned.
 
-Proposals to sub-divide a large TD's affordances, such as a `td:submodel`
-grouping member, are being discussed in the W3C WoT community. Were such a
-mechanism to be standardized, a WoT Registry would store a TD that uses it
-exactly as it stores any other TD, since the grouping is a member of the
+An extension can sub-divide a large TD's affordances through a grouping
+member. A WoT Registry stores a TD that uses such a mechanism exactly as it
+stores any other TD, since the grouping is a member of the
 document rather than the registry model. Support is OPTIONAL. A registry
 that does not understand the mechanism MUST still store and serve the document
 unchanged, as specified in
