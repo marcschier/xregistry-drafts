@@ -994,12 +994,13 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
     }
 
 
-def generate_avro_schema(model_definition) -> dict:
+def generate_avro_schema(model_definition, nullable_optionals=False) -> dict:
     """
     Generates an Avro schema based on the given model definition.
 
     Args:
         model_definition (dict): The model definition to generate the schema from.
+        nullable_optionals (bool): Project optional attributes as nullable fields.
 
     Returns:
         dict: The generated Avro schema.
@@ -1047,6 +1048,22 @@ def generate_avro_schema(model_definition) -> dict:
 
     avro_generic_record_emitted = False
     record_types = set()
+
+    def apply_field_options(field, attributes):
+        if not nullable_optionals:
+            return
+        if not attributes.get("required", False):
+            field_type = field["type"]
+            branches = field_type if isinstance(field_type, list) else [field_type]
+            branches = [branch for branch in branches if branch != "null"]
+            # Avro defaults must match the first union branch.
+            if "default" in attributes:
+                field["type"] = branches + ["null"]
+            else:
+                field["type"] = ["null"] + branches
+                field["default"] = None
+        if "default" in attributes:
+            field["default"] = attributes["default"]
 
     def handle_item(resource_schema, type, item, name, prefix, enum_values=None):
         if type == "object":
@@ -1170,6 +1187,7 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
+                    apply_field_options(field_schema, attr_props)
                     resource_schema["fields"].append(field_schema)
             else:
                 if attr_name == "*":
@@ -1189,12 +1207,11 @@ def generate_avro_schema(model_definition) -> dict:
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
+                    apply_field_options(field_schema, attr_props)
                     resource_schema["fields"].append(field_schema)
                 else:
                     attr_schema["name"] = camel(pascal_attr_name)
-                    # if the attribute is not required, union the type with null
-                    #if not "required" in attr_props or attr_props["required"] == False:
-                    #    attr_schema = ["null", attr_schema]
+                    apply_field_options(attr_schema, attr_props)
                     resource_schema["fields"].append(attr_schema)
 
 
@@ -1449,9 +1466,13 @@ def main():
     parser.add_argument('--output', type=str, help='Path for output file', default='', required=False)
     parser.add_argument('--schema-id', type=str, help='URI for the $id field in the schema', default='', required=False)
     parser.add_argument('--schema-name', type=str, help='Root type name for JSON Structure output', default='', required=False)
+    parser.add_argument('--avro-nullable-optionals', action='store_true',
+                        help='Use nullable optional fields in Avro output (default output is unchanged)')
     parser.add_argument('input_files', type=str, help='Path to input files', nargs='+')
 
     args = parser.parse_args()
+    if args.avro_nullable_optionals and args.type != 'avro-schema':
+        parser.error('--avro-nullable-optionals requires --type avro-schema')
 
     json_schema = None
     model_definition = { "groups": {} }
@@ -1486,7 +1507,9 @@ def main():
         else:
             print(json.dumps(json_structure, indent=2))
     elif (args.type == 'avro-schema'):
-        avro_schema = generate_avro_schema(model_definition)
+        avro_schema = generate_avro_schema(
+            model_definition, nullable_optionals=args.avro_nullable_optionals
+        )
         if args.output:
             with open(args.output, 'w') as of:
                 json.dump(avro_schema, of, indent=2)

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "descriptorgroups": {
+      "singular": "descriptorgroup",
+      "modelversion": "0.1",
+      "description": "Application-organized collections of Descriptors",
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+      "resources": {
+        "descriptors": {
+          "singular": "descriptor",
+          "hasdocument": false,
+          "maxversions": 0,
+          "setversionid": true,
+          "modelversion": "0.1",
+          "description": "Metadata describing an entity or shared processing inputs, with named References to representations",
+          "attributes": {
+            "references": {
+              "name": "references",
+              "type": "map",
+              "required": true,
+              "description": "Named References. The map can be empty; names do not imply a class or message role",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "class": {
+                    "name": "class",
+                    "type": "string",
+                    "required": true,
+                    "enum": [
+                      "message",
+                      "schema",
+                      "thingdescription",
+                      "thingmodel",
+                      "usdasset"
+                    ],
+                    "strict": false,
+                    "description": "Standard representation class or absolute URI class identifier"
+                  },
+                  "url": {
+                    "name": "url",
+                    "type": "urlabsolute",
+                    "required": true,
+                    "description": "Absolute fragment-free retrieval URL, used without modification"
+                  },
+                  "planurl": {
+                    "name": "planurl",
+                    "type": "urlabsolute",
+                    "description": "Optional projection-plan provenance for a resolved TD or TM; not a bundle input"
+                  },
+                  "*": {
+                    "name": "*",
+                    "type": "any"
+                  }
+                }
+              }
+            },
+            "entityid": {
+              "name": "entityid",
+              "type": "uri",
+              "matchversions": true,
+              "description": "Absolute fragment-free identity URI of the primary entity; not a retrieval instruction"
+            },
+            "entitytype": {
+              "name": "entitytype",
+              "type": "uri",
+              "description": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid"
+            },
+            "messageref": {
+              "name": "messageref",
+              "type": "string",
+              "description": "Exact name of an existing message Reference"
+            },
+            "schemaref": {
+              "name": "schemaref",
+              "type": "string",
+              "description": "Exact name of an existing schema Reference selected as the Descriptor's payload schema"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}

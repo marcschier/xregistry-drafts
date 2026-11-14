@@ -1,0 +1,345 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
+      "name": "descriptorgroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "DescriptorgroupType",
+          "fields": [
+            {
+              "name": "descriptorgroupid",
+              "type": "string",
+              "description": "ID of the descriptorgroup object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "Extensions",
+              "type": [
+                "null",
+                {
+                  "type": "map",
+                  "name": "ExtensionsType",
+                  "default": {},
+                  "values": "io.xregistry.GenericRecord"
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "descriptors",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "DescriptorType",
+                  "namespace": "io.xregistry.descriptorgroups",
+                  "fields": [
+                    {
+                      "name": "descriptorid",
+                      "type": "string",
+                      "description": "ID of the descriptor object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "type": {
+                        "type": "map",
+                        "name": "ReferencesType",
+                        "values": {
+                          "type": "record",
+                          "name": "ReferencesItemType",
+                          "fields": [
+                            {
+                              "type": "string",
+                              "doc": "Standard representation class or absolute URI class identifier",
+                              "name": "class"
+                            },
+                            {
+                              "type": "string",
+                              "doc": "Absolute fragment-free retrieval URL, used without modification",
+                              "name": "url"
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "doc": "Optional projection-plan provenance for a resolved TD or TM; not a bundle input",
+                              "name": "planurl",
+                              "default": null
+                            },
+                            {
+                              "name": "Extensions",
+                              "type": [
+                                "null",
+                                {
+                                  "type": "map",
+                                  "name": "ExtensionsType",
+                                  "default": {},
+                                  "values": "io.xregistry.GenericRecord"
+                                }
+                              ],
+                              "default": null
+                            }
+                          ]
+                        }
+                      },
+                      "name": "references",
+                      "doc": "Named References. The map can be empty; names do not imply a class or message role"
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "doc": "Absolute fragment-free identity URI of the primary entity; not a retrieval instruction",
+                      "name": "entityid",
+                      "default": null
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "doc": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid",
+                      "name": "entitytype",
+                      "default": null
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "doc": "Exact name of an existing message Reference",
+                      "name": "messageref",
+                      "default": null
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "doc": "Exact name of an existing schema Reference selected as the Descriptor's payload schema",
+                      "name": "schemaref",
+                      "default": null
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": [
+                        "null",
+                        {
+                          "type": "map",
+                          "name": "ExtensionsType",
+                          "default": {},
+                          "values": "io.xregistry.GenericRecord"
+                        }
+                      ],
+                      "default": null
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

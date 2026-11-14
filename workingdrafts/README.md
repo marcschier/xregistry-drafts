@@ -9,7 +9,7 @@ specification.
 
 ## Models
 
-- [Event Context Registry](models/context/README.md)
+- [Descriptor Registry](models/descriptor/README.md)
 - [OpenUSD Artifact Registry](models/openusd/README.md)
 - [WoT Registry](models/wot/README.md)
 
