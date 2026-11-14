@@ -44,22 +44,22 @@ shape only.
 
 [cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
 sample data, not a transport batch. They refer to the lamp TD's resolved view
-using the [proposed WoT source profile](../spec.md#531-cloudevents-wot-source-resolution).
-The absolute first `source` and relative second `source` illustrate that the
-profile does not prescribe a URI scheme or the rest of the URI-reference.
-The resolver is configured to use Group `Fabrikam.FactoryFloor.01`.
-The percent-decoded `wotid` selects Resource `urn.fabrikam.lamp.42`; the
-Resource id is not part of the event source. The first source includes
-`site=north%2Fsouth`, an independently encoded additional query parameter that
-this profile does not interpret. Its URI fragment is also independent of the
-CloudEvents `subject`. The second source has an empty fragment.
+using the direct TD subject route in the
+[CloudEvents WoT profile review](https://github.com/cloudevents/spec/pull/1406).
+The [Registry-side publication rules](../spec.md#531-cloudevents-wot-source-resolution)
+require the selected document to contain that resolved view. The first
+`source` identifies a factory line; the second identifies an actor. Neither
+source is a TD retrieval instruction or carries WoT lookup parameters.
 
-The first event pins `wotversion=1.0.0`, matching the lamp TD's
-`version.instance` and Registry `versionid`, and addresses
-`#/events/overheated` in the resolved TD. This sample's TD declares its
+The first subject identifies the lamp TD's document-view URL at Version
+`1.0.0`, matching its `version.instance` and Registry `versionid`, followed
+by `#/events/overheated`. The Consumer retrieves the fragment-free URL and
+applies the pointer to the resolved TD. This sample's TD declares its
 affordances directly, so that pointer selects the locally declared event.
-The second event omits `wotversion` and uses `#` for the whole resolved TD.
-It selects the current default, which can change after publication.
+The second subject identifies the same Resource without a Version and uses
+`#` for the whole resolved TD. It selects the current default, which can
+change after publication. The publication profile defines the second
+event's payload as a temperature report concerning the whole Thing.
 
 Both events use `com.fabrikam.lamp.overheated.v1`. Their payload contract
 defines a numeric `temperature` member; the different values and TD selection
@@ -67,6 +67,9 @@ do not change that contract. The publication profile assigns the final `v1`
 segment independently of the TD's `version.instance` and Registry `versionid`.
 Adding a payload member, even an OPTIONAL one, requires a new contract revision.
 
-Neither event has separate `wotid`, `wotversion` or `wotdigest` attributes.
+Neither event uses `describedby` or requires a Descriptor. These events need
+only the selected TD and the agreed payload contract. Their wire schema is
+not inferred from the TD's inline DataSchema; a profile requiring an external
+payload schema would supply `dataschema` or a complete Descriptor.
 The samples do not claim that the proposed closure envelope can reconstruct
 a composed TD or that an event version proves content integrity.
