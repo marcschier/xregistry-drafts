@@ -45,7 +45,7 @@ shape only.
 [cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
 sample data, not a transport batch. They refer to the lamp TD's resolved view
 using the direct TD subject route in the
-[CloudEvents WoT profile review](https://github.com/cloudevents/spec/pull/1406).
+[committed CloudEvents WoT profile draft][CloudEvents WoT].
 The [Registry-side publication rules](../spec.md#531-cloudevents-wot-source-resolution)
 require the selected document to contain that resolved view. The first
 `source` identifies a factory line; the second identifies an actor. Neither
@@ -73,3 +73,5 @@ not inferred from the TD's inline DataSchema; a profile requiring an external
 payload schema would supply `dataschema` or a complete Descriptor.
 The samples do not claim that the proposed closure envelope can reconstruct
 a composed TD or that an event version proves content integrity.
+
+[CloudEvents WoT]: https://github.com/marcschier/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/wot.md
