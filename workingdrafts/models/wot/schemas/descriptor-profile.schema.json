@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WoT Descriptor profile fields",
+  "description": "Compose with the generic Descriptor schema. Semantic relations and profile-defined annotation types need additional validation.",
+  "type": "object",
+  "properties": {
+    "wotsubject": {"$ref": "#/$defs/wotSubject"},
+    "references": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "class": {
+            "type": "string",
+            "not": {"enum": ["thingdescription", "thingmodel"]}
+          },
+          "planurl": {"$ref": "#/$defs/absoluteUrl"}
+        },
+        "if": {"required": ["planurl"]},
+        "then": {
+          "required": ["class"],
+          "properties": {
+            "class": {
+              "enum": [
+                "https://xregistry.io/classes/thingdescription",
+                "https://xregistry.io/classes/thingmodel"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "wotSubject": {
+      "description": "Additional attributes require types and semantics from the applicable profile; this fragment does not validate those annotations.",
+      "type": "object",
+      "required": ["reference", "pointer"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9:_.-]{0,62}$"
+        },
+        "pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+        }
+      }
+    },
+    "absoluteUrl": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s#]+$"
+    },
+    "subjectDescriptor": {
+      "type": "object",
+      "required": ["wotsubject", "references"],
+      "properties": {
+        "wotsubject": {"$ref": "#/$defs/wotSubject"},
+        "references": {"type": "object"}
+      }
+    },
+    "tdReference": {
+      "type": "object",
+      "required": ["class", "url"],
+      "properties": {
+        "class": {"const": "https://xregistry.io/classes/thingdescription"},
+        "url": {"$ref": "#/$defs/absoluteUrl"},
+        "planurl": {"$ref": "#/$defs/absoluteUrl"}
+      }
+    },
+    "tmReference": {
+      "type": "object",
+      "required": ["class", "url"],
+      "properties": {
+        "class": {"const": "https://xregistry.io/classes/thingmodel"},
+        "url": {"$ref": "#/$defs/absoluteUrl"},
+        "planurl": {"$ref": "#/$defs/absoluteUrl"}
+      }
+    }
+  }
+}

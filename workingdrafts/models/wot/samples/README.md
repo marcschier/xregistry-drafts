@@ -3,6 +3,7 @@
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
 <!-- words: factoryfloor inletpressure -->
 <!-- words: cloudevents wotversion wotdigest topology percent affordances standalone -->
+<!-- words: wotsubject quantitykind describedby marcschier descriptorgroups -->
 
 [registry.json](registry.json) illustrates document identity, compatible
 Versions and provenance metadata using the [WoT Registry model](../model.json).
@@ -73,5 +74,45 @@ not inferred from the TD's inline DataSchema; a profile requiring an external
 payload schema would supply `dataschema` or a complete Descriptor.
 The samples do not claim that the proposed closure envelope can reconstruct
 a composed TD or that an event version proves content integrity.
+
+[subject-descriptor.json](subject-descriptor.json) describes the same lamp
+event affordance using the
+[Subject Descriptor profile](../spec.md#664-subject-descriptors). Core
+bookkeeping is omitted. Its `wotsubject.reference` selects the exact local
+TD Reference; `pointer` is a JSON Pointer string, without a leading `#`.
+This example's deployment defines `quantitykind` as an absolute-URI string
+identifying the measured quantity. It is an annotation, not authorization
+or a universal WoT vocabulary.
+
+Under the CloudEvents subject-Descriptor route, this event selects that
+Descriptor at an exact Version URL without a fragment:
+
+```json
+{
+  "specversion": "1.0",
+  "id": "lamp-42-overheated-3",
+  "source": "urn:fabrikam:actor:telemetry-service",
+  "type": "com.fabrikam.lamp.overheated.v1",
+  "subject": "https://example.com/descriptorgroups/subjects/descriptors/lamp-42-temperature/versions/1",
+  "datacontenttype": "application/json",
+  "data": {"temperature": 87}
+}
+```
+
+The agreed URL binding identifies that exact Descriptor Version; spelling
+`versions` in a URL alone does not establish Version identity. The Subject
+Descriptor selects `/events/overheated` in the lamp TD at Version `1.0.0`.
+The Consumer does not retrieve the source or use Subject Descriptor schemas
+as processing inputs. Here the event and agreed payload contract supply the
+remaining inputs. The pinned CloudEvents draft above predates this route;
+its current [profile review](https://github.com/cloudevents/spec/pull/1406)
+tracks the binding.
+
+If the event also supplies `describedby`, that Processing Descriptor remains
+authoritative and MUST contain exactly one TD Reference with the same URL.
+Zero matches or duplicate URLs fail correlation even though
+`wotsubject.reference` selects a unique local entry in the Subject
+Descriptor. The Consumer does not merge missing processing inputs from the
+Subject Descriptor or retry another route.
 
 [CloudEvents WoT]: https://github.com/marcschier/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/wot.md

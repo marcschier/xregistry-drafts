@@ -16,7 +16,7 @@
 <!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
 <!-- words: wotversion wotdigest topology percent dereferenceable -->
 <!-- words: vn -->
-<!-- words: planurl entityid -->
+<!-- words: planurl entityid wotsubject quantitykind processData subjectDescriptor -->
 
 ## Abstract
 
@@ -75,6 +75,7 @@ storing, managing, and discovering W3C
       - [6.6.1. Referenced Representations](#661-referenced-representations)
       - [6.6.2. Thing Description Selection](#662-thing-description-selection)
       - [6.6.3. Projection Provenance](#663-projection-provenance)
+      - [6.6.4. Subject Descriptors](#664-subject-descriptors)
   - [7. Security](#7-security)
 
 ## 1. Overview
@@ -1519,9 +1520,20 @@ event or change the WoT Registry model.
 
 #### 6.6.1. Referenced Representations
 
-A Reference with class `thingdescription` MUST identify an ordinary WoT TD
-document at its `url`. A Reference with class `thingmodel` MUST identify an
-ordinary WoT TM document. Neither URL identifies Registry metadata or a
+This profile defines the following Reference class identifiers:
+
+| Class identifier | Referenced representation |
+| --- | --- |
+| `https://xregistry.io/classes/thingdescription` | Ordinary resolved WoT TD document. |
+| `https://xregistry.io/classes/thingmodel` | Ordinary resolved WoT TM document. |
+
+These URIs identify classes. They are not retrieval instructions and require
+no registration or dereferencing. Consumers MUST compare class identifiers
+exactly. The bare strings `thingdescription` and `thingmodel` are not aliases
+for these classes.
+
+A Reference of either class MUST identify its document at `url`.
+Neither URL identifies Registry metadata or a
 projection plan. When a WoT Registry serves the document, the Publisher
 MUST supply its document-view URL, as defined in
 [Section 1.4](#14-document-store).
@@ -1530,6 +1542,9 @@ The Publisher MUST resolve and validate a projected TD or TM before
 publishing the Descriptor for use. The referenced representation MUST be
 the resolved result. The Consumer MUST validate that the retrieved
 representation conforms to its declared TD or TM class.
+These retrieval and content-validation requirements apply to selected or
+REQUIRED representations, not every unselected Reference in the inventory.
+Descriptor and profile-field validity remain subject to their own rules.
 
 An Asset or Device Descriptor can reference a TD and other representations
 of the same entity. The catalog profile defines the association with
@@ -1544,8 +1559,9 @@ When an operation selects a TD from a Descriptor, the Consumer MUST apply
 these steps in order:
 
 1. If the operation supplies a Reference name, require that the name exists
-   and has exactly class `thingdescription`, then select that Reference.
-2. Otherwise, collect entries with exactly class `thingdescription`.
+   and has exactly class `https://xregistry.io/classes/thingdescription`,
+   then select that Reference.
+2. Otherwise, collect entries with exactly that class.
 3. Select the Reference if there is one candidate. Zero candidates means
    absence; more than one means ambiguity.
 
@@ -1558,7 +1574,7 @@ whether a Descriptor or direct TD supplies the processing inputs. A direct
 TD remains usable without a Descriptor when that profile selects the direct
 route. When the CloudEvents profile requires correlation of a direct TD URL
 with an explicit Descriptor, the URL MUST exactly match one named
-`thingdescription` Reference's `url`. No match or multiple matches MUST
+TD Reference's `url`. No match or multiple matches MUST
 make the processing inputs unavailable. The Consumer MUST report the
 condition and MUST NOT bypass the Descriptor to use the direct TD.
 
@@ -1572,8 +1588,8 @@ an attribute defined by the generic Descriptor Registry.
   identified by the Reference's `url`.
 
 - Constraints:
-  - `planurl` MUST occur only on References with class `thingdescription`
-    or `thingmodel`.
+  - `planurl` MUST occur only on References with one of the two class
+    identifiers defined in [Section 6.6.1](#661-referenced-representations).
   - When present, `planurl` MUST be an absolute URL without a fragment.
   - The Consumer MUST use the representation at `url` for the operation.
     It MUST NOT independently resolve the plan to replace that result.
@@ -1594,7 +1610,7 @@ plan. Both URLs serve documents, not Registry metadata:
 
 ```json
 {
-  "class": "thingdescription",
+  "class": "https://xregistry.io/classes/thingdescription",
   "url": "https://example.com/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
   "planurl": "https://example.com/projections/pump7/versions/3.0.0"
 }
@@ -1605,6 +1621,114 @@ retrieve `planurl`. If an operation needs the plan in that bundle, the
 Publisher MUST list it separately as a named Reference. Its class MUST be
 an absolute URI controlled by the format's defining authority, identifying
 the projection format rather than using a reserved bare class name.
+
+#### 6.6.4. Subject Descriptors
+
+A Subject Descriptor identifies a Thing or affordance through a named TD
+Reference and a JSON Pointer. It can carry typed annotations about that
+subject without changing the TD. It uses the generic Descriptor Resource
+shape; it is not a new Resource type or an implicit Processing Descriptor.
+The CloudEvents WoT profile defines recognition of a fragment-free
+Descriptor Version URL in `subject`, independently of its direct TD
+URL-with-fragment form.
+
+##### `wotsubject` Attribute
+
+- Type: Object
+- Description: The TD Reference and pointer selecting the described Thing
+  or affordance, with any annotations defined by the applicable profile.
+
+- Constraints:
+  - `wotsubject` is REQUIRED when a Descriptor serves as a Subject Descriptor.
+    It MUST contain `reference` and `pointer`. A `null` object, reference or
+    pointer is invalid.
+  - `reference` MUST be a string naming an existing entry of this
+    Descriptor's `references` map, compared exactly. The entry's class MUST
+    be `https://xregistry.io/classes/thingdescription`. Other entries MAY
+    exist; they do not participate in this selection.
+  - `pointer` MUST be an RFC 6901 JSON Pointer in string form. The empty
+    string selects the whole Thing; a non-empty pointer MUST start with `/`
+    and use `~0` and `~1` for token escaping. It is not a URI fragment.
+    The Consumer MUST NOT percent-decode the stored pointer or remove a
+    leading `#`.
+  - The Consumer MUST obtain the selected ordinary resolved TD and apply
+    the pointer to that document. The pointer MUST identify the whole Thing
+    or an affordance appropriate to the operation. Invalid syntax, an absent
+    value or an inappropriate target MUST cause a reported correlation
+    failure. A Thing Model MUST NOT substitute for the TD.
+  - The selected Reference MUST NOT identify another Subject Descriptor.
+    Chaining Subject Descriptors is not permitted.
+  - Additional `wotsubject` attributes MUST have types and semantics
+    defined by the applicable profile. They annotate the selected subject;
+    this specification defines no universal annotation vocabulary or
+    arbitrary annotation map. An annotation MUST NOT authenticate an
+    entity, authorize an operation or replace processing inputs.
+    Annotation omission and `null` handling follow the defining profile
+    and Core's Descriptor write rules, not CloudEvents context-attribute
+    decoding.
+
+When `describedby` is present after CloudEvents decoding, it remains the
+authoritative Processing Descriptor. Before accepting the subject result,
+the Consumer MUST require exactly one TD Reference in that Processing
+Descriptor whose `url` equals the Subject Descriptor's selected TD `url`
+byte-for-byte. Missing or duplicate matches MUST cause a reported correlation
+failure. URI normalization, redirects, TD identity or equal `entityid`
+values MUST NOT repair a mismatch.
+
+The Consumer MUST NOT merge schema, native publisher metadata or other
+processing inputs from the Subject Descriptor into the Processing
+Descriptor. Without `describedby`, this route supplies only the subject;
+the event, agreed profile and any native envelope supply the remaining
+REQUIRED processing inputs. The Consumer MUST NOT synthesize a Processing
+Descriptor or automatically retrieve `source` for those inputs. Failure
+MUST NOT trigger another description route or substitute a different TD.
+
+The same Descriptor URL MAY be explicitly selected for both subject and
+processing roles. The Consumer MUST evaluate each role independently,
+including the exact-one TD URL match. One retrieval MAY serve both roles
+under the same representation and authorization context. Processing inputs
+then come from the explicitly selected Processing Descriptor, not from an
+implicit fallback through the subject role.
+
+The Publisher MUST preserve the selected TD representation, pointer and
+processing-significant annotations for the intended processing and replay
+period under the Descriptor Registry's Version and publication-stability
+rules. A changed subject selection or processing-significant annotation
+requires a new published Subject Descriptor Version.
+
+For example, the following Subject Descriptor excerpt selects a property.
+Core bookkeeping is omitted. In this example, the deployment defines
+`quantitykind` as an absolute-URI string identifying the measured quantity;
+it is not a generic Descriptor or universal WoT annotation.
+
+```json
+{
+  "wotsubject": {
+    "reference": "pump7",
+    "pointer": "/properties/processData",
+    "quantitykind": "https://example.com/quantities/pressure"
+  },
+  "references": {
+    "pump7": {
+      "class": "https://xregistry.io/classes/thingdescription",
+      "url": "https://example.com/td/pump7/versions/3"
+    }
+  }
+}
+```
+
+The [attribute model fragment](descriptor-profile.model.json) declares
+`wotsubject` for a Descriptor Resource's Version attributes. It does not add
+the field to WoT Registry Resources. Deployments extend that object with
+their typed annotations. The conditional presence, selector relation and
+pointer rules above remain normative.
+
+The [profile schema fragment](schemas/descriptor-profile.schema.json)
+describes the profile's fields, not the generic Descriptor model. Its
+`subjectDescriptor` definition requires `wotsubject`. The schema does not
+validate Reference-name relations, TD content, pointer existence, annotation
+semantics or cross-Descriptor correlation. Consumers MUST perform those
+checks in addition to structural validation.
 
 ## 7. Security
 

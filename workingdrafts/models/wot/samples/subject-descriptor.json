@@ -1,0 +1,15 @@
+{
+  "descriptorid": "lamp-42-temperature",
+  "versionid": "1",
+  "wotsubject": {
+    "reference": "lamp42",
+    "pointer": "/events/overheated",
+    "quantitykind": "https://example.com/quantities/temperature"
+  },
+  "references": {
+    "lamp42": {
+      "class": "https://xregistry.io/classes/thingdescription",
+      "url": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
+    }
+  }
+}

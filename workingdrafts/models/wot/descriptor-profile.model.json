@@ -1,0 +1,18 @@
+{
+  "wotsubject": {
+    "type": "object",
+    "description": "Required when the Descriptor serves as a WoT Subject Descriptor. Additional typed annotations are defined by the applicable profile.",
+    "attributes": {
+      "reference": {
+        "type": "string",
+        "required": true,
+        "description": "Exact local name of the selected TD Reference, whose class is https://xregistry.io/classes/thingdescription."
+      },
+      "pointer": {
+        "type": "string",
+        "required": true,
+        "description": "RFC 6901 JSON Pointer string into the ordinary resolved TD. Empty selects the whole Thing; URI-fragment and percent decoding do not apply."
+      }
+    }
+  }
+}

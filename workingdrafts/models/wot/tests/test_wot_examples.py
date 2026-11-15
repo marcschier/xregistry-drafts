@@ -16,6 +16,12 @@ SCHEMA = json.loads((ROOT / "schemas" / "publication-closure.schema.json").read_
 EXAMPLE = json.loads((ROOT / "samples" / "publication-closure.json").read_text())
 VECTORS = check_vectors.load_vectors()
 VECTOR_SCHEMA = json.loads((check_vectors.HERE / "schema.json").read_bytes())
+PROFILE_SCHEMA = json.loads(
+    (ROOT / "schemas" / "descriptor-profile.schema.json").read_bytes()
+)
+SUBJECT_DESCRIPTOR = json.loads(
+    (ROOT / "samples" / "subject-descriptor.json").read_bytes()
+)
 
 
 @pytest.mark.parametrize("name", VECTORS)
@@ -593,3 +599,115 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     else:
         assert selected is td
     jsonschema.validate(event["data"], td["events"]["overheated"]["data"])
+
+
+def test_subject_descriptor_sample_selects_lamp_affordance():
+    jsonschema.Draft202012Validator.check_schema(PROFILE_SCHEMA)
+    schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
+    jsonschema.validate(SUBJECT_DESCRIPTOR, schema)
+    selector = SUBJECT_DESCRIPTOR["wotsubject"]
+    reference = SUBJECT_DESCRIPTOR["references"][selector["reference"]]
+    jsonschema.validate(
+        reference, {**PROFILE_SCHEMA, "$ref": "#/$defs/tdReference"}
+    )
+    registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
+    path = urlsplit(reference["url"]).path.split("/")
+    resource = registry[path[1]][path[2]][path[3]][path[4]]
+    assert path[5:] == ["versions", resource["versionid"]]
+    td = resource["thingdescription"]
+    selected = td
+    for token in selector["pointer"].split("/")[1:]:
+        selected = selected[token.replace("~1", "/").replace("~0", "~")]
+    assert selected is td["events"]["overheated"]
+    assert selector["quantitykind"] == "https://example.com/quantities/temperature"
+
+
+@pytest.mark.parametrize(
+    "pointer", ["", "/events/overheated", "/properties/pressure~1bar", "/a~0b", "/a%2Fb"]
+)
+def test_subject_pointer_schema_accepts_string_form(pointer):
+    schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/wotSubject"}
+    jsonschema.validate({"reference": "lamp42", "pointer": pointer}, schema)
+
+
+@pytest.mark.parametrize(
+    "pointer", [None, 0, "#", "#/events/overheated", "events/alarm", "/a~2b", "/a~"]
+)
+def test_subject_pointer_schema_rejects_non_string_or_fragment_form(pointer):
+    schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/wotSubject"}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"reference": "lamp42", "pointer": pointer}, schema)
+
+
+@pytest.mark.parametrize("member", ["wotsubject", "reference", "pointer"])
+def test_subject_descriptor_schema_requires_selector_members(member):
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    if member == "wotsubject":
+        del descriptor[member]
+    else:
+        del descriptor["wotsubject"][member]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(
+            descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
+        )
+
+
+@pytest.mark.parametrize("member", ["wotsubject", "reference", "pointer"])
+def test_subject_descriptor_schema_rejects_null_selector_members(member):
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    if member == "wotsubject":
+        descriptor[member] = None
+    else:
+        descriptor["wotsubject"][member] = None
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(
+            descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
+        )
+
+
+@pytest.mark.parametrize("kind", ["thingdescription", "thingmodel"])
+def test_wot_reference_schema_requires_owned_uri_class(kind):
+    definition = "tdReference" if kind == "thingdescription" else "tmReference"
+    schema = {**PROFILE_SCHEMA, "$ref": f"#/$defs/{definition}"}
+    reference = {
+        "class": f"https://xregistry.io/classes/{kind}",
+        "url": "https://example.com/wot/versions/1",
+        "planurl": "https://example.com/plans/versions/1",
+    }
+    jsonschema.validate(reference, schema)
+    reference["class"] = kind
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(reference, schema)
+
+
+def test_profile_schema_keeps_empty_base_inventory_valid():
+    jsonschema.validate({"references": {}}, PROFILE_SCHEMA)
+
+
+@pytest.mark.parametrize(
+    ("reference_class", "planurl"),
+    [
+        ("schema", "https://example.com/plan"),
+        ("thingdescription", "https://example.com/plan"),
+        ("https://xregistry.io/classes/thingdescription", "/plan"),
+        ("https://xregistry.io/classes/thingmodel", "https://example.com/plan#"),
+    ],
+)
+def test_profile_schema_restricts_planurl_to_wot_uri_classes_and_document_urls(
+    reference_class, planurl
+):
+    descriptor = {
+        "references": {"result": {"class": reference_class, "planurl": planurl}}
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(descriptor, PROFILE_SCHEMA)
+
+
+def test_subject_attribute_model_fragment_uses_core_definitions():
+    core_schema = json.loads(
+        (ROOT.parents[2] / "core" / "model.schema.json").read_bytes()
+    )
+    fragment = json.loads((ROOT / "descriptor-profile.model.json").read_bytes())
+    jsonschema.Draft7Validator(
+        {**core_schema, "$ref": "#/definitions/AttributeDefinitions"}
+    ).validate(fragment)
