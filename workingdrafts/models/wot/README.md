@@ -24,9 +24,8 @@ WoT Registry's [model](model.json).
 
 The [CloudEvents WoT draft][CloudEvents WoT]
 owns event routing and subject syntax. Its direct TD route does not require a
-Descriptor. The [current CloudEvents review](https://github.com/cloudevents/spec/pull/1406)
-also defines the Subject Descriptor route; the pinned draft predates that
-route. These drafts are not released specifications.
+Descriptor. The same pinned draft defines the Subject Descriptor route.
+These drafts are not released specifications.
 
 The [publication companion][Publication] defines dependency binding and set
 publication using the [generic publication contract](../../publication/spec.md).
@@ -61,4 +60,4 @@ The vectors do not provide exhaustive regression coverage.
 [Decisions]: decisions.md
 [Versioning]: ../../publication/design/design.md#wot-versioning-design-overview
 [Samples]: samples/README.md
-[CloudEvents WoT]: https://github.com/marcschier/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/wot.md
+[CloudEvents WoT]: https://github.com/marcschier/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/wot.md

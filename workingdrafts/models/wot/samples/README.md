@@ -104,9 +104,8 @@ The agreed URL binding identifies that exact Descriptor Version; spelling
 Descriptor selects `/events/overheated` in the lamp TD at Version `1.0.0`.
 The Consumer does not retrieve the source or use Subject Descriptor schemas
 as processing inputs. Here the event and agreed payload contract supply the
-remaining inputs. The pinned CloudEvents draft above predates this route;
-its current [profile review](https://github.com/cloudevents/spec/pull/1406)
-tracks the binding.
+remaining inputs. The [pinned CloudEvents draft][CloudEvents WoT] defines
+the binding.
 
 If the event also supplies `describedby`, that Processing Descriptor remains
 authoritative and MUST contain exactly one TD Reference with the same URL.
@@ -115,4 +114,4 @@ Zero matches or duplicate URLs fail correlation even though
 Descriptor. The Consumer does not merge missing processing inputs from the
 Subject Descriptor or retry another route.
 
-[CloudEvents WoT]: https://github.com/marcschier/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/wot.md
+[CloudEvents WoT]: https://github.com/marcschier/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/wot.md
