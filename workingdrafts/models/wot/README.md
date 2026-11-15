@@ -22,7 +22,7 @@ or affordance without supplying processing metadata. The
 its fields alongside the generic Descriptor model; they do not change the
 WoT Registry's [model](model.json).
 
-The [CloudEvents WoT draft][CloudEvents WoT]
+The [CloudEvents WoT extension draft][CloudEvents WoT]
 owns event routing and subject syntax. Its direct TD route does not require a
 Descriptor. The same pinned draft defines the Subject Descriptor route.
 These drafts are not released specifications.

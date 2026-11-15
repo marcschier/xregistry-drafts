@@ -43,10 +43,10 @@ it to `authored`. The registry remains responsible for assignment.
 It is neither Registry content nor a complete snapshot. Its checks validate
 shape only.
 
-[cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
+[cloudevents.json](cloudevents.json) contains five standalone CloudEvents as
 sample data, not a transport batch. They refer to the lamp TD's resolved view
-using the direct TD subject route in the
-[committed CloudEvents WoT profile draft][CloudEvents WoT].
+using the routes in the
+[committed CloudEvents WoT extension draft][CloudEvents WoT].
 The [Registry-side publication rules](../spec.md#531-cloudevents-wot-source-resolution)
 require the selected document to contain that resolved view. The first
 `source` identifies a factory line; the second identifies an actor. Neither
@@ -62,13 +62,14 @@ The second subject identifies the same Resource without a Version and uses
 change after publication. The publication profile defines the second
 event's payload as a temperature report concerning the whole Thing.
 
-Both events use `com.fabrikam.lamp.overheated.v1`. Their payload contract
+All five events use `com.fabrikam.lamp.overheated.v1`. Their payload contract
 defines a numeric `temperature` member; the different values and TD selection
 do not change that contract. The publication profile assigns the final `v1`
 segment independently of the TD's `version.instance` and Registry `versionid`.
 Adding a payload member, even an OPTIONAL one, requires a new contract revision.
 
-Neither event uses `describedby` or requires a Descriptor. These events need
+Neither of the first two events uses `describedby` or requires a Descriptor.
+These events need
 only the selected TD and the agreed payload contract. Their wire schema is
 not inferred from the TD's inline DataSchema; a profile requiring an external
 payload schema would supply `dataschema` or a complete Descriptor.
@@ -84,8 +85,8 @@ This example's deployment defines `quantitykind` as an absolute-URI string
 identifying the measured quantity. It is an annotation, not authorization
 or a universal WoT vocabulary.
 
-Under the CloudEvents subject-Descriptor route, this event selects that
-Descriptor at an exact Version URL without a fragment:
+The third event in `cloudevents.json` uses the Subject Descriptor route and
+selects that Descriptor at an exact Version URL without a fragment:
 
 ```json
 {
@@ -113,5 +114,19 @@ Zero matches or duplicate URLs fail correlation even though
 `wotsubject.reference` selects a unique local entry in the Subject
 Descriptor. The Consumer does not merge missing processing inputs from the
 Subject Descriptor or retry another route.
+
+The fourth event demonstrates this explicit `describedby` case. Its direct
+TD subject URL matches the Descriptor's `lamp42` Reference exactly. This
+Descriptor is selected for processing; its `wotsubject` does not replace the
+event's direct TD pointer.
+
+The fifth event uses that same Descriptor Version URL as `source`, omits
+`describedby` and selects `lamp42#/events/overheated`. The agreed
+source-Descriptor binding selects it as the Processing Descriptor. This
+example intentionally identifies the Descriptor as the originating context;
+it has a different source-plus-id identity scope from the actor-source
+examples. The named subject selects the TD Reference, not the Descriptor's
+`wotsubject`. The agreed payload contract supplies the processing inputs
+needed by these examples; they do not need an external payload schema.
 
 [CloudEvents WoT]: https://github.com/marcschier/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/wot.md

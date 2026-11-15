@@ -540,7 +540,7 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     expected_fragment,
 ):
     events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
-    assert len(events) == 2
+    assert len(events) == 5
     event = events[index]
     assert set(event) == {
         "specversion",
@@ -599,6 +599,54 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     else:
         assert selected is td
     jsonschema.validate(event["data"], td["events"]["overheated"]["data"])
+
+
+@pytest.mark.parametrize("index", [2, 3, 4], ids=["subject", "describedby", "source"])
+def test_descriptor_event_routes_select_sample_lamp_td(index):
+    events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
+    event = events[index]
+    descriptor_url = (
+        "https://example.com/descriptorgroups/subjects/descriptors/"
+        "lamp-42-temperature/versions/1"
+    )
+    reference = SUBJECT_DESCRIPTOR["references"]["lamp42"]
+    assert event["id"] == f"lamp-42-overheated-{index + 1}"
+    assert event["type"] == events[0]["type"]
+    if index == 2:
+        assert event["subject"] == descriptor_url
+        assert "describedby" not in event
+        assert event["source"] == "urn:fabrikam:actor:telemetry-service"
+        assert SUBJECT_DESCRIPTOR["wotsubject"]["reference"] == "lamp42"
+        pointer = SUBJECT_DESCRIPTOR["wotsubject"]["pointer"]
+    elif index == 3:
+        assert event["describedby"] == descriptor_url
+        assert event["source"] == "urn:fabrikam:actor:telemetry-service"
+        url, delimiter, pointer = event["subject"].partition("#")
+        assert delimiter == "#"
+        matches = [
+            item for item in SUBJECT_DESCRIPTOR["references"].values()
+            if item["class"] == "https://xregistry.io/classes/thingdescription"
+            and item["url"] == url
+        ]
+        assert matches == [reference]
+    else:
+        assert event["source"] == descriptor_url
+        assert "describedby" not in event
+        name, delimiter, pointer = event["subject"].partition("#")
+        assert delimiter == "#"
+        assert SUBJECT_DESCRIPTOR["references"][name] is reference
+    assert pointer == "/events/overheated"
+    assert reference["class"] == "https://xregistry.io/classes/thingdescription"
+    registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
+    path = urlsplit(reference["url"]).path.split("/")
+    resource = registry[path[1]][path[2]][path[3]][path[4]]
+    assert path[5:] == ["versions", resource["versionid"]]
+    td = resource["thingdescription"]
+    selected = td
+    for token in pointer.split("/")[1:]:
+        selected = selected[token.replace("~1", "/").replace("~0", "~")]
+    assert selected is td["events"]["overheated"]
+    jsonschema.validate(event["data"], selected["data"])
 
 
 def test_subject_descriptor_sample_selects_lamp_affordance():

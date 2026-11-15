@@ -1023,55 +1023,51 @@ like `urn:fabrikam:lamp@3` that every recipient has to take apart. The
 identifier stays a WoT identifier, and the version stays a `versionid` the
 recipient can put straight into a URL.
 
-The CloudEvents WoT profile defines its own context-attribute mapping. The
-general transport guidance above does not require separate CloudEvents
-attributes or query parameters for a WoT identifier or Version.
+The CloudEvents WoT extension defines the context-attribute mapping for
+CloudEvents.
 
 #### 5.3.1. CloudEvents WoT Source Resolution
 
-The CloudEvents WoT profile defines event source identity,
+The CloudEvents WoT extension defines event source identity,
 description selection, subject syntax and event-contract types. The
 CloudEvents Descriptor Reference extension defines `describedby` selection
-and decoding. This specification does not define a second mapping for those
-attributes. In particular, the Registry's `wotid` attribute does not require
-`wotid` or `wotversion` query parameters in an event's `source`.
+and decoding.
 
-When that profile selects a Descriptor, the WoT requirements in
-[Section 6.6](#66-wot-descriptor-profile) apply. The profile can instead
+When that extension selects a Descriptor, the WoT requirements in
+[Section 6.6](#66-wot-descriptor-profile) apply. The extension can instead
 select a direct TD document URL without a Descriptor.
 
 A selected WoT Registry document-view URL identifies either an exact
 Version or the Resource's current Core default Version, including a sticky
-default, as defined in [Section 5.3](#53-lookup). The resolver MUST NOT
-apply the floor or prerelease selection of Section 5.4 to that URL selection.
+default, as defined in [Section 5.3](#53-lookup).
 References within the selected TD still follow their applicable resolution
 rules. An unversioned Resource URL can resolve to a different view after the
 default changes.
 
-A publication Version used by this profile MUST identify a stable logical
-resolved TD view. A Publisher MUST create a new publication Version of the
+A publication Version used by this extension MUST identify a stable logical
+resolved TD view. A Producer MUST create a new publication Version of the
 selected Thing Description Resource when that view changes, including when
 its source closure changes. The new Version MUST follow
 [Section 1.3](#13-versioning), including assignment from an authored
-SemVer `version.instance` or the generated-id rules. A Publisher MUST NOT reuse
+SemVer `version.instance` or the generated-id rules. A Producer MUST NOT reuse
 an authored instance version for a changed published view. This requirement
-applies to publication Versions used by this profile; it does not make all
+applies to publication Versions used by this extension; it does not make all
 xRegistry Versions immutable or change Core's general update semantics.
 
 The resolved TD is the result of applying the applicable WoT resolution rules
 to the selected sources. Producing or publishing that result MUST NOT overwrite
 or rewrite stored authored source bytes
 ([Section 5.2](#52-preserving-customer-documents)).
-For a CloudEvent using this profile, the Document bytes of the selected
-publication Version MUST be that resolved TD view. A Publisher MUST NOT select
+For a CloudEvent using this extension, the Document bytes of the selected
+publication Version MUST be that resolved TD view. A Producer MUST NOT select
 an authored source Version whose bytes do not represent the resolved view.
-When the resolved view differs from the authored source, the Publisher MUST
+When the resolved view differs from the authored source, the Producer MUST
 publish the resolved bytes as a publication Version and retain the authored
 source bytes separately. This applies both to the exact Version selected by
 the document URL and to a Core default selected through a Resource URL.
 
 The Consumer evaluates the subject's pointer against the Document bytes of
-the selected resolved TD, following the CloudEvents WoT profile. It MUST NOT
+the selected resolved TD, following the CloudEvents WoT extension. It MUST NOT
 evaluate that pointer against Registry metadata or an unresolved source
 document.
 
@@ -1534,11 +1530,11 @@ for these classes.
 
 A Reference of either class MUST identify its document at `url`.
 Neither URL identifies Registry metadata or a
-projection plan. When a WoT Registry serves the document, the Publisher
+projection plan. When a WoT Registry serves the document, the Producer
 MUST supply its document-view URL, as defined in
 [Section 1.4](#14-document-store).
 
-The Publisher MUST resolve and validate a projected TD or TM before
+The Producer MUST resolve and validate a projected TD or TM before
 publishing the Descriptor for use. The referenced representation MUST be
 the resolved result. The Consumer MUST validate that the retrieved
 representation conforms to its declared TD or TM class.
@@ -1569,10 +1565,10 @@ A missing named Reference, wrong class, ambiguity or absent REQUIRED TD
 MUST make the operation's processing inputs unavailable. The Consumer MUST
 report the condition and MUST NOT substitute another Reference.
 
-The applicable CloudEvents extension or profile defines subject syntax and
+The applicable CloudEvents extension defines subject syntax and
 whether a Descriptor or direct TD supplies the processing inputs. A direct
-TD remains usable without a Descriptor when that profile selects the direct
-route. When the CloudEvents profile requires correlation of a direct TD URL
+TD remains usable without a Descriptor when that extension selects the direct
+route. When the CloudEvents extension requires correlation of a direct TD URL
 with an explicit Descriptor, the URL MUST exactly match one named
 TD Reference's `url`. No match or multiple matches MUST
 make the processing inputs unavailable. The Consumer MUST report the
@@ -1618,7 +1614,7 @@ plan. Both URLs serve documents, not Registry metadata:
 
 A Descriptor bundle collects `references.*.url`; it does not implicitly
 retrieve `planurl`. If an operation needs the plan in that bundle, the
-Publisher MUST list it separately as a named Reference. Its class MUST be
+Producer MUST list it separately as a named Reference. Its class MUST be
 an absolute URI controlled by the format's defining authority, identifying
 the projection format rather than using a reserved bare class name.
 
@@ -1628,7 +1624,7 @@ A Subject Descriptor identifies a Thing or affordance through a named TD
 Reference and a JSON Pointer. It can carry typed annotations about that
 subject without changing the TD. It uses the generic Descriptor Resource
 shape; it is not a new Resource type or an implicit Processing Descriptor.
-The CloudEvents WoT profile defines recognition of a fragment-free
+The CloudEvents WoT extension defines recognition of a fragment-free
 Descriptor Version URL in `subject`, independently of its direct TD
 URL-with-fragment form.
 
@@ -1690,7 +1686,7 @@ under the same representation and authorization context. Processing inputs
 then come from the explicitly selected Processing Descriptor, not from an
 implicit fallback through the subject role.
 
-The Publisher MUST preserve the selected TD representation, pointer and
+The Producer MUST preserve the selected TD representation, pointer and
 processing-significant annotations for the intended processing and replay
 period under the Descriptor Registry's Version and publication-stability
 rules. A changed subject selection or processing-significant annotation
