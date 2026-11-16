@@ -3,7 +3,7 @@
 <!-- words: WoT readme -->
 <!-- words: py pytest workingdrafts -->
 <!-- words: workflows -->
-<!-- words: planurl wotsubject marcschier -->
+<!-- words: planurl thingref affordanceselector marcschier -->
 
 The [WoT Registry specification][Spec] and [model][Model] define this draft's
 document storage, identity and resolution rules. The
@@ -15,8 +15,9 @@ the [Descriptor Registry draft](https://github.com/xregistry/spec/pull/796)
 when a deployment selects it. TD and TM References identify resolved
 documents; OPTIONAL `planurl` records projection provenance without replacing
 the result. This profile defines the TD and TM URI class identifiers, and
-[`wotsubject`](spec.md#664-subject-descriptors) selects an annotated Thing
-or affordance without supplying processing metadata. The
+[`thingref`](spec.md#664-subject-descriptors) selects a Thing, with OPTIONAL
+`affordanceselector` selecting and annotating one affordance, without
+supplying processing metadata. The
 [attribute model fragment](descriptor-profile.model.json) and
 [profile schema fragment](schemas/descriptor-profile.schema.json) describe
 its fields alongside the generic Descriptor model; they do not change the
@@ -24,7 +25,9 @@ WoT Registry's [model](model.json).
 
 The [CloudEvents WoT extension draft][CloudEvents WoT]
 owns event routing and subject syntax. Its direct TD route does not require a
-Descriptor. The same pinned draft defines the Subject Descriptor route.
+Descriptor. The [current CloudEvents review](https://github.com/cloudevents/spec/pull/1406)
+aligns the Subject Descriptor route with these fields; the pinned draft
+uses the earlier selector shape.
 These drafts are not released specifications.
 
 The [publication companion][Publication] defines dependency binding and set

@@ -4,7 +4,8 @@
   "description": "Compose with the generic Descriptor schema. Semantic relations and profile-defined annotation types need additional validation.",
   "type": "object",
   "properties": {
-    "wotsubject": {"$ref": "#/$defs/wotSubject"},
+    "thingref": {"$ref": "#/$defs/thingRef"},
+    "affordanceselector": {"$ref": "#/$defs/affordanceSelector"},
     "references": {
       "type": "object",
       "additionalProperties": {
@@ -32,18 +33,18 @@
     }
   },
   "$defs": {
-    "wotSubject": {
-      "description": "Additional attributes require types and semantics from the applicable profile; this fragment does not validate those annotations.",
+    "thingRef": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9:_.-]{0,62}$"
+    },
+    "affordanceSelector": {
+      "description": "Selects exactly one affordance. Additional annotation attributes require types and semantics from the applicable profile.",
       "type": "object",
-      "required": ["reference", "pointer"],
+      "required": ["pointer"],
       "properties": {
-        "reference": {
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9:_.-]{0,62}$"
-        },
         "pointer": {
           "type": "string",
-          "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          "pattern": "^/(?:properties|actions|events)/(?:[^~/]|~[01])+$"
         }
       }
     },
@@ -53,9 +54,11 @@
     },
     "subjectDescriptor": {
       "type": "object",
-      "required": ["wotsubject", "references"],
+      "required": ["thingref", "references"],
+      "not": {"required": ["wotsubject"]},
       "properties": {
-        "wotsubject": {"$ref": "#/$defs/wotSubject"},
+        "thingref": {"$ref": "#/$defs/thingRef"},
+        "affordanceselector": {"$ref": "#/$defs/affordanceSelector"},
         "references": {"type": "object"}
       }
     },
