@@ -9,23 +9,20 @@ binding associates ACF message observations and local processing attempts
 with concrete events. These are integration proposals, not existing ACF
 features or approved xRegistry standards.
 
-- [Specification](spec.md): normative profile rules and worked example.
+- [Specification](spec.md): normative profile rules and example.
 - [Attribute definitions](attributes.json): partial Core AttributeDefinitions
   map, merged into the generic Descriptor Resource's `attributes`.
 - [Structural schema](profile.schema.json): JSON Schema Draft 7 definitions
   for profile fields and typed trace extension values; not an ACF schema.
-- [Publication example](examples/publication.json): offline map from exact
-  example URLs to original JSON representations. This map is a fixture,
-  not a Registry response, Descriptor bundle or proposed API.
+- [Publication example](examples/publication.json): offline fixture mapping
+  exact example URLs to original JSON representations.
 
 The generic Descriptor model and its generated schemas remain authoritative
-for inherited fields. No second domain model or generated format set is
-defined here. Select a schema definition explicitly, for example
-`profile.schema.json#/definitions/conversation`; the schema root deliberately
-rejects instances rather than silently accepting an unselected profile.
-The definitions compose with the generic Descriptor Version schema; they
-do not replace it. Reference, role, participant, inheritance and evidence
-correlations also need semantic validation.
+for inherited fields. Select a schema definition explicitly, for example
+`profile.schema.json#/definitions/conversation`; the schema root rejects all
+instances. The definitions compose with the generic Descriptor Version
+schema. Reference, role, participant, inheritance and evidence correlations
+also need semantic validation.
 
 ## Sources and publication scope
 
