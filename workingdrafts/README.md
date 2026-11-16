@@ -19,4 +19,4 @@ specification.
 
 ## Profiles
 
-- [ACF Conversation and Execution Evidence Descriptors](profiles/acf/README.md)
+- [ACF Conversation Deployment and Execution Evidence Profiles](profiles/acf/README.md)

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://xregistry.io/workingdrafts/profiles/acf/profile.schema.json",
-  "description": "Partial profile constraints. Select a definition explicitly; the root validates no instance. Generic Descriptor and ACF constraints apply separately.",
+  "description": "Select a partial definition explicitly. Descriptor and ACF constraints apply separately.",
   "not": {},
   "definitions": {
     "name": {
@@ -13,70 +13,130 @@
       "type": "string",
       "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
     },
-    "actorBindings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["actor", "actorref"],
-        "additionalProperties": false,
-        "properties": {
-          "actor": { "$ref": "#/definitions/acfId" },
-          "actorref": { "$ref": "#/definitions/name" }
-        }
-      }
+    "absoluteUri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#\\s]+$"
     },
-    "messageBindings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["step", "processingref"],
-        "additionalProperties": false,
-        "properties": {
-          "step": { "$ref": "#/definitions/acfId" },
-          "processingref": { "$ref": "#/definitions/name" }
-        }
-      }
+    "absoluteUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://[^/#?\\s]+[^#\\s]*$"
     },
-    "conversation": {
+    "actorBinding": {
+      "type": "object",
+      "required": ["actor", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "actor": { "$ref": "#/definitions/acfId" },
+        "mode": { "enum": ["fixed", "runtime"] },
+        "participant": { "$ref": "#/definitions/absoluteUri" },
+        "actorref": { "$ref": "#/definitions/name" },
+        "allowedparticipants": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/absoluteUri" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "fixed" } } },
+          "then": {
+            "required": ["participant"],
+            "not": { "required": ["allowedparticipants"] }
+          }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "runtime" } } },
+          "then": {
+            "not": { "anyOf": [
+              { "required": ["participant"] },
+              { "required": ["actorref"] }
+            ] }
+          }
+        }
+      ]
+    },
+    "deployment": {
       "type": "object",
       "required": ["acfconversation"],
       "not": { "required": ["acfexecution"] },
       "properties": {
         "acfconversation": {
           "type": "object",
-          "required": ["conversationref", "resolutioncontextref"],
+          "required": ["conversationref", "resolutioncontextref", "actorbindings"],
           "additionalProperties": false,
           "properties": {
             "conversationref": { "$ref": "#/definitions/name" },
             "resolutioncontextref": { "$ref": "#/definitions/name" },
-            "actorbindings": { "$ref": "#/definitions/actorBindings" },
-            "messagebindings": { "$ref": "#/definitions/messageBindings" }
+            "actorbindings": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/actorBinding" }
+            },
+            "messagebindings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["step", "processingref"],
+                "additionalProperties": false,
+                "properties": {
+                  "step": { "$ref": "#/definitions/acfId" },
+                  "processingref": { "$ref": "#/definitions/name" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["entityid", "entitytype", "acfexecution"],
+      "not": { "required": ["acfconversation"] },
+      "properties": {
+        "entityid": { "$ref": "#/definitions/absoluteUri" },
+        "entitytype": {
+          "const": "https://xregistry.io/workingdrafts/profiles/acf/types/execution"
+        },
+        "acfexecution": {
+          "type": "object",
+          "required": ["traceref", "traceid"],
+          "additionalProperties": false,
+          "properties": {
+            "traceref": { "$ref": "#/definitions/name" },
+            "traceid": { "$ref": "#/definitions/acfId" },
+            "supersedes": { "$ref": "#/definitions/name" }
           }
         }
       }
     },
     "execution": {
       "type": "object",
-      "required": ["entityid", "entitytype", "acfexecution"],
-      "not": { "required": ["acfconversation"] },
+      "required": ["executionid", "deploymenturl"],
+      "additionalProperties": false,
       "properties": {
-        "entityid": {
-          "type": "string",
-          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#\\s]+$"
+        "executionid": { "$ref": "#/definitions/absoluteUri" },
+        "deploymenturl": { "$ref": "#/definitions/absoluteUrl" },
+        "actordescriptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["actor", "actorurl"],
+            "additionalProperties": false,
+            "properties": {
+              "actor": { "$ref": "#/definitions/acfId" },
+              "actorurl": { "$ref": "#/definitions/absoluteUrl" }
+            }
+          }
         },
-        "entitytype": {
-          "const": "https://xregistry.io/workingdrafts/profiles/acf/types/execution"
-        },
-        "acfexecution": {
+        "previous": {
           "type": "object",
-          "required": ["configurationref", "traceref", "traceid"],
+          "required": ["url", "traceid"],
           "additionalProperties": false,
           "properties": {
-            "configurationref": { "$ref": "#/definitions/name" },
-            "traceref": { "$ref": "#/definitions/name" },
-            "traceid": { "$ref": "#/definitions/acfId" },
-            "actorbindings": { "$ref": "#/definitions/actorBindings" },
-            "supersedes": { "$ref": "#/definitions/name" }
+            "url": { "$ref": "#/definitions/absoluteUrl" },
+            "traceid": { "$ref": "#/definitions/acfId" }
           }
         }
       }
@@ -92,29 +152,24 @@
     },
     "observation": {
       "type": "object",
-      "required": ["observationid", "kind", "observerref", "event"],
+      "required": ["observationid", "kind", "observer", "event"],
       "additionalProperties": false,
       "properties": {
         "observationid": { "$ref": "#/definitions/id" },
         "kind": { "enum": ["sent", "received", "accepted", "processed"] },
-        "observerref": { "$ref": "#/definitions/name" },
+        "observer": { "$ref": "#/definitions/absoluteUri" },
         "event": { "$ref": "#/definitions/event" },
-        "processingref": { "$ref": "#/definitions/name" },
+        "processingurl": { "$ref": "#/definitions/absoluteUrl" },
         "corrects": { "$ref": "#/definitions/id" }
-      },
-      "if": {
-        "properties": { "kind": { "const": "processed" } },
-        "required": ["kind"]
-      },
-      "then": { "required": ["processingref"] }
+      }
     },
     "eventUse": {
       "type": "object",
-      "required": ["event", "processingref", "observationids"],
+      "required": ["event", "observationids"],
       "additionalProperties": false,
       "properties": {
         "event": { "$ref": "#/definitions/event" },
-        "processingref": { "$ref": "#/definitions/name" },
+        "processingurl": { "$ref": "#/definitions/absoluteUrl" },
         "observationids": {
           "type": "array",
           "minItems": 1,
@@ -125,12 +180,12 @@
     },
     "attempt": {
       "type": "object",
-      "required": ["activityid", "step", "actorref", "inputs", "outputs", "outcome"],
+      "required": ["activityid", "step", "participant", "inputs", "outputs", "outcome"],
       "additionalProperties": false,
       "properties": {
         "activityid": { "$ref": "#/definitions/id" },
         "step": { "$ref": "#/definitions/acfId" },
-        "actorref": { "$ref": "#/definitions/name" },
+        "participant": { "$ref": "#/definitions/absoluteUri" },
         "inputs": {
           "type": "array",
           "uniqueItems": true,

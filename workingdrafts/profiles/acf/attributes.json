@@ -2,7 +2,7 @@
   "acfconversation": {
     "name": "acfconversation",
     "type": "object",
-    "description": "ACF Conversation Descriptor profile selection and static bindings",
+    "description": "Reusable ACF conversation deployment and participant bindings",
     "attributes": {
       "conversationref": {
         "name": "conversationref",
@@ -17,11 +17,24 @@
       "actorbindings": {
         "name": "actorbindings",
         "type": "array",
+        "required": true,
         "item": {
           "type": "object",
           "attributes": {
             "actor": { "name": "actor", "type": "string", "required": true },
-            "actorref": { "name": "actorref", "type": "string", "required": true }
+            "mode": {
+              "name": "mode",
+              "type": "string",
+              "required": true,
+              "enum": ["fixed", "runtime"]
+            },
+            "participant": { "name": "participant", "type": "uri" },
+            "actorref": { "name": "actorref", "type": "string" },
+            "allowedparticipants": {
+              "name": "allowedparticipants",
+              "type": "array",
+              "item": { "type": "uri" }
+            }
           }
         }
       },
@@ -41,13 +54,8 @@
   "acfexecution": {
     "name": "acfexecution",
     "type": "object",
-    "description": "ACF Execution Evidence Descriptor profile selection and actual bindings",
+    "description": "Optional publication of one standalone ACF trace snapshot",
     "attributes": {
-      "configurationref": {
-        "name": "configurationref",
-        "type": "string",
-        "required": true
-      },
       "traceref": {
         "name": "traceref",
         "type": "string",
@@ -57,17 +65,6 @@
         "name": "traceid",
         "type": "string",
         "required": true
-      },
-      "actorbindings": {
-        "name": "actorbindings",
-        "type": "array",
-        "item": {
-          "type": "object",
-          "attributes": {
-            "actor": { "name": "actor", "type": "string", "required": true },
-            "actorref": { "name": "actorref", "type": "string", "required": true }
-          }
-        }
       },
       "supersedes": {
         "name": "supersedes",

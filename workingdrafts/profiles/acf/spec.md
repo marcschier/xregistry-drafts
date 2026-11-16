@@ -1,27 +1,24 @@
 # ACF Descriptor Profiles - Working Draft
 
 <!-- words: ACF acfconversation acfexecution conversationref -->
-<!-- words: resolutioncontextref actorbindings messagebindings configurationref -->
-<!-- words: traceref traceid observationid observerref processingref activityid -->
-<!-- words: actorref observationids supersedes sent received accepted processed -->
-<!-- words: entityid entitytype describedby baseflow XID XIDs RFC -->
-<!-- words: AttributeDefinitions matchversions jsonschema -->
-<!-- words: allOf conversationgroups deduplicate dereferenceable -->
+<!-- words: resolutioncontextref actorbindings messagebindings deploymenturl -->
+<!-- words: traceref traceid observationid processingref processingurl activityid -->
+<!-- words: actorref actorurl actordescriptions observationids supersedes corrects -->
+<!-- words: entityid entitytype describedby baseflow XID XIDs RFC executionid -->
+<!-- words: AttributeDefinitions matchversions allOf conversationgroups -->
 <!-- words: descriptorgroups descriptorVersion namespace NormalizedHop RawHop -->
-<!-- words: TraceRecord unversioned workingdrafts -->
+<!-- words: TraceRecord unversioned workingdrafts deduplicate allowedparticipants -->
+<!-- words: standalone -->
 
 ## Abstract
 
-This working draft defines Conversation and Execution Evidence profiles of
-the [Descriptor Registry][Descriptor]. A Conversation Descriptor selects a
-versioned Actor Conversation Flow (ACF) contract and retained resolution
-context. An Execution Evidence Descriptor selects that configuration and
-a stable trace snapshot. Typed values in ACF's existing extension maps bind
-message observations and processing attempts to concrete CloudEvents.
-
-These profiles are proposed integrations of existing ACF and xRegistry
-models. The [source and rights note](README.md#sources-and-publication-scope)
-identifies the ACF review revision used and the draft's publication status.
+This working draft defines a Conversation Deployment profile of the
+[Descriptor Registry][Descriptor] and a trace binding for Actor Conversation
+Flow (ACF). A deployment selects a reusable ACF definition, retained
+resolution context and participant bindings. Each execution records its
+actual participants, message observations and processing attempts in an
+ACF Trace. An OPTIONAL Execution Evidence Descriptor publishes a retained
+trace snapshot for discovery and retrieval.
 
 ## Table of Contents
 
@@ -29,7 +26,7 @@ identifies the ACF review revision used and the draft's publication status.
 - [1. Overview](#1-overview)
 - [2. Notations and Terminology](#2-notations-and-terminology)
 - [3. Model and Representations](#3-model-and-representations)
-- [4. Conversation Descriptor](#4-conversation-descriptor)
+- [4. Conversation Deployment Descriptor](#4-conversation-deployment-descriptor)
   - [4.1. `acfconversation` Attribute](#41-acfconversation-attribute)
   - [4.2. `conversationref` and `resolutioncontextref` Attributes](#42-conversationref-and-resolutioncontextref-attributes)
   - [4.3. `actorbindings` Attribute](#43-actorbindings-attribute)
@@ -38,11 +35,11 @@ identifies the ACF review revision used and the draft's publication status.
   - [5.1. `entityid` and `entitytype` Attributes](#51-entityid-and-entitytype-attributes)
   - [5.2. `acfexecution` Attribute](#52-acfexecution-attribute)
   - [5.3. `supersedes` Attribute](#53-supersedes-attribute)
-- [6. Trace Provenance Binding](#6-trace-provenance-binding)
-  - [6.1. Extension Locations](#61-extension-locations)
+- [6. Standalone Trace Binding](#6-standalone-trace-binding)
+  - [6.1. Execution and Participants](#61-execution-and-participants)
   - [6.2. Observation Fields](#62-observation-fields)
   - [6.3. Processing Attempts](#63-processing-attempts)
-  - [6.4. Replay and Conflicts](#64-replay-and-conflicts)
+  - [6.4. Snapshots, Replay and Corrections](#64-snapshots-replay-and-corrections)
 - [7. Publication and Resolution](#7-publication-and-resolution)
 - [8. Failures, Replay and Conformance](#8-failures-replay-and-conformance)
 - [9. Security](#9-security)
@@ -53,27 +50,32 @@ identifies the ACF review revision used and the draft's publication status.
 
 A conversation in ACF specifies permitted interactions among actor roles.
 Its Flow document declares the actors, scopes, terminals, steps, conditions
-and control flow. In the Descriptor Registry, an Actor Descriptor identifies
-a concrete participant independently of its ACF roles. A Processing
-Descriptor supplies the complete shared inputs needed to interpret one
-message under an agreed processing profile.
+and control flow. A Conversation Deployment Descriptor binds that reusable
+definition to participants and any additional shared processing inputs.
 
-A Conversation Descriptor selects the ACF Flow and binds its roles and
-message-bearing steps to Actor and Processing Descriptors. Cross-resource
-links within the Flow are XIDs resolved against separately supplied
-xRegistry context.
+One ACF definition can serve thousands of sensor or ATM deployments.
+Each deployment references an exact conversation Version and can be reused
+by many executions. The conversation remains independent of the deployments
+that select it. Deployments contain bindings; ACF owns the interaction graph.
+Cross-resource links within ACF remain XIDs resolved under retained context.
 
-An Execution Evidence Descriptor describes one execution and selects a
-retained ACF Trace snapshot. ACF TraceRecord objects report observations of
-message exchanges. This profile uses ACF's extension maps to describe local
-action attempts, processing results and event derivation.
+A participant is identified directly by a stable URI. An Actor Descriptor
+can supply additional descriptions. A Processing Descriptor is useful when
+an opportunity needs independently managed inputs beyond the message and
+endpoint definitions already selected through ACF.
 
-The CloudEvents `describedby` extension selects the event's current
-Processing Descriptor. An application can convey the
-Execution Evidence Descriptor URL out of band or through an independently
-agreed transport or application contract. Looking up an exact event identity
-can yield several observations, attempts and executions. An evidence query
-API and a W3C PROV mapping are deferred.
+Each execution records its deployment Version and actual participants in
+an ACF Trace. Typed values in ACF's extension maps associate message
+observations and local processing attempts with concrete events. A trace
+can be exchanged independently or published through an Execution Evidence
+Descriptor. Both representations have the same execution meaning.
+
+The CloudEvents `describedby` extension continues to select an event's
+Processing Descriptor under the applicable event profile. Execution
+correlation uses an out-of-band binding or an agreed transport or
+application contract. An exact event identity can occur in several
+observations, attempts and executions. An evidence query API and a
+W3C PROV mapping are deferred.
 
 ## 2. Notations and Terminology
 
@@ -86,115 +88,108 @@ appear in all capitals.
 
 | Term | Meaning |
 | --- | --- |
-| Configuration | One exact Conversation Descriptor Version and its selected retained inputs. |
 | Flow | The ACF document of an xRegistry conversation Resource Version. |
+| Deployment | One Conversation Deployment Descriptor Version and its selected retained inputs. |
 | Role | An actor ID declared in the resolved ACF Flow. |
-| Participant | A concrete entity identified by an Actor Descriptor's `entityid` and bound to an ACF role. |
+| Participant | A concrete entity identified by a stable absolute, fragment-free URI. |
 | Trace | An ACF collection of message observations within a Flow. |
 | Step | An ACF operation declared within a Flow's scope. |
 | Processing attempt | A reported execution of one ACF action step, represented by this profile's trace extension. |
 | Covered role | A role participating in a profiled observation or attempt, including the record's modeled sender and receiver when present. |
 | Snapshot | A published, stable representation retained for an agreed replay or audit period. |
 | Event identity | The pair of decoded CloudEvents `source` and `id` values. |
-| Observation identity | Execution `entityid` plus `observationid`. |
-| Attempt identity | Execution `entityid` plus `activityid`. |
+| Observation identity | Execution `executionid` plus `observationid`. |
+| Attempt identity | Execution `executionid` plus `activityid`. |
 | Trace identity | Exact trace document Version/snapshot URL plus local `traceid`. |
 | Profile validator | A Consumer or publication service explicitly applying these profile rules. |
 
 JSON examples are concrete JSON. Common Core response bookkeeping is omitted
-from the create inputs in the example. All string comparisons in this draft
-are exact and case-sensitive, without URI normalization. Omission of an
-OPTIONAL binding array means no entries; an empty array is equivalent.
-A present profile field MUST NOT be `null`. There are no inferred selector
-or outcome defaults.
+from the create inputs in the examples. String comparisons are exact and
+case-sensitive, without URI normalization. A present profile field MUST NOT
+be `null`. Selectors and outcomes have no inferred defaults.
 
 Bindings are arrays with explicit ACF identifier members. ACF role and step
-IDs can contain uppercase letters; Core Reference
-names follow Core map-key syntax. A Consumer MUST preserve both exactly and
-MUST NOT lowercase, truncate or otherwise rewrite an ACF identifier to make
-it a Reference name. The identifier member selects the bound role or step.
+IDs can contain uppercase letters and are independent of Core Reference
+names. A Consumer MUST preserve those IDs exactly. Each binding array MUST
+have unique role or step identifiers, as appropriate; array position has no
+identity meaning.
 
 ## 3. Model and Representations
 
-Both profiles use the existing metadata-only Descriptor Resource and its
-Versions. They add the `acfconversation` and `acfexecution` Version attributes
-defined below. A deployment merges the Core AttributeDefinitions map in the
-[attribute fragment](attributes.json) into the generic Descriptor Resource's
-`attributes` map. The selected profile establishes each attribute's presence.
+The deployment and OPTIONAL evidence profiles use the existing metadata-only
+Descriptor Resource and its Versions. A deployment merges the Core
+AttributeDefinitions map in the [attribute fragment](attributes.json) into
+the generic Descriptor Resource's `attributes` map. The selected profile
+establishes each attribute's presence.
 
-The deployment agreement MUST select which profile applies. A Consumer MUST
-NOT infer a profile from Group names or Reference names. Under this draft,
-a Descriptor MUST NOT apply both profiles to the same Version. Actor and
-Processing Descriptors remain governed by their own selected profiles.
+The deployment agreement MUST select which profile applies. Consumers MUST
+NOT infer a profile from Group names or Reference names. A Descriptor
+Version MUST NOT apply both the deployment and evidence profiles.
 
 The URI prefix `https://xregistry.io/workingdrafts/profiles/acf/` is the
-proposed vocabulary namespace of this working draft. This section defines
-each class URI's meaning; a Reference's `url` selects its representation.
-Class URIs MUST be used in full, without fragments:
+proposed vocabulary namespace of this working draft. Class URIs MUST be
+used in full, without fragments:
 
 | Class suffix under that prefix | Representation and obligations |
 | --- | --- |
-| `classes/conversation` | JSON document view of one explicit ACF conversation Version, with resource `format` equal to `ACF/1.0`. It MUST contain static configuration, not `traces` or `runtime`. |
-| `classes/resolution-context` | Stable JSON Registry export, with selected Versions and retained documents sufficient to resolve every used ACF XID and inherited definition deterministically. |
-| `classes/actor-descriptor` | JSON metadata of an exact Actor Descriptor Version; `entityid` and `entitytype` are REQUIRED by the generic Actor specialization. |
+| `classes/conversation` | JSON document view of one explicit static ACF conversation Version, with resource `format` equal to `ACF/1.0`. It MUST omit `traces` and `runtime`. |
+| `classes/resolution-context` | Stable JSON Registry export with selected Versions and retained documents sufficient to resolve every used ACF XID and inherited definition deterministically. |
+| `classes/actor-descriptor` | JSON metadata of an exact Actor Descriptor Version; generic Actor specialization identity rules apply. |
 | `classes/processing-descriptor` | JSON metadata of an exact Processing Descriptor Version, complete independently under its selected processing profile. |
-| `classes/conversation-descriptor` | JSON metadata of an exact Descriptor Version conforming to Section 4. |
-| `classes/trace` | JSON document view of a stable ACF Flow containing `traces`, including the selected Trace. An explicit conversation Version URL or a distinct immutable snapshot URL is REQUIRED. |
-| `classes/evidence-descriptor` | JSON metadata of an exact Descriptor Version conforming to Section 5, used only for explicit predecessor links. |
+| `classes/deployment-descriptor` | JSON metadata of an exact Descriptor Version conforming to Section 4. |
+| `classes/trace` | JSON document view of a stable ACF Flow containing the selected Trace. An explicit conversation Version URL or distinct immutable snapshot URL is REQUIRED. |
+| `classes/evidence-descriptor` | JSON metadata of an exact Descriptor Version conforming to Section 5, for predecessor links. |
 
 All referenced JSON representations use media type `application/json`.
-Every Reference inherits the generic absolute, fragment-free URL rule.
-Descriptor classes select metadata URLs; ACF conversation and trace classes
-select document URLs. Consumers MUST use URLs unchanged, not add or remove
-`$details`, append XIDs, or guess Version paths. Selecting a Version requires
-checking the returned Version identity. External snapshots require an
-explicit retention agreement.
+Descriptor References inherit the generic absolute, fragment-free URL rule.
+Descriptor classes select metadata URLs; conversation and trace classes
+select document URLs. Consumers MUST use URLs unchanged and verify the
+returned Version identity.
 
-The [structural schema](profile.schema.json) defines `conversation`,
-`execution`, `observation` and `attempts`. The first two constrain a
-Descriptor metadata object; the latter two constrain extension values.
-For Descriptor validation, implementations combine the applicable definition
-with the generic `descriptorVersion` schema using `allOf` or equivalent
-independent validation. Structural validation checks field shapes. Profile
-validation also checks Reference classes, participant identity, inherited
-resolution and dependency completeness. Trust and ACF conformance require
-the checks described in Sections 8 and 9.
+The trace extension's `deploymenturl`, `actorurl` and `processingurl` fields
+are explicitly typed absolute, fragment-free metadata retrieval URLs.
+They have the representation obligations of the corresponding Descriptor
+classes above. They are independent of Descriptor-local Reference names.
+The same applies to the predecessor trace document URL in Section 6.4.
+ACF's own cross-resource fields retain their XID semantics.
 
-## 4. Conversation Descriptor
+The [structural schema](profile.schema.json) defines `deployment` and
+`evidence` constraints for Descriptor metadata, plus `execution`,
+`observation` and `attempts` constraints for trace extension values.
+Descriptor validation combines the applicable definition with the generic
+`descriptorVersion` schema using `allOf` or independent validation.
+Structural acceptance also needs the semantic checks in this draft.
+
+## 4. Conversation Deployment Descriptor
 
 ### 4.1. `acfconversation` Attribute
 
 - Type: Object
-- Description: Static conversation selection and OPTIONAL bindings for this
-  Descriptor Version.
+- Description: The conversation, resolution context and reusable bindings
+  for one deployment Version.
 
 - Constraints:
-  - REQUIRED for the Conversation Descriptor profile.
-  - Only the members defined in this section are permitted.
-  - The object MUST contain `conversationref` and `resolutioncontextref`.
-  - `entityid` and `entitytype` are OPTIONAL. If present, generic Descriptor
-    identity rules apply; a conversation role MUST NOT be used as the
-    identity of a concrete actor.
-
-- Examples:
-  - `{"conversationref":"flow","resolutioncontextref":"context"}`
+  - REQUIRED for the Conversation Deployment profile.
+  - The object MUST contain `conversationref`, `resolutioncontextref` and
+    `actorbindings`. Only members defined in this section are permitted.
+  - The deployment Version MUST remain stable after publication for use.
+    A binding change requires a new Version.
+  - `entityid` and `entitytype` are OPTIONAL. Generic Descriptor identity
+    rules apply when present.
 
 ### 4.2. `conversationref` and `resolutioncontextref` Attributes
 
 - Type: String
-- Description: Exact Reference names in this Conversation Descriptor.
+- Description: Exact Reference names in the deployment Descriptor.
 
 - Constraints:
   - Both are REQUIRED and non-empty.
-  - `conversationref` MUST select class `classes/conversation` from Section 3.
+  - `conversationref` MUST select class `classes/conversation`.
   - `resolutioncontextref` MUST select class `classes/resolution-context`.
   - The retained export MUST select the same conversation Version and
-    document as `conversationref`. Any inconsistent duplicate is invalid.
-  - The Consumer MUST resolve inherited structure before validating role
-    or step bindings. Unresolved or ambiguous inheritance is not a match.
-
-- Examples:
-  - `"conversationref": "flow"`
+    document as `conversationref`. Inconsistent duplicates are invalid.
+  - The Consumer MUST resolve inherited structure before validating
+    bindings. Resolution MUST produce one unambiguous graph.
 
 The export MUST retain each selected default Version for an unversioned
 Resource XID, each explicitly addressed Version, all used base flows and
@@ -204,122 +199,110 @@ It MUST NOT use substring matching, concatenate the XID to a Reference URL,
 replace internal XIDs with absolute URLs or JSON Pointers, or fall back to
 the current live Registry. A versioned XID MUST select that Version.
 
-Where ACF's inherited augmentation or override rules permit more than one
-interpretation for a collision, this profile accepts only an unambiguous
-resolved graph. The Publisher MUST remove the ambiguity or publish a
-separately resolved static conversation Version. Cycles, conflicting IDs
-and exhausted resolution limits MUST be reported, not broken arbitrarily.
-This draft does not define a second inheritance algorithm.
+ACF's inheritance rules govern augmentation and overrides. If a collision
+has ambiguous interpretation, the Publisher MUST remove the ambiguity or
+publish a separately resolved static conversation Version. Cycles,
+conflicting IDs and exhausted resolution limits MUST be reported.
 
 ### 4.3. `actorbindings` Attribute
 
 - Type: Array of objects
-- Description: Bindings from exact role IDs to configured REQUIRED actors.
+- Description: Fixed or runtime participant selection for every resolved
+  ACF role.
 
 - Constraints:
-  - OPTIONAL; each entry MUST contain exactly `actor` and `actorref`.
-  - `actor` MUST exactly identify a resolved ACF actor role. Its value
-    MUST be unique within this array.
-  - `actorref` MUST select a local `classes/actor-descriptor` Reference.
-  - A present entry requires that exact Actor Descriptor Version in an
-    execution. The actual participant's `entityid` MUST equal its `entityid`.
-  - For a role omitted from configuration, the execution selects its actual
-    participant under Section 5.
-  - The role and the Actor Descriptor's `entityid` are distinct identities.
+  - REQUIRED, with exactly one entry per resolved role and no unknown roles.
+  - Every entry MUST contain `actor`, the exact role ID, and `mode`.
+    `mode` MUST be `fixed` or `runtime`. Missing, `null` or unknown modes
+    are invalid; omission of a role is invalid configuration.
+  - For `fixed`, `participant` is REQUIRED and MUST be a stable absolute,
+    fragment-free participant URI. The execution's actual participant
+    MUST equal it. `allowedparticipants` MUST be absent.
+  - For `runtime`, `participant` and `actorref` MUST be absent. The
+    execution supplies its actual participant. `allowedparticipants`
+    MAY contain a non-empty array of distinct participant URIs; when
+    present, the actual participant MUST equal one of them.
+  - An explicit `runtime` entry without `allowedparticipants` permits
+    selection from the participant URI space. This is the deployment's
+    explicit runtime agreement. Participant authentication and role
+    authorization still follow Section 9.
+  - A fixed entry MAY contain `actorref`, selecting a local
+    `classes/actor-descriptor` Reference for additional descriptions.
+    If supplied, its `entityid` MUST equal `participant` exactly.
+    Its `entitytype` MUST satisfy the generic Actor specialization.
+  - Entries MUST contain only the fields defined here.
 
-- Examples:
-  - `[{"actor":"Worker","actorref":"worker"}]`
+For example, the following binds Worker and permits Sender selection at
+execution time from a declared set:
+
+```json
+[
+  {"actor":"Worker","mode":"fixed","participant":"urn:example:service:normalizer"},
+  {"actor":"Sender","mode":"runtime","allowedparticipants":["urn:example:sensor:7","urn:example:sensor:8"]}
+]
+```
+
+This is a binding-array fragment; a complete deployment includes every role.
+Many deployment Descriptors can select the same ACF Version with different
+fixed participants. Alternatively, an explicit runtime role can serve
+several participants across executions. Neither form changes ACF's rule
+that each role is bound at most once within one Trace.
 
 ### 4.4. `messagebindings` Attribute
 
 - Type: Array of objects
-- Description: Bindings from exact message-bearing step IDs to Processing
-  Descriptors for each step's single message interpretation.
+- Description: OPTIONAL additional Processing Descriptor selections for
+  message-bearing opportunities.
 
 - Constraints:
-  - OPTIONAL; each entry MUST contain exactly `step` and `processingref`.
-  - `step` MUST exactly identify a resolved step having exactly one
-    message definition, such as a `flow` step. Its value MUST be unique
-    within this array.
-  - `processingref` MUST select a local
-    `classes/processing-descriptor` Reference.
-  - An action's input/output bindings and a method's request/response are
-    not a single-message slot. Such steps MUST NOT appear in this array.
-    Their message interpretations are explicit in Section 6 evidence.
-  - A present binding fixes the exact Processing Descriptor Version for
-    observations of that step. An omitted binding requires an explicit
-    evidence-local selection when interpretation is recorded.
-  - A Processing Descriptor MUST supply all inputs of its own processing
-    profile locally. It MUST NOT inherit missing References or selectors
-    from the Conversation Descriptor.
-
-- Examples:
-  - `[{"step":"RawHop","processingref":"raw"}]`
+  - OPTIONAL; omission or an empty array selects no additional inputs.
+    Message, endpoint and schema facts selected by ACF remain authoritative.
+  - Each entry MUST contain exactly `step` and `processingref`.
+  - `step` MUST exactly identify a resolved step with one message
+    definition, such as a `flow` step, and MUST be unique in the array.
+  - `processingref` MUST select a local `classes/processing-descriptor`
+    Reference. Several steps MAY select the same Reference.
+  - An action's input/output bindings and a method's request/response
+    MUST NOT appear as a single-message entry. Section 6 permits explicit
+    selections for their individual observations.
+  - A supplied selection MUST be validated, including Reference existence,
+    class, Version and compatibility with the ACF message opportunity.
+    It MUST NOT silently fall back to ACF-only interpretation if invalid.
+  - Each selected Processing Descriptor MUST supply its own complete
+    processing inputs. Consumers MUST NOT merge missing fields from the
+    deployment or use it to override conflicting ACF definitions.
 
 ## 5. Execution Evidence Descriptor
+
+The evidence profile publishes a stable standalone trace snapshot through
+ordinary Descriptor discovery, retrieval and bundle operations.
+An execution needs no Descriptor per message or processing attempt.
 
 ### 5.1. `entityid` and `entitytype` Attributes
 
 - Type: URI
-- Description: Identity and type of the execution described by this evidence.
+- Description: Identity and type of the execution described by the snapshot.
 
 - Constraints:
-  - Both are REQUIRED for this profile.
-  - `entityid` MUST be an absolute, fragment-free globally scoped execution
-    URI assigned by the Publisher. Local Trace IDs are insufficient.
+  - Both are REQUIRED for this OPTIONAL profile.
+  - `entityid` MUST exactly equal the selected trace's `executionid`.
   - `entitytype` MUST equal
     `https://xregistry.io/workingdrafts/profiles/acf/types/execution`.
-  - Additional evidence Versions for the same execution MUST retain the
-    same `entityid`, as REQUIRED by the base model's `matchversions`.
-  - The execution's selected configuration MUST remain unchanged across
-    these evidence Versions. A different configuration requires a new
-    execution identity.
-
-- Examples:
-  - `"entityid": "urn:example:execution:normalize:42"`
+  - All evidence Versions for one execution MUST retain that `entityid`
+    and deployment selection.
 
 ### 5.2. `acfexecution` Attribute
 
 - Type: Object
-- Description: Configuration, trace selection and actual participant bindings
-  for one retained execution snapshot.
+- Description: Selection of one standalone ACF Trace snapshot.
 
 - Constraints:
-  - REQUIRED; only members defined in this section are permitted.
-  - `configurationref`, `traceref` and `traceid` are REQUIRED non-empty strings.
-  - `configurationref` MUST name a local `classes/conversation-descriptor`
-    Reference to the exact configuration Version.
+  - REQUIRED for this profile; contains exactly `traceref`, `traceid`
+    and OPTIONAL `supersedes`.
   - `traceref` MUST name a local `classes/trace` Reference.
   - `traceid` MUST exactly select one Trace's local `id` in that document.
-    Missing or duplicate IDs are invalid.
-  - The trace document MUST use `baseflow` to select the configuration's
-    exact conversation Version in its retained context. Under this profile
-    it MUST NOT locally override or augment actors, scopes or gates.
-  - `actorbindings` is OPTIONAL for an execution with no covered roles.
-    It is REQUIRED for every covered role. Each entry contains exactly
-    `actor` (the exact role ID) and `actorref` (a local
-    `classes/actor-descriptor` Reference name). `actor` values MUST be
-    unique within the array.
-  - Every actual binding MUST have exactly one corresponding Trace
-    participant entry. That entry's `participant` MUST equal the selected
-    Actor Descriptor's `entityid`, not its local Descriptor ID or role ID.
-    Every Trace participant MUST have an actual binding.
-  - If configuration fixes that role, the execution MUST reference the
-    same Actor Descriptor Version URL. Otherwise it selects the actual
-    participant independently.
-  - One role MUST NOT change participant within a Trace. A participant
-    change requires separate Traces and execution identities; a Publisher
-    MAY link them through a separately agreed relationship, not overwrite
-    a binding or reuse `supersedes` for a different execution.
-
-- Examples:
-  - `{"configurationref":"config","traceref":"trace","traceid":"Run42"}`
-
-Every Reference name in `acfexecution`, a selected observation, or a selected
-attempt resolves in the containing Execution Evidence Descriptor's map.
-Names inside the configuration resolve in the configuration's own map.
-Consumers MUST NOT search another map for an absent name. Different local
-names can select the same exact URL.
+  - The selected Trace MUST conform to Section 6. The wrapper supplies no
+    participant, deployment or processing overrides.
 
 ### 5.3. `supersedes` Attribute
 
@@ -327,36 +310,65 @@ names can select the same exact URL.
 - Description: Local Reference name selecting the preceding evidence Version.
 
 - Constraints:
-  - OPTIONAL for the first snapshot; REQUIRED for each later snapshot of
-    the same execution published under this profile.
+  - OPTIONAL when first wrapping a trace, including a trace that already
+    has standalone predecessors. REQUIRED for subsequent evidence Versions.
   - The Reference MUST have class `classes/evidence-descriptor` and select
     the immediate preceding evidence Version of the same execution.
-  - The chain MUST be finite and acyclic. The Publisher MUST serialize
+  - Its selected snapshot MUST be an ancestor of the new snapshot under
+    Section 6.4. Standalone snapshots MAY exist between wrapped snapshots.
+  - Both chains MUST be finite and acyclic. The Publisher MUST serialize
     publication for one execution rather than create ambiguous successors.
-  - A new snapshot MUST preserve carried-forward observations and attempts
-    unchanged by identity. Additional or corrected evidence uses new
-    identities. Corrections follow Section 6.4; original snapshots and
-    replaced evidence MUST remain available through this chain.
+  - A new evidence Version MUST select a new stable trace snapshot URL.
+    Previously published evidence Versions and their inputs remain retained.
 
-- Examples:
-  - `"supersedes": "previous"`
+## 6. Standalone Trace Binding
 
-## 6. Trace Provenance Binding
+### 6.1. Execution and Participants
 
-### 6.1. Extension Locations
+This draft defines three keys under
+`https://xregistry.io/workingdrafts/profiles/acf/`:
 
-This draft defines two full extension keys:
-
-| Location | Key under `https://xregistry.io/workingdrafts/profiles/acf/` | Value |
+| Location | Key suffix | Value |
 | --- | --- | --- |
-| `TraceRecord.extensions` | `observation` | One typed observation object. |
-| `Trace.extensions` | `attempts` | Array of typed local action attempts, possibly empty. |
+| `Trace.extensions` | `execution` | Execution identity and exact deployment selection. |
+| `TraceRecord.extensions` | `observation` | One typed message observation. |
+| `Trace.extensions` | `attempts` | Array of local action attempts, possibly empty. |
 
-The typed values occupy ACF's existing extension maps. Every record in the
-selected ACF Trace MUST carry this observation extension. `attempts` is
-OPTIONAL; omission represents an empty collection. ACF TraceRecord objects
-carry message observations. A local action without a message MUST NOT be
-fabricated as a TraceRecord.
+The `execution` object has these fields:
+
+| Field | Presence and meaning |
+| --- | --- |
+| `executionid` | REQUIRED globally scoped absolute, fragment-free execution URI assigned by the Publisher. |
+| `deploymenturl` | REQUIRED exact Conversation Deployment Descriptor Version metadata URL. |
+| `actordescriptions` | OPTIONAL array of runtime-role descriptions, each containing exactly `actor` and `actorurl`. |
+| `previous` | Conditional predecessor snapshot selection, containing exactly absolute fragment-free document `url` and local `traceid`; Section 6.4 applies. |
+
+The containing Flow MUST use `baseflow` to select the deployment's exact
+conversation Version in its retained context. Under this binding, it MUST
+NOT locally augment or override actors, scopes or gates. Every selected
+TraceRecord MUST carry the observation extension. `attempts` is OPTIONAL;
+omission represents an empty collection. ACF requires at least one message
+record per Trace. Evidence consisting solely of local actions needs a
+different representation; Consumers MUST NOT fabricate message records.
+
+Actual participants use ACF's `Trace.participants` array. There MUST be
+exactly one entry for every covered role, and MAY be entries for other
+declared roles. Each `participant` MUST be a stable absolute, fragment-free
+URI and satisfy its deployment binding. Unknown or duplicate roles are
+invalid. A participant change requires separate Traces and execution
+identities; it MUST NOT overwrite a fixed deployment or a Trace binding.
+
+Runtime descriptions in `actordescriptions` are OPTIONAL. Each `actor` MUST
+be a distinct runtime role with an actual participant in this Trace.
+`actorurl` MUST retrieve an Actor Descriptor Version whose `entityid`
+exactly equals that participant and whose `entitytype` satisfies the generic
+Actor specialization. Fixed-role descriptions come from the deployment's
+OPTIONAL `actorref`. Every supplied description MUST be validated.
+
+Every mandatory trace field resolves from the trace, its selected deployment
+and retained ACF context. Observation and attempt identities are scoped by
+`executionid`. An Evidence Descriptor's Reference map has no role in trace
+resolution. Wrapping a trace MUST preserve its meaning.
 
 ### 6.2. Observation Fields
 
@@ -364,295 +376,279 @@ fabricated as a TraceRecord.
 | --- | --- |
 | `observationid` | REQUIRED non-empty opaque string, unique per execution except identical replay. |
 | `kind` | REQUIRED: `sent`, `received`, `accepted` or `processed`. |
-| `observerref` | REQUIRED local Actor Descriptor Reference identifying who reports the fact. |
-| `event` | REQUIRED object with exactly `source` and `id` strings. `id` is non-empty. |
-| `processingref` | Conditional local Processing Descriptor Reference. REQUIRED for `processed`, or whenever the observer reports payload interpretation or uses a configured step binding. |
-| `corrects` | OPTIONAL observation ID replaced from an earlier snapshot of the same execution; see Section 6.4. |
+| `observer` | REQUIRED stable participant URI identifying who reports the fact. |
+| `event` | REQUIRED object with exactly `source` and `id` strings; `id` is non-empty. |
+| `processingurl` | OPTIONAL exact Processing Descriptor Version metadata URL for additional processing inputs. |
+| `corrects` | OPTIONAL observation ID replaced from the preceding snapshot; Section 6.4 applies. |
 
-The enclosing record MUST supply `step` and RFC 3339 `timestamp`. `step`
-MUST identify a resolved message-bearing step and the record's message
-definition MUST agree with that step under ACF. For a step with multiple
-message slots, the record MUST supply `message` and identify exactly one
-slot; if several slots remain possible, the observation is invalid under
-this profile. ACF's `TraceRecord.message` identifies a message definition by
-its xRegistry XID.
+Only these fields are permitted. The enclosing ACF record MUST supply
+`step` and RFC 3339 `timestamp`. The resolved step MUST be message-bearing.
+Its message definition and any supplied `message`, `from` or `to` MUST
+agree under ACF. Where multiple message slots exist, `message` MUST select
+exactly one; remaining ambiguity is invalid. `TraceRecord.message` remains
+a message definition XID. The extension's `event` identifies an instance.
 
-The decoded `source` value MUST be a CloudEvents URI-reference; relative
-values, including the empty URI-reference, retain their exact value. The
-Consumer MUST NOT resolve them against a registry or trace URL, normalize
-them, or compare encoded header spellings instead of decoded values.
-`source` and `id` together identify the event.
-Repeated transmission of the same event retains both values.
+The decoded CloudEvents `source` is a URI-reference. Relative values,
+including the empty URI-reference, retain their exact value. Consumers MUST
+NOT resolve them against trace URLs or normalize them. `source` and `id`
+together identify the event. Retransmission retains both values.
+When recorded envelope metadata contains either value, it MUST agree with
+the extension's decoded value.
 
-`observerref` MUST select an actual Actor Descriptor bound to a covered role
-participating in that message slot. `sent` requires a sender role; `received`,
-`accepted` and `processed` require a receiver role. For a message slot with
-no such modeled role, these kinds are invalid under this profile. An
-independent monitor's report needs a separately agreed evidence contract.
+`observer` MUST equal the actual participant bound to the message slot's
+sender for `sent`, or receiver for the other kinds. A kind without its
+modeled role is invalid. Independent monitors need their own evidence
+agreement.
 
-If a configured `messagebindings` entry exists, `processingref` MUST resolve
-to that exact Processing Descriptor Version URL. Otherwise a present
-`processingref` selects its own complete processing inputs. Consumers MUST
-check compatibility with the message slot's retained definition and the
-agreed processing profile, not infer it from event type strings.
+If the deployment binds this step to a Processing Descriptor, that exact
+Version URL is the effective additional processing selection. A present
+`processingurl` MUST equal it. Otherwise a present `processingurl` selects
+the additional inputs itself. When both are absent, interpretation uses
+the retained ACF message and endpoint definitions and their dependencies.
+Every explicit selection MUST be validated independently and checked for
+compatibility; failures MUST NOT silently trigger fallback or merging.
+The observation and deployment are thereby consistent selections of one
+Version.
 
 | Kind | Reported fact |
 | --- | --- |
 | `sent` | The sender reports emission. |
 | `received` | The receiver reports receipt. |
 | `accepted` | The receiver reports accepting responsibility for work. Evidence of durable custody requires a separate agreement. |
-| `processed` | The receiver reports completing the processing defined by the selected processing contract. |
+| `processed` | The receiver reports completing the processing defined by the applicable message or action contract and any selected additional inputs. |
 
-Each reported fact requires its own observation. A business result requires
-evidence of the corresponding modeled message or separately defined outcome
-contract. Consumers evaluate observation assertions under the trust checks
-in Section 9.
+Each reported fact needs its own observation. A business result requires
+evidence of the corresponding modeled message or separately defined
+outcome contract. Consumers evaluate observation origins under Section 9.
 
 ### 6.3. Processing Attempts
 
-Each attempt has exactly these fields:
+Each attempt has these fields and no others:
 
 | Field | Presence and meaning |
 | --- | --- |
 | `activityid` | REQUIRED non-empty opaque attempt ID, unique per execution except identical replay. |
 | `step` | REQUIRED resolved ACF `action` step ID. |
-| `actorref` | REQUIRED local Actor Descriptor Reference for that action's actual role. |
+| `participant` | REQUIRED actual participant URI for that action's role. |
 | `inputs`, `outputs` | REQUIRED arrays of event uses; empty when none is reported. |
 | `outcome` | REQUIRED: `succeeded`, `failed`, `partial` or `unknown`. |
-| `corrects` | OPTIONAL attempt ID replaced from an earlier snapshot of the same execution; see Section 6.4. |
+| `corrects` | OPTIONAL attempt ID replaced from the preceding snapshot. |
 
-An event use contains exactly `event`, `processingref` and `observationids`.
-`event` has the same exact identity shape as an observation.
-`processingref` is REQUIRED and selects a complete, local Processing
-Descriptor Reference. `observationids` is a non-empty array of distinct
-observation IDs in this execution snapshot. All selected observations MUST
-have that exact event identity and exact Processing Descriptor Version URL.
+An event use contains REQUIRED `event` and `observationids`, plus OPTIONAL
+`processingurl`. Only those fields are permitted. `observationids` MUST
+be a non-empty array of distinct observation IDs in this snapshot. All
+selected observations MUST identify that exact event and the same effective
+additional processing Version URL, or all have no additional selection.
+Each event identity MUST occur at most once in each input or output array.
+A supplied event-use `processingurl` MUST equal their effective URL.
+Omission takes the observations' selection; it adds no processing fields.
+
 An input requires at least one `received`, `accepted` or `processed`
-observation by the attempt actor. An output requires at least one `sent`
-observation by that actor. Selecting another actor's observation alone is
-insufficient. Unknown observation IDs are invalid, not external links.
+observation by the attempt participant; an output requires at least one
+`sent` observation by that participant. Unknown observation IDs are invalid.
+Each event use MUST match an allowed input or output binding of the action,
+including the message definition, terminal and actor role.
 
-`actorref` MUST identify the actual participant bound to the action's role.
-Every event use MUST match an allowed input or output message binding of
-that action, through its selected observations' message definitions,
-terminals and actor roles. ACF actions have at most one input binding and
-can have many output bindings. Several concrete input events MAY be listed
-only when an explicitly agreed action contract permits several instances
-through that one binding. Without such a contract, this profile permits
-at most one input event per attempt.
-
-One input to many outputs or many permitted concrete inputs to one output
-expresses reported derivation only when the action contract permits it.
-Conditions, state, multiplicity and control-flow constraints remain ACF's
-and the action contract's responsibility. The provenance arrays MUST NOT
-broaden the action or its interfaces.
+ACF actions have at most one input binding and can have many output bindings.
+Several concrete input events MAY be listed only when the agreed action
+contract permits several instances through that single binding. Otherwise
+at most one input event is permitted per attempt. One-to-many or many-to-one
+reported derivation remains subject to that contract. Provenance MUST NOT
+broaden ACF conditions, control flow, multiplicity or action interfaces.
 
 | Outcome | Constraint |
 | --- | --- |
-| `succeeded` | The actor reports successful completion of this attempt under the action contract; every listed output has its emission observation. |
-| `failed` | The actor reports failure with no emitted outputs; `outputs` MUST be empty. |
-| `partial` | The actor reports failure or incomplete completion after some outputs were emitted; `outputs` MUST be non-empty and contain only evidenced emissions. |
+| `succeeded` | The participant reports successful completion of this attempt under the action contract; every listed output has its emission observation. |
+| `failed` | The participant reports failure with no emitted outputs; `outputs` MUST be empty. |
+| `partial` | The participant reports failure or incomplete completion after some outputs were emitted; `outputs` MUST be non-empty and contain only evidenced emissions. |
 | `unknown` | Completion is not established. Evidenced outputs MAY be listed, but MUST NOT be called successful completion. |
 
-A failed attempt MUST NOT invent successful output events to fill an
-expected interface. A retry MUST receive a new `activityid`, even if it
-consumes the same event or retransmits an output with the same identity.
-An additional observation of that retransmission has a new `observationid`.
-Explicit event uses establish reported attempt links.
+A failed attempt MUST NOT invent successful outputs. A retry MUST receive
+a new `activityid`, even when consuming or retransmitting the same event.
+An additional observation of retransmission has a new `observationid`.
+Explicit event uses establish reported attempt links; timestamp ordering
+and equal event identities alone establish no derivation.
 
-### 6.4. Replay and Conflicts
+### 6.4. Snapshots, Replay and Corrections
+
+Published trace snapshots MUST remain stable. An additional or corrected
+snapshot MUST use a new document URL, retain the same `executionid` and
+exact `deploymenturl`, and preserve existing role-to-participant bindings.
+Newly covered roles MAY be added under the same deployment.
+
+The first snapshot MUST omit `execution.previous`. Each later snapshot
+MUST select the immediate preceding snapshot by its exact document URL and
+local Trace ID. The Publisher MUST retain a finite, acyclic, serialized
+chain with no ambiguous successors. These rules apply to standalone and
+wrapped traces alike. Each execution MUST have one such publication chain.
 
 A Consumer MUST deduplicate repeated observation and attempt identities
-within one execution, including when comparing successive snapshots.
-An observation's content for this comparison is its entire enclosing
-record, including extensions. An attempt's content is its entire object.
-Equality compares decoded JSON structurally, ignoring object member order
-but preserving array order and exact scalar values.
+within one execution, including across snapshots. Compare an observation's
+entire enclosing record and an attempt's entire object as decoded JSON:
+object member order is ignored; array order and exact scalar values are
+preserved. Identical repeats are one item. Different content under the
+same identity MUST invalidate the snapshot as conflicting replay.
+Consumers MUST reject duplicate JSON object keys.
 
-Identical repeats are one item. Different content under the same identity
-is a conflicting replay and MUST invalidate the snapshot. A Consumer MUST
-NOT silently choose the latest value. Sent and received observations of one
-event have distinct observation identities.
-IDs in different executions are independent even if their local strings
-match. A Consumer MUST reject duplicate JSON object keys before validation.
+Carried-forward evidence MUST remain unchanged by identity. A replacement
+MUST have a new identity and `corrects` selecting an item of the same kind
+in the immediate predecessor. Its target MUST be absent from the new
+snapshot and have exactly one replacement. Every removed item MUST have
+such a replacement. Identities MUST NOT be reassigned or reused, including
+those replaced in earlier snapshots.
 
-A corrected snapshot MUST use the same execution identity and configuration,
-new evidence identities and a new trace snapshot URL. A new replacement's
-`corrects` MUST identify an observation or attempt, respectively, in the
-preceding snapshot. Each replaced identity MUST have exactly one replacement
-and MUST be absent from the corrected snapshot. Other preceding items MUST
-be carried forward unchanged. A correction target cannot be its own
-replacement or an identity of the other evidence kind. These conditions
-prevent conflicting corrections and silent removal.
-
-The Consumer MUST validate the predecessor chain and record which assertions
-were replaced. Earlier snapshots retain their content and validity reports.
-An attempt that used a replaced observation MUST
-itself be replaced with a new attempt identity and corrected observation
-links. The same applies to downstream replacements as needed to leave no
-unresolved links. A missing predecessor makes correction checking incomplete.
-Snapshot corrections revise evidence about an existing execution; retries
-report new action attempts with new attempt IDs.
+An attempt using a replaced observation MUST itself be replaced with a new
+identity and updated links. Consumers MUST validate the predecessor chain
+and replacement links; missing predecessors make that check incomplete.
+Earlier snapshots retain their contents and validity reports. Corrections
+revise evidence about an execution; retries report new action attempts.
 
 ## 7. Publication and Resolution
 
-The Publisher MUST agree a replay or audit period with Consumers and retain
-all selected Descriptor Versions, the context export, every used inherited
-definition and document, trace snapshots, and processing dependencies for
-that period. The Publisher's retention policy enforces availability
-throughout the agreed period.
+The Publisher MUST agree a replay or audit period and retain all selected
+deployment Versions, context exports, used inherited definitions, documents,
+trace snapshots and any additional Descriptors for that period.
 
 Publication proceeds in dependency order:
 
-1. Publish stable actor and complete Processing Descriptor Versions and
-   their dependencies. Retain the ACF conversation and resolution export.
-2. Resolve and validate the conversation against that export; publish the
-   Conversation Descriptor Version only after its inputs are available.
-3. Capture the ACF trace snapshot with typed observations and attempts.
-   The snapshot can be finalized before the Evidence Descriptor URL is
-   assigned.
-4. Publish the Execution Evidence Descriptor Version referencing the
-   configuration, stable trace snapshot and actual actors. Validate all
-   correlations before reporting validated-conformant.
+1. Retain the ACF conversation and sufficient resolution context. Publish
+   any additional Actor or Processing Descriptor Versions that are used.
+2. Resolve and validate the deployment, then publish its Descriptor Version.
+   The same deployment Version can serve many executions.
+3. Capture and retain the standalone trace snapshot with actual participants,
+   observations and attempts. Validate its inputs and correlations.
+4. If evidence discovery or packaging is needed, publish an Execution
+   Evidence Descriptor Version selecting that same snapshot.
 
-Further observations require a new trace snapshot URL and Evidence
-Descriptor Version, retaining the original snapshot. The execution
-`entityid` remains the same for additional or corrected evidence under
-Section 5.3. Publishers MUST NOT turn a shared Processing or Conversation
-Descriptor into an ever-growing evidence log. This order avoids circular
-requirements for final trace and Evidence Descriptor URLs.
+The trace can be finalized before an Evidence Descriptor URL is assigned.
+Additional or corrected evidence uses new trace snapshots and, when wrapped,
+new Evidence Descriptor Versions. Shared deployment and Processing
+Descriptors MUST NOT accumulate per-execution observations.
 
-The Consumer MUST capture the selected Evidence Descriptor Version, resolve
-its configuration and retained context, resolve inheritance, select the
-Trace, validate actual participants, and then validate observations and
-attempts. It MUST use each Descriptor's own Reference map. It MUST NOT
-substitute a live default when a retained dependency is missing.
+A Consumer starts with the trace, or unwraps the selected trace from an
+Evidence Descriptor. It retrieves the exact deployment Version, resolves
+its retained ACF context and inheritance, then checks participant bindings,
+observations, attempts and predecessor links. Missing historical inputs
+MUST NOT be replaced with live defaults.
 
-Ordinary retrieval and generic Descriptor bundle negotiation apply.
-A bundle contains exactly the representations selected by the Descriptor's
-direct References. The Consumer resolves transitive dependencies, including
-processing schemas and inherited ACF Flows, through explicit References or
-separate authorized retrieval.
+Generic Descriptor bundles collect direct References only. A deployment
+bundle includes its conversation and context References plus any explicitly
+listed descriptions. An evidence bundle includes its trace and other direct
+References. Consumers resolve the trace's typed URLs and other transitive
+dependencies separately under the applicable access policy.
 
 ## 8. Failures, Replay and Conformance
 
-A profile validator MUST distinguish at least these results in its report:
+A profile validator MUST distinguish at least these results:
 
 | Result | Meaning |
 | --- | --- |
-| Validated-conformant | Structure, all selected dependencies and every applicable semantic rule in this profile were checked and satisfied. |
-| Invalid | A checked rule was violated, such as a wrong class, participant mismatch, unknown role, unknown observation or conflicting replay. |
+| Validated-conformant | Structure, selected dependencies and every applicable semantic rule of this profile were checked and satisfied. |
+| Invalid | A checked rule was violated, such as a missing binding mode, participant mismatch, wrong Reference class, unknown observation or conflicting replay. |
 | Incomplete | A needed retained input is missing, denied, unavailable or exceeds a resolution limit. |
-| Unsupported | A needed well-formed class, ACF construct, processing contract or extension interpretation cannot be evaluated by this validator. |
+| Unsupported | A needed well-formed class, ACF construct or processing contract cannot be evaluated by this validator. |
 
-These labels describe validation results in a profile validator's report.
-A validator MUST report the affected selector, Reference, step
-or evidence identity and reason, subject to privacy policy. It MUST NOT
-report validated-conformant while any needed check is incomplete or
-unsupported. A known violation remains invalid even if other checks are
-incomplete; reports SHOULD preserve all independently established findings.
+The validator MUST report the affected selector, Reference, step or evidence
+identity and reason, subject to privacy policy. It MUST NOT report
+validated-conformant while any needed check is incomplete or unsupported.
+A known violation remains invalid even if other checks are incomplete.
+Reports SHOULD preserve all independently established findings.
 
-Schema acceptance alone is only structural acceptance. A Core server that
-stores extension metadata need not implement this profile validator.
-Recognized invalid profile content MUST NOT be advertised as validated.
-Writes and retrieval failures use the governing Core and HTTP error rules.
+These are validation results. Writes and retrieval failures use the
+governing Core and HTTP error rules. A Core server storing extension metadata
+need not implement this profile validator.
 
 Profile conformance and execution outcome are separate results. Valid
-evidence can report `failed`, `partial` or `unknown` attempts. Profile
-validation covers the structural and semantic rules defined here. Claims
-about complete execution capture, ACF control-flow conformance, successful
-delivery, business success or trustworthy observation origins each require
-explicitly identified checks and evidence contracts.
+evidence can report `failed`, `partial` or `unknown` attempts. Complete
+execution capture, ACF control-flow conformance, delivery, business success
+and trustworthy observation origins each require their own checks.
 
 ## 9. Security
 
 Consumers MUST authenticate origins and authorize access independently for
-each selected representation. An Actor Descriptor's `entityid` or an
-observation's `observerref` expresses an identity claim. Consumers MUST
-apply an explicit trust policy before relying on an observation, participant
-binding or outcome assertion.
+each selected representation. Participant URIs and observation assertions
+MUST be evaluated under an explicit trust and role-authorization policy,
+including runtime roles. A supplied description does not authenticate its
+participant. Unknown authorization or observation attribution MUST be
+reported; it MUST NOT default to trusted evidence.
 
-Reference URLs, redirects and resolved addresses are untrusted retrieval
-inputs. Consumers MUST enforce origin and scheme policy, including
-protection against access to disallowed internal services. Credentials
-MUST NOT be forwarded between origins without an explicit origin-specific
-policy. Retained XIDs MUST NOT trigger fallback network discovery.
+Reference URLs, typed extension URLs, redirects and resolved addresses are
+untrusted retrieval inputs. Consumers MUST enforce origin and scheme
+policy, including protection against disallowed internal services.
+Credentials MUST NOT be forwarded between origins without an explicit
+origin-specific policy. Retained XIDs MUST NOT trigger network discovery.
 
 Implementations MUST bound bytes, Reference count, recursion and inherited
-depth, document count, records, attempts, retrieval time and concurrency.
+depth, documents, records, attempts, retrieval time and concurrency.
 Cycles and limit exhaustion MUST produce explicit failures. Consumers MUST
-also bound decompression and decoded payload size. Generic bundle access,
+bound decompression and decoded payload size. Generic bundle access,
 caching and completeness rules still apply.
 
 Execution identifiers, participant identities, payloads and correlation
 links can expose sensitive relationships. Publishers MUST apply access,
-retention and disclosure policy to the metadata as well as the documents.
-Redaction that removes needed evidence makes the affected check incomplete.
-The validator MUST NOT retain a validated-conformant result for that check.
-Publication stability and retention remain subject to applicable privacy
-duties.
+retention and disclosure policy to metadata and documents. Redaction that
+removes needed evidence makes the affected check incomplete. The validator
+MUST NOT retain a validated-conformant result for that check. Publication
+stability and retention remain subject to applicable privacy duties.
 
 ## 10. Complete Integration Example
 
-[publication.json](examples/publication.json) is an offline example fixture
-mapping exact illustrative retrieval URLs to original JSON representations.
-Descriptor objects are Version create inputs.
-The retained export omits Core response bookkeeping and includes selected
-Versions and document-view links.
+[publication.json](examples/publication.json) is an offline fixture mapping
+illustrative retrieval URLs to original JSON representations. Descriptor
+objects are Version create inputs. The retained context omits Core response
+bookkeeping and selects explicit Versions and document-view links.
 
-| Representation | Example URL suffix after `https://registry.example/` |
+| Representation | Suffix after `https://registry.example/` |
 | --- | --- |
-| Sender, Worker and Receiver Actor Descriptor Versions | `descriptorgroups/actors/descriptors/{sender,worker,receiver}/versions/1` |
-| Raw and normalized Processing Descriptor Versions | `descriptorgroups/processing/descriptors/{raw,normalized}/versions/1` |
-| Conversation Descriptor Version | `descriptorgroups/config/descriptors/normalize/versions/1` |
-| Static ACF conversation document | `conversationgroups/demo/conversations/normalize/versions/1` |
-| Retained Registry context | `snapshots/context/1` |
-| Trace document snapshot | `snapshots/trace/42/1` |
-| Execution Evidence Descriptor Version | `descriptorgroups/evidence/descriptors/run42/versions/1` |
-| Raw and normalized payload schemas | `schemas/{raw,normalized}/1` |
+| Reusable static ACF definition | `conversationgroups/demo/conversations/normalize/versions/1` |
+| Retained resolution context | `snapshots/context/1` |
+| Minimal fixed deployment | `descriptorgroups/deployments/descriptors/sensor7/versions/1` |
+| Runtime Sender deployment | `descriptorgroups/deployments/descriptors/fleet/versions/1` |
+| Deployment with additional descriptions | `descriptorgroups/deployments/descriptors/enriched/versions/1` |
+| Standalone runtime trace | `snapshots/trace/42/1` |
+| Standalone fixed-participant trace | `snapshots/trace/43/1` |
+| OPTIONAL wrapper of the runtime trace | `descriptorgroups/evidence/descriptors/run42/versions/1` |
 
-The example ACF Flow declares three roles. Its `RawHop` step carries a raw
-reading from Sender to Worker. Worker's `Normalize` action consumes one raw
-reading and emits one normalized reading. `NormalizedHop` carries it to
-Receiver. ACF actor IDs identify roles; Actor Descriptor `entityid` values
-identify actual services.
-Configuration fixes Worker; Sender and Receiver are unconstrained until
-execution binds them.
+The ACF Flow has Sender, Worker and Receiver roles. `RawHop` carries a raw
+reading to Worker. Its `Normalize` action consumes one raw event and emits
+one normalized event. `NormalizedHop` carries the result to Receiver.
+The retained message definitions select the payload schemas. The example
+action contract emits `celsius` equal to input `value` and permits a retry
+after a failed attempt.
 
-The Processing Descriptors independently select their schemas using the
-generic Schema Descriptor profile. Each supplies its complete set of
-References. The example processing agreement defines raw as a numeric
-`value` with constant `unit` equal to `C`; normalized uses numeric
-`celsius`. Both are whole CloudEvents data objects. The action contract
-accepts exactly one raw event and can emit one normalized event with
-`celsius` equal to `value`; it permits retry after a failed attempt.
+The fixed deployment binds all three roles by participant URI. It has no
+Actor or Processing Descriptor dependency. Trace 43 uses this deployment
+with a message observation and no evidence wrapper.
 
-The retained context selects the exact conversation and two message
-definitions as xRegistry metadata. All ACF message and `baseflow` links are
-XIDs. The ACF trace document inherits the static conversation's structure.
+The fleet deployment fixes Worker and Receiver and explicitly permits
+Sender to be sensor 7 or sensor 8 at runtime. Trace 42 binds sensor 7. Its
+first attempt fails with no output; the retry consumes the same event and
+emits the normalized event. No extra Processing Descriptor is needed.
+The OPTIONAL wrapper selects this unchanged trace. Removing that wrapper
+from the fixture leaves the trace fully resolvable.
 
-The trace records emission and receipt of event `("sensor/7","r42")`.
-The relative source retains its exact value. Attempt `try1` reports
-failure with no output. Retry `try2` consumes the same event, reports
-success and links emitted event `("urn:example:normalizer","n42")`.
-`NormalizedHop` has sent and received observations. Evidence of receiver
-processing or a business outcome would require its own observation under
-the applicable processing or outcome contract.
+The enriched deployment illustrates OPTIONAL descriptions: Worker's
+`actorref` describes its exact participant, and two message opportunities
+select one reusable Processing Descriptor. That Descriptor supplies an
+independently managed processing note and does not repeat the message
+schemas. Trace 44 demonstrates those selections through the deployment;
+no repeated processing URLs or Actor Descriptors are needed in its records.
 
-The following adverse cases have distinct results:
+The relative source `sensor/7` retains its exact decoded value. Sent and
+received observations remain separate. Receiver processing and business
+outcomes require their own evidence under the applicable contract.
 
-| Change to the example | Result |
+| Change to the examples | Result |
 | --- | --- |
-| Remove `conversationref`, set it to `null`, or use an array | Structural rejection. |
-| Select a missing local Reference or wrong class | Invalid profile selection, even if a different Descriptor has that name. |
-| Remove a retained base flow or schema | Incomplete; no live Registry fallback. |
-| Change Worker's Trace participant to `Worker` | Invalid identity binding; the Actor Descriptor's `entityid` is REQUIRED. |
-| Reuse `try1` for the successful retry | Invalid conflicting attempt identity. |
-| Repeat an identical observation record | Deduplicate; not a new event or processing success. |
-| Keep an observation ID but change its timestamp or event | Invalid conflicting replay. |
-| Reference an absent observation ID from an attempt | Invalid attempt link. |
-| Change `received` to an unknown kind | Invalid typed extension, not an inferred weaker observation. |
-| Require an unimplemented action interpretation | Unsupported validation, not validated-conformant. |
+| Remove a role binding or its `mode`, or supply an unknown mode | Invalid deployment. |
+| Change a fixed participant in a trace | Invalid actual binding. |
+| Use an undeclared role or a runtime participant outside the declared set | Invalid actual binding. |
+| Remove the OPTIONAL evidence wrapper | Standalone trace keeps the same meaning. |
+| Select an Actor Descriptor with a different `entityid` | Invalid supplied description. |
+| Supply a Processing Descriptor URL conflicting with the deployment | Invalid selection; no fallback or merge. |
+| Reuse an observation or attempt ID with changed content | Invalid conflicting replay. |
+| Link an attempt to an unknown observation | Invalid attempt link. |
+| Remove a retained dependency | Incomplete validation. |
 
 ## 11. References
 
