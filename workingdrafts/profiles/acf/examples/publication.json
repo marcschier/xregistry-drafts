@@ -1,0 +1,423 @@
+{
+  "https://registry.example/descriptorgroups/actors/descriptors/sender/versions/1": {
+    "descriptorid": "sender",
+    "versionid": "1",
+    "entityid": "urn:example:service:sensor7",
+    "entitytype": "https://models.example/types/service",
+    "references": {}
+  },
+  "https://registry.example/descriptorgroups/actors/descriptors/worker/versions/1": {
+    "descriptorid": "worker",
+    "versionid": "1",
+    "entityid": "urn:example:service:normalizer",
+    "entitytype": "https://models.example/types/service",
+    "references": {}
+  },
+  "https://registry.example/descriptorgroups/actors/descriptors/receiver/versions/1": {
+    "descriptorid": "receiver",
+    "versionid": "1",
+    "entityid": "urn:example:service:archive",
+    "entitytype": "https://models.example/types/service",
+    "references": {}
+  },
+  "https://registry.example/descriptorgroups/processing/descriptors/raw/versions/1": {
+    "descriptorid": "raw",
+    "versionid": "1",
+    "schemaref": "payload",
+    "references": {
+      "payload": {
+        "class": "schema",
+        "url": "https://registry.example/schemas/raw/1"
+      }
+    }
+  },
+  "https://registry.example/descriptorgroups/processing/descriptors/normalized/versions/1": {
+    "descriptorid": "normalized",
+    "versionid": "1",
+    "schemaref": "payload",
+    "references": {
+      "payload": {
+        "class": "schema",
+        "url": "https://registry.example/schemas/normalized/1"
+      }
+    }
+  },
+  "https://registry.example/schemas/raw/1": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["value", "unit"],
+    "additionalProperties": false,
+    "properties": {
+      "value": { "type": "number" },
+      "unit": { "const": "C" }
+    }
+  },
+  "https://registry.example/schemas/normalized/1": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["celsius"],
+    "additionalProperties": false,
+    "properties": {
+      "celsius": { "type": "number" }
+    }
+  },
+  "https://registry.example/conversationgroups/demo/conversations/normalize/versions/1": {
+    "$schema": "https://raw.githubusercontent.com/clemensv/acf/main/specification/schemas/acf-1.0.struct.json",
+    "id": "NormalizeReading",
+    "name": "Normalize one sensor reading",
+    "actors": [
+      { "id": "Sender", "kind": "service" },
+      { "id": "Worker", "kind": "service" },
+      { "id": "Receiver", "kind": "service" }
+    ],
+    "scopes": [
+      {
+        "name": "Reading",
+        "operator": "sequence",
+        "initiator": "Sender",
+        "terminals": [
+          {
+            "terminalid": "SenderOut",
+            "actorid": "Sender",
+            "direction": "producer",
+            "messagegroups": ["/messagegroups/readings"]
+          },
+          {
+            "terminalid": "WorkerIn",
+            "actorid": "Worker",
+            "direction": "consumer",
+            "messagegroups": ["/messagegroups/readings"]
+          },
+          {
+            "terminalid": "WorkerOut",
+            "actorid": "Worker",
+            "direction": "producer",
+            "messagegroups": ["/messagegroups/readings"]
+          },
+          {
+            "terminalid": "ReceiverIn",
+            "actorid": "Receiver",
+            "direction": "consumer",
+            "messagegroups": ["/messagegroups/readings"]
+          }
+        ],
+        "operands": [
+          {
+            "steps": [
+              {
+                "type": "flow",
+                "id": "RawHop",
+                "from": "SenderOut",
+                "to": "WorkerIn",
+                "message": "/messagegroups/readings/messages/raw/versions/1"
+              },
+              {
+                "type": "action",
+                "id": "Normalize",
+                "actor": "Worker",
+                "inputs": [
+                  {
+                    "terminal": "WorkerIn",
+                    "message": "/messagegroups/readings/messages/raw/versions/1"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "terminal": "WorkerOut",
+                    "message": "/messagegroups/readings/messages/normalized/versions/1"
+                  }
+                ]
+              },
+              {
+                "type": "flow",
+                "id": "NormalizedHop",
+                "from": "WorkerOut",
+                "to": "ReceiverIn",
+                "message": "/messagegroups/readings/messages/normalized/versions/1"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "https://registry.example/snapshots/context/1": {
+    "specversion": "1.0-rc4",
+    "registryid": "demo",
+    "conversationgroups": {
+      "demo": {
+        "conversationgroupid": "demo",
+        "conversations": {
+          "normalize": {
+            "conversationid": "normalize",
+            "versionid": "1",
+            "versions": {
+              "1": {
+                "versionid": "1",
+                "format": "ACF/1.0",
+                "conversationurl": "https://registry.example/conversationgroups/demo/conversations/normalize/versions/1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "messagegroups": {
+      "readings": {
+        "messagegroupid": "readings",
+        "envelope": "CloudEvents/1.0",
+        "messages": {
+          "raw": {
+            "messageid": "raw",
+            "versionid": "1",
+            "versions": {
+              "1": {
+                "versionid": "1",
+                "envelope": "CloudEvents/1.0",
+                "envelopemetadata": {
+                  "type": {
+                    "type": "string",
+                    "value": "example.reading.raw",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "normalized": {
+            "messageid": "normalized",
+            "versionid": "1",
+            "versions": {
+              "1": {
+                "versionid": "1",
+                "envelope": "CloudEvents/1.0",
+                "envelopemetadata": {
+                  "type": {
+                    "type": "string",
+                    "value": "example.reading.normalized",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "https://registry.example/descriptorgroups/config/descriptors/normalize/versions/1": {
+    "descriptorid": "normalize",
+    "versionid": "1",
+    "acfconversation": {
+      "conversationref": "flow",
+      "resolutioncontextref": "context",
+      "actorbindings": [{ "actor": "Worker", "actorref": "worker" }],
+      "messagebindings": [
+        { "step": "RawHop", "processingref": "raw" },
+        { "step": "NormalizedHop", "processingref": "normalized" }
+      ]
+    },
+    "references": {
+      "flow": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/conversation",
+        "url": "https://registry.example/conversationgroups/demo/conversations/normalize/versions/1"
+      },
+      "context": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/resolution-context",
+        "url": "https://registry.example/snapshots/context/1"
+      },
+      "worker": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/actor-descriptor",
+        "url": "https://registry.example/descriptorgroups/actors/descriptors/worker/versions/1"
+      },
+      "raw": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/processing-descriptor",
+        "url": "https://registry.example/descriptorgroups/processing/descriptors/raw/versions/1"
+      },
+      "normalized": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/processing-descriptor",
+        "url": "https://registry.example/descriptorgroups/processing/descriptors/normalized/versions/1"
+      }
+    }
+  },
+  "https://registry.example/snapshots/trace/42/1": {
+    "$schema": "https://raw.githubusercontent.com/clemensv/acf/main/specification/schemas/acf-1.0.struct.json",
+    "id": "NormalizeRun42",
+    "name": "Reading normalization execution 42",
+    "baseflow": "/conversationgroups/demo/conversations/normalize/versions/1",
+    "traces": [
+      {
+        "id": "Run42",
+        "participants": [
+          { "actor": "Sender", "participant": "urn:example:service:sensor7" },
+          { "actor": "Worker", "participant": "urn:example:service:normalizer" },
+          { "actor": "Receiver", "participant": "urn:example:service:archive" }
+        ],
+        "records": [
+          {
+            "step": "RawHop",
+            "message": "/messagegroups/readings/messages/raw/versions/1",
+            "timestamp": "2026-11-16T10:00:00Z",
+            "metadata": {
+              "specversion": "1.0",
+              "source": "sensor/7",
+              "id": "r42",
+              "type": "example.reading.raw",
+              "describedby": "https://registry.example/descriptorgroups/processing/descriptors/raw/versions/1"
+            },
+            "payload": {
+              "contenttype": "application/json",
+              "content": "{\"value\":21,\"unit\":\"C\"}"
+            },
+            "extensions": {
+              "https://xregistry.io/workingdrafts/profiles/acf/observation": {
+                "observationid": "raw_sent",
+                "kind": "sent",
+                "observerref": "sender",
+                "event": { "source": "sensor/7", "id": "r42" },
+                "processingref": "raw"
+              }
+            }
+          },
+          {
+            "step": "RawHop",
+            "message": "/messagegroups/readings/messages/raw/versions/1",
+            "timestamp": "2026-11-16T10:00:01Z",
+            "extensions": {
+              "https://xregistry.io/workingdrafts/profiles/acf/observation": {
+                "observationid": "raw_received",
+                "kind": "received",
+                "observerref": "worker",
+                "event": { "source": "sensor/7", "id": "r42" },
+                "processingref": "raw"
+              }
+            }
+          },
+          {
+            "step": "NormalizedHop",
+            "message": "/messagegroups/readings/messages/normalized/versions/1",
+            "timestamp": "2026-11-16T10:00:03Z",
+            "metadata": {
+              "specversion": "1.0",
+              "source": "urn:example:normalizer",
+              "id": "n42",
+              "type": "example.reading.normalized",
+              "describedby": "https://registry.example/descriptorgroups/processing/descriptors/normalized/versions/1"
+            },
+            "payload": {
+              "contenttype": "application/json",
+              "content": "{\"celsius\":21}"
+            },
+            "extensions": {
+              "https://xregistry.io/workingdrafts/profiles/acf/observation": {
+                "observationid": "normalized_sent",
+                "kind": "sent",
+                "observerref": "worker",
+                "event": { "source": "urn:example:normalizer", "id": "n42" },
+                "processingref": "normalized"
+              }
+            }
+          },
+          {
+            "step": "NormalizedHop",
+            "message": "/messagegroups/readings/messages/normalized/versions/1",
+            "timestamp": "2026-11-16T10:00:04Z",
+            "extensions": {
+              "https://xregistry.io/workingdrafts/profiles/acf/observation": {
+                "observationid": "normalized_received",
+                "kind": "received",
+                "observerref": "receiver",
+                "event": { "source": "urn:example:normalizer", "id": "n42" },
+                "processingref": "normalized"
+              }
+            }
+          }
+        ],
+        "extensions": {
+          "https://xregistry.io/workingdrafts/profiles/acf/attempts": [
+            {
+              "activityid": "try1",
+              "step": "Normalize",
+              "actorref": "worker",
+              "inputs": [
+                {
+                  "event": { "source": "sensor/7", "id": "r42" },
+                  "processingref": "raw",
+                  "observationids": ["raw_received"]
+                }
+              ],
+              "outputs": [],
+              "outcome": "failed"
+            },
+            {
+              "activityid": "try2",
+              "step": "Normalize",
+              "actorref": "worker",
+              "inputs": [
+                {
+                  "event": { "source": "sensor/7", "id": "r42" },
+                  "processingref": "raw",
+                  "observationids": ["raw_received"]
+                }
+              ],
+              "outputs": [
+                {
+                  "event": { "source": "urn:example:normalizer", "id": "n42" },
+                  "processingref": "normalized",
+                  "observationids": ["normalized_sent"]
+                }
+              ],
+              "outcome": "succeeded"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "https://registry.example/descriptorgroups/evidence/descriptors/run42/versions/1": {
+    "descriptorid": "run42",
+    "versionid": "1",
+    "entityid": "urn:example:execution:normalize:42",
+    "entitytype": "https://xregistry.io/workingdrafts/profiles/acf/types/execution",
+    "acfexecution": {
+      "configurationref": "config",
+      "traceref": "trace",
+      "traceid": "Run42",
+      "actorbindings": [
+        { "actor": "Sender", "actorref": "sender" },
+        { "actor": "Worker", "actorref": "worker" },
+        { "actor": "Receiver", "actorref": "receiver" }
+      ]
+    },
+    "references": {
+      "config": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/conversation-descriptor",
+        "url": "https://registry.example/descriptorgroups/config/descriptors/normalize/versions/1"
+      },
+      "trace": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/trace",
+        "url": "https://registry.example/snapshots/trace/42/1"
+      },
+      "sender": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/actor-descriptor",
+        "url": "https://registry.example/descriptorgroups/actors/descriptors/sender/versions/1"
+      },
+      "worker": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/actor-descriptor",
+        "url": "https://registry.example/descriptorgroups/actors/descriptors/worker/versions/1"
+      },
+      "receiver": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/actor-descriptor",
+        "url": "https://registry.example/descriptorgroups/actors/descriptors/receiver/versions/1"
+      },
+      "raw": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/processing-descriptor",
+        "url": "https://registry.example/descriptorgroups/processing/descriptors/raw/versions/1"
+      },
+      "normalized": {
+        "class": "https://xregistry.io/workingdrafts/profiles/acf/classes/processing-descriptor",
+        "url": "https://registry.example/descriptorgroups/processing/descriptors/normalized/versions/1"
+      }
+    }
+  }
+}

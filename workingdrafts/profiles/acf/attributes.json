@@ -1,0 +1,78 @@
+{
+  "acfconversation": {
+    "name": "acfconversation",
+    "type": "object",
+    "description": "ACF Conversation Descriptor profile selection and static bindings",
+    "attributes": {
+      "conversationref": {
+        "name": "conversationref",
+        "type": "string",
+        "required": true
+      },
+      "resolutioncontextref": {
+        "name": "resolutioncontextref",
+        "type": "string",
+        "required": true
+      },
+      "actorbindings": {
+        "name": "actorbindings",
+        "type": "array",
+        "item": {
+          "type": "object",
+          "attributes": {
+            "actor": { "name": "actor", "type": "string", "required": true },
+            "actorref": { "name": "actorref", "type": "string", "required": true }
+          }
+        }
+      },
+      "messagebindings": {
+        "name": "messagebindings",
+        "type": "array",
+        "item": {
+          "type": "object",
+          "attributes": {
+            "step": { "name": "step", "type": "string", "required": true },
+            "processingref": { "name": "processingref", "type": "string", "required": true }
+          }
+        }
+      }
+    }
+  },
+  "acfexecution": {
+    "name": "acfexecution",
+    "type": "object",
+    "description": "ACF Execution Evidence Descriptor profile selection and actual bindings",
+    "attributes": {
+      "configurationref": {
+        "name": "configurationref",
+        "type": "string",
+        "required": true
+      },
+      "traceref": {
+        "name": "traceref",
+        "type": "string",
+        "required": true
+      },
+      "traceid": {
+        "name": "traceid",
+        "type": "string",
+        "required": true
+      },
+      "actorbindings": {
+        "name": "actorbindings",
+        "type": "array",
+        "item": {
+          "type": "object",
+          "attributes": {
+            "actor": { "name": "actor", "type": "string", "required": true },
+            "actorref": { "name": "actorref", "type": "string", "required": true }
+          }
+        }
+      },
+      "supersedes": {
+        "name": "supersedes",
+        "type": "string"
+      }
+    }
+  }
+}
