@@ -219,8 +219,8 @@ consumer-facing Registry. When the server performs resolution, its local
 shadow Resource takes precedence over the UA source. The shared
 [hosting models](../federation/spec.md#design-hosting-models) define these
 responsibilities. Resolution keeps the endpoint, namespace index, Registry
-root and XID distinct. The companion dependency and native mappings specified
-below determine which operations an implementation can provide.
+root and XID distinct. The companion dependency in §2 and the native mappings
+in Sections 4 and 5 determine which operations an implementation can provide.
 
 For native reads, start with
 [addressing](#41-addressspace-root-and-service-model),
@@ -236,15 +236,6 @@ capability paths.
 - [xRegistry Core specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
 - [xRegistry Events specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
 - [xRegistry primer, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/primer.md) — xRegistry concepts, representations, request-shaping concepts and federation model.
-- <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/spec.md" data-link-check="authenticated">OPC 30460-1 — xRegistry Part 1: Core, Version 1.0.0, Release Candidate 1</a>,
-  dated `2026-11-04`, including its
-  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/information-model.md" data-link-check="authenticated">information model</a>,
-  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/source/xregistry/native-documents.md" data-link-check="authenticated">native-document contract</a>
-  and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/f8d7dae89660961b66d9fdd372e84dd8edb55c3b/model/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a>.
-  The repository requires member access. These links locate the pinned
-  source revision. The model identity and NodeSet digest below identify the
-  dependency. This Release Candidate is not approved for final publication
-  and is not an OPC Foundation standard or endorsement.
 - [xRegistry Federation](../federation/spec.md) — common read resolution, advertisements, selectors, identity and resolver errors.
 - [xRegistry Publication](../publication/spec.md) — OPTIONAL retained-publication behavior used by §10.4.
 - [OPC 10000-3, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-3/v1.05.06/) — Address Space Model, including URI identities, NodeIds, References and TypeDefinitions.
@@ -415,7 +406,8 @@ The baseline operation model is:
   `<Attribute>` Property Variables to obtain attributes that are not already
   in the Browse result.
 - Write writable Properties to change fixed mutable attributes.
-- Call `Open` /`Read`/`Write`/`Close` to read or replace document bytes.
+- Call `Open`, `Read`, and `Close` to read document bytes. Call `Open`,
+  `Write`, and `Close` to replace them.
 - Call `CreateGroup`, `GetOrCreateGroup`, `CreateResource` or
   `GetOrCreateResource` to create entities.
 - Call the entity's `Delete(ExpectedEpoch)` Method to delete it and everything
@@ -439,8 +431,8 @@ Browse, TranslateBrowsePathsToNodeIds, identifier-Property matching and model
 metadata. The table maps those identifiers and operation concepts to native
 OPC UA targets.
 
-In the table, `capabilities`, `model` and export name operations, not entity
-XIDs. Common federation `model` and `capabilities` requests target `/`.
+The `capabilities`, `model`, and export rows describe operations, not entity
+XIDs. Common federation requests for `model` and `capabilities` target `/`.
 Metadata mode selects an operation rather than another identity. The HTTP
 `$details` suffix is not part of an OPC UA NodeId, BrowseName or XID.
 
@@ -513,9 +505,9 @@ selects a native entity; that pair is not itself a Core `self` URL.
 group, Resource or Version. The logical Resource `Xid` is its resource path.
 Each exact Version `Xid` is that Resource `Xid` followed by
 `/versions/<VID>`. An `Xid` MUST NOT be a content fingerprint, digest or other
-document-derived identifier. A server MAY use content identity as an internal
-lookup, cache or deduplication fast path, but that optimization MUST NOT change
-`Xid`, `Subject`, `ResourceId`, `VersionId` or AddressSpace placement.
+document-derived identifier. A server MAY use content identity for internal
+lookup, caching or deduplication, but that optimization MUST NOT change `Xid`,
+`Subject`, `ResourceId`, `VersionId` or AddressSpace placement.
 
 Resource denotes the generic xRegistry entity kind. Each domain model
 declares its own `<RESOURCES>` collection and `<RESOURCE>` singular names.
@@ -535,7 +527,7 @@ The read operation depends on the selected view:
 - For entity metadata, Read the entity Properties. If labels are needed,
   Browse/Read its `Labels` `AttributesType` container. Resource Meta instead
   uses `MetaLabels` on the logical Resource.
-- For a Resource document, use `Open` /`Read`/`Close` on the delegated
+- For a Resource document, use `Open`, `Read`, and `Close` on the delegated
   default-Version view.
 - For an exact Version document, use the exact Version `ResourceType`.
 
@@ -645,8 +637,8 @@ For a Resource document read, clients obtain accompanying metadata from the
 logical Resource's delegated Version Properties and authoritative Resource
 Meta Properties. For an exact Version, they read that Version Object's
 metadata. A server MAY combine these reads in a domain Method. The
-interoperable baseline uses separate `Open` /`Read`/`Close` operations and
-Browse/Read for metadata.
+interoperable baseline uses separate `Open`, `Read`, and `Close` operations
+for document bytes and Browse and Read operations for metadata.
 
 To select a Resource or Version metadata view, a client Reads or Writes
 Properties instead of file content. This choice does not merge the distinct
@@ -817,7 +809,7 @@ exclusive lock across a multi-step create/update sequence. This API does not
 require locking. Without it, clients rely on FileTransfer `Open`
 exclusivity and `Epoch` preconditions.
 
-The [worked outcomes in §5.14](#514-reading-and-updating-resource-metadata)
+The [outcomes in §5.14](#514-reading-and-updating-resource-metadata)
 distinguish Meta changes, byte commits and default switches.
 
 ### 4.6. Attribute mapping
@@ -853,7 +845,7 @@ The base model Properties map to xRegistry attributes as follows.
 | `deprecated` | `MetaDeprecated` (`DeprecationDataType`) with typed OPTIONAL fields | Resource Meta |
 | event `source` URL | `EventSourceUrl` | `RegistryType`, REQUIRED only for event-capable server conformance (§9.3) |
 
-The table above is authoritative for fixed and system Properties. A client
+The table in §4.6 is authoritative for fixed and system Properties. A client
 mapping a model-defined Property BrowseName to an xRegistry attribute name
 MUST convert only ASCII uppercase letters (`A` through `Z`) to their
 lowercase counterparts. For a Resource Meta Property, the client MUST first
@@ -866,7 +858,7 @@ attribute-name grammar.
 
 If two distinct Properties on the same entity map to the same xRegistry
 attribute path in the selected representation, including a collision with a
-mapping in the table above, the client's read MUST fail as ambiguous. It
+mapping in the §4.6 table, the client's read MUST fail as ambiguous. It
 MUST NOT select a Property by Browse order or another tie-breaker.
 
 Resource Meta is an xRegistry entity in its own right, not a Version
@@ -1013,8 +1005,8 @@ read fabricated documents for metadata-only Resources or expand local
 
 A server MAY expose a domain Method or Property to optimize export. Its
 output MUST have the same document shape as the baseline algorithm.
-Implementations support import through normal create/update operations or
-a domain-defined import Method.
+Implementations import through normal create/update operations or a
+domain-defined import Method.
 
 ### 5.4. Reading capabilities and model documents
 
@@ -1138,8 +1130,8 @@ The client then writes Group Properties and updates the Group's `Labels`
 container. Partial updates write only named attributes. Full representations
 reset or remove omitted mutable attributes under xRegistry rules.
 
-The response representation is obtained by reading back only the groups
-processed, not the entire group collection.
+Reading back only the groups processed, not the entire group collection,
+produces the response representation.
 
 If a group does not exist and the operation permits creation, the server creates
 it with `GetOrCreateGroup` or strict `CreateGroup` on the registry root. The
@@ -1449,9 +1441,9 @@ delete the meta view with `Bad_NotSupported` or `Bad_InvalidArgument`.
 Individual mutable meta attributes, including entries in `MetaLabels`, MAY be
 reset through update processing if the domain model supports them.
 
-The following informative outcomes apply the ownership rules above and the
-[event rules in §9.4](#94-interaction-and-emission-rules). Event outcomes
-apply only to event-capable implementations.
+The informative outcomes in the following table apply the ownership rules in
+§5.14 and the [event rules in §9.4](#94-interaction-and-emission-rules).
+Event outcomes apply only to event-capable implementations.
 
 | Interaction | Committed result |
 | --- | --- |
@@ -1568,7 +1560,7 @@ bytes if needed.
 
 ### 5.19. Reading a version
 
-A client reads a Version document with `Open` /`Read`/`Close` on the exact
+A client reads a Version document with `Open`, `Read`, and `Close` on the exact
 `ResourceType` under the logical Resource's `Versions` component whose
 BrowseName and `VersionId` are the selected version identifier.
 
@@ -1964,14 +1956,14 @@ The common event fields map as follows:
 |---|---|---|
 | `type` | `EventType` | NodeId of the concrete leaf EventType in §9.1 |
 | `id` | `EventId` | The `BaseEventType.EventId`. When serialized as a CloudEvent, encode its bytes using standard Base64 as the CloudEvents string `id`. |
-| native source | `SourceNode`, `SourceName` | Deterministic materialized OPC UA entity defined below |
+| native source | `SourceNode`, `SourceName` | Deterministic materialized OPC UA entity selected by the rules that follow |
 | `source` | `SourceUrl` | REQUIRED absolute xRegistry source URL copied from the registry's `EventSourceUrl` |
 | `subject` | `Subject` | The subject entity's xRegistry `xid` |
 | `time` | `Time` | `BaseEventType.Time`, shared by every event from one logical interaction |
 | `epoch` | `Epoch` | Subject entity's final `epoch` value |
 | `meta.epoch` | `MetaEpoch` | Subject resource's final `meta.epoch` value |
 | `changed` | `Changed` | One-dimensional OPC UA `String` array |
-| `xregcorrelationid` | `CorrelationId` | OPTIONAL interaction identifier, subject to the response rule below |
+| `xregcorrelationid` | `CorrelationId` | OPTIONAL interaction identifier, subject to the response rule in §9.2 |
 
 The event carries native AddressSpace provenance in `SourceNode` and
 `SourceName`, separately from `SourceUrl` and `Subject`. The native source
@@ -2116,7 +2108,7 @@ its `GroupType` children, from a group to its logical Resource children, and
 from a logical Resource to its exact Version children. `Versions` MAY be an
 organizational component only and need not be an event notifier or appear in
 the notifier chain. Subtypes MAY add intermediate notifier Objects if the
-Server-to-Version path specified above remains available.
+notifier hierarchy preserves the Server-to-Version path.
 
 While the Registry root exists, its applicable descendant events are
 available to event MonitoredItems on both the Server Object and that root.
@@ -2608,8 +2600,8 @@ A document-backed server conforms to the read-only OPC UA xRegistry API if it:
 - Exposes a `RegistryType` root or domain subtype.
 - Exposes groups as `GroupType` or subtypes.
 - Exposes each logical Resource as a `ResourceType` or domain subtype.
-- Exposes its typed `ResourceVersionsType` component named `Versions`, and
-  each exact Version below it as the same Resource subtype.
+- Exposes its typed `ResourceVersionsType` component named `Versions`, with
+  each exact Version in that component an instance of the same Resource subtype.
 - Supports Browse and Read sufficient to retrieve the declared metadata and
   collections.
 

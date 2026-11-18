@@ -67,11 +67,11 @@ Registry.
 
 ### 1.1. Scope
 
-The catalog MAY advertise HTTP, OCI, Git, File, OPC UA or extension
+The catalog MAY advertise HTTP, OCI, Git, File, OPC UA, or extension
 bindings. [Shared federation][Federation] defines the read operations and
 Registry context established after selection. A catalog does not have to
 implement those bindings, serve an HTTP facade for them, proxy their
-contents or provide a materialized view.
+contents, or provide a materialized view.
 
 A catalog's own `category` Groups and `registry` Resources MAY be federated
 using the shared federation rules and a compatible catalog model. The resulting
@@ -82,7 +82,7 @@ automatically added to that view, nor does its advertisement authorize another
 traversal. Federation policy and cycle limits continue to apply.
 
 This specification does not define replication, synchronization, automatic
-dependency traversal, write-through, conflict resolution or credential storage.
+dependency traversal, write-through, conflict resolution, or credential storage.
 It does not change domain document formats or require remote Registries to
 adopt the catalog's model.
 
@@ -92,28 +92,27 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in [RFC 2119][RFC2119].
 
-Core defines Registry, Group, Resource, Meta and Version. It also defines
-XID, API view and document view. This specification uses these additional
+Core defines Registry, Group, Resource, Meta, and Version. It also defines
+XID, API view, and document view. This specification uses these additional
 distinctions:
 
 - **Catalog:** An xRegistry containing entries that describe independently
   administered Registries or discovery-only websites.
 - **Category:** A Group organizing Registry entries in the catalog.
-  A Category does not define a registry domain, transport
-  or authority.
+  A Category does not define a registry domain, transport, or authority.
 - **Catalog entry:** A `registry` Resource within a Category.
 - **Catalog-description Version:** A Version of that entry's description.
 - **Target Registry:** The independently administered Registry described
-  by a Catalog entry. It has its own root, model, capabilities and ID scopes.
+  by a Catalog entry. It has its own root, model, capabilities, and ID scopes.
 - **Advertisement:** An access method for the target Registry.
 - **Registry context:** The selected logical Registry and access context
   within which a target XID is interpreted.
 - **Revision pin:** A binding-specific immutable snapshot reference,
   distinct from both catalog and target Resource Version IDs.
 
-The catalog root's `registryid`, the entry's `registryid` and the target
+The catalog root's `registryid`, the entry's `registryid`, and the target
 Registry root's `registryid` are independently scoped and need not match.
-A URI, Category membership, label or equal XID in separate Registries does
+A URI, Category membership, label, or equal XID in separate Registries does
 not establish global entity identity.
 
 All attribute names introduced here are lowercase Core attribute names.
@@ -125,7 +124,7 @@ Group or Resource type names.
 The authoritative xRegistry extension model in [model.json](model.json)
 defines the catalog as a compact `modelsource`. An implementation MUST apply
 both that model and this specification's semantic constraints. Core remains
-authoritative for entity IDs, navigation, labels, Version management and Meta
+authoritative for entity IDs, navigation, labels, Version management, and Meta
 attributes.
 
 All six domain attributes describe a catalog-description Version. The model
@@ -192,34 +191,34 @@ using the wrong case MUST be treated as not found, not normalized to an
 existing ID.
 
 IDs MUST contain 1 to 128 ASCII characters. The first character MUST be a
-letter, digit or `_`. Subsequent characters MUST be letters, digits,
-`_`, `.`, `~`, `:`, `@` or `-`. Storage mappings MUST preserve the original
+letter, digit, or `_`. Subsequent characters MUST be letters, digits,
+`_`, `.`, `~`, `:`, `@`, or `-`. Storage mappings MUST preserve the original
 IDs and their scopes without weakening this grammar or introducing case-only
 duplicate siblings. For example, `schema:main` is a valid Core ID even on a
 platform that prohibits `:` in a filename: an ID is not a raw filesystem
 name. Equal IDs in distinct parent or model-type scopes do not imply identity.
 
-Every catalog entry MUST belong to a Category. Category IDs are open-ended.
-A producer MUST NOT assume that a Category ID selects a protocol, grants
-trust or proves a target model. Empty Categories are valid. A catalog MAY
+Every catalog entry MUST belong to a Category. Category IDs have no fixed set.
+A Producer MUST NOT assume that a Category ID selects a protocol, grants
+trust, or proves a target model. Empty Categories are valid. A catalog MAY
 host other Group types in addition to this domain.
 
 Registry Resources MUST have `hasdocument: false`, so their metadata is their
-document. There is no separate `registry` document, `registrybase64` content
-or `registryurl` document locator in this domain. The `xregurl` domain
-attribute does not replace a Core document locator.
+document. This domain defines no separate `registry` document,
+`registrybase64` content, or `registryurl` document locator. The `xregurl`
+domain attribute does not replace a Core document locator.
 
 ### 3.2. Versions and References
 
 Each non-alias entry MUST have at least one catalog-description Version.
 Core determines its default Version through `meta.defaultversionid`. A
-consumer MUST NOT select a description by sorting Version IDs, endpoint
-tags or timestamps instead.
+Consumer MUST NOT select a description by sorting Version IDs, endpoint
+tags, or timestamps instead.
 
-An endpoint, authority, type assertion or relationship is description data.
+An endpoint, authority, type assertion, or relationship is description data.
 Core permits changing that data by updating a Version or creating another
 Version. This domain requires neither immutable descriptions nor a target
-snapshot for every catalog Version. When a consumer needs a stable snapshot,
+snapshot for every catalog Version. When a Consumer needs a stable snapshot,
 it MUST use the selected binding's revision rules.
 
 The following values MUST NOT be substituted for one another:
@@ -231,7 +230,7 @@ The following values MUST NOT be substituted for one another:
 
 An entry MAY use Core `meta.xref` to alias another same-typed Resource in the
 same catalog. Core's [cross-reference rules][Core xref] for one-hop processing,
-source-relative identity, document-view serialization and dangling references
+source-relative identity, document-view serialization, and dangling references
 MUST remain unchanged. An absolute endpoint MUST NOT be placed in `meta.xref`,
 and consumers MUST NOT transitively follow a target Resource's own `xref`.
 
@@ -255,7 +254,7 @@ Document-view serialization MUST follow Core's
 
 If, and only if, the referenced entity or collection is included in the
 serialized output, the Core navigation attributes `self`, `<COLLECTION>url`,
-`metaurl` and `defaultversionurl` MUST become `#JSON-POINTER` references.
+`metaurl`, and `defaultversionurl` MUST become `#JSON-POINTER` references.
 Each pointer MUST locate its target within the current response document,
 using JSON Pointer escaping, and MUST NOT include a protocol suffix such as
 `$details`. Its base is not necessarily the catalog Registry root.
@@ -264,13 +263,13 @@ If the referenced entity or collection is not included, the applicable
 absolute Core API URL MUST be retained rather than inventing a pointer to
 absent data.
 
-This conversion MUST NOT rewrite `xid`, `meta.xref` or catalog-root
+This conversion MUST NOT rewrite `xid`, `meta.xref`, or catalog-root
 `relationships.target` values as document-local pointers. Their catalog
 scope remains unchanged. A storage filename is not a replacement base.
 
 The following partial projection is based on
 [`multi-profile-catalog.json`](samples/multi-profile-catalog.json). It
-includes the `public` Category, the `schemas` entry and its Meta entity,
+includes the `public` Category, the `schemas` entry, and its Meta entity,
 but omits the entry's Versions. The absolute URLs use the illustrative
 catalog API root `https://catalog.example/xregistry`. The fragment is not
 a complete Registry document.
@@ -300,7 +299,7 @@ a complete Registry document.
 }
 ```
 
-`self`, `registriesurl` and `metaurl` point to included data, so they use
+`self`, `registriesurl`, and `metaurl` point to included data, so they use
 document pointers. The Meta entity's `defaultversionurl` and the entry's
 `versionsurl` target omitted data, so they remain absolute API URLs. `xid`
 remains the catalog-scoped identity. If a relationship is present, its
@@ -327,13 +326,13 @@ by the model.
 - Constraints:
   - OPTIONAL.
   - MUST be an absolute HTTP or HTTPS Registry root URL without user
-    information, a query or a fragment.
+    information, a query, or a fragment.
   - MUST NOT be interpreted as a catalog entry XID or a document URL.
   - When supplied with explicit `http` advertisements, at least one
     explicit endpoint MUST match it exactly, as specified in
     [advertisement selection](#62-advertisement-selection).
   - Its presence is not evidence that the target is reachable or supports
-    the consumer's Core version.
+    the Consumer's Core version.
 - Examples:
   - `https://schemas.example.com/xregistry`
 
@@ -346,7 +345,7 @@ by the model.
   - MUST be a URL, not an instruction to discover an API automatically.
   - A relative URL MUST be resolved against the catalog Registry root URL,
     treated as a directory. It MUST NOT be resolved against the entry's
-    Version URL, an advertised endpoint or a document's storage path.
+    Version URL, an advertised endpoint, or a document's storage path.
   - Without that external catalog URL context, a relative value MAY be
     retained and displayed as a reference, but MUST NOT be guessed.
   - MUST NOT contribute a federation candidate, even if its scheme is
@@ -362,10 +361,10 @@ by the model.
   the target Registry claims to expose.
 - Constraints:
   - OPTIONAL. An empty array makes no type assertion.
-  - Each item MUST be a nonempty absolute URI identifying a domain or a
+  - Each item MUST be a nonempty absolute URI that identifies a domain or a
     model, rather than a display name such as `schema`.
-  - No fixed set of domains is imposed. Multiple domain identifiers MAY
-    be advertised for one target.
+  - This specification defines no fixed set of domains. Multiple domain
+    identifiers MAY be advertised for one target.
   - An identifier denotes only the specification or model it identifies.
     An unversioned URI MUST NOT imply a particular `modelversion`.
   - To identify a particular revision, producers SHOULD use a URI that
@@ -389,7 +388,7 @@ by the model.
   - An absolute URI is RECOMMENDED. A relative URI uses the catalog-root
     base and unavailable-base rules defined for `weburl`.
   - MUST NOT be treated as authentication, authorization, a certificate,
-    a trust anchor or proof that the named party endorsed the entry.
+    a trust anchor, or proof that the named party endorsed the entry.
   - A shared value MUST NOT establish that two Registries are identical.
 - Examples:
   - `urn:example:organization:platform-team`
@@ -422,7 +421,7 @@ by the model.
   - Each object MUST satisfy [Section 7](#7-descriptive-relationships).
   - Relationship order MUST NOT control profile preference.
   - Relationships MUST NOT imply synchronization, automatic traversal,
-    write propagation or trust.
+    write propagation, or trust.
 - Examples:
   - The relationships in
     [relationships-catalog.json](samples/relationships-catalog.json).
@@ -431,7 +430,7 @@ by the model.
 
 Labels retain their [Core definition][Core labels]. They are OPTIONAL maps
 of ordinary key/value strings, not mandatory localized names. An absent
-map, an empty map and an empty string value are valid. Keys MUST follow
+map, an empty map, and an empty string value are valid. Keys MUST follow
 Core map-key rules. This specification assigns no language-tag meaning.
 
 Version labels describe that catalog-description Version. Meta labels
@@ -443,7 +442,7 @@ agreement without changing Core comparison rules.
 
 ### 5.1. Common Fields
 
-An advertisement contains `binding`, `endpoint`, OPTIONAL `priority` and
+An advertisement contains `binding`, `endpoint`, OPTIONAL `priority`, and
 OPTIONAL `parameters`. The object MUST NOT contain other fields.
 Parameter names MUST follow the model's Core attribute-name rules.
 Profile-specific extensions belong inside `parameters`.
@@ -455,7 +454,7 @@ Profile-specific extensions belong inside `parameters`.
 - Constraints:
   - REQUIRED and MUST be nonempty.
   - MUST be compared case-sensitively, without normalization.
-  - This revision defines `http`, `oci`, `git`, `file` and `opcua`.
+  - This revision defines `http`, `oci`, `git`, `file`, and `opcua`.
     Other strings remain valid catalog data.
   - An unknown value MUST NOT be executed as a known binding. For example,
     `HTTP` is not an alias for `http`.
@@ -481,11 +480,11 @@ Profile-specific extensions belong inside `parameters`.
 #### 5.1.3. `priority`
 
 - Type: Unsigned integer.
-- Description: The producer's preference among advertisements.
+- Description: The Producer's preference among advertisements.
 - Constraints:
   - OPTIONAL. Absence MUST be interpreted as `0`.
   - MUST be an integer greater than or equal to zero, not a string,
-    fractional number or boolean.
+    fractional number, or boolean.
     This is the mathematical value constraint of Core `uinteger`, not an
     unsigned-only JSON token grammar. Integer-valued decimal and exponent
     notation, such as `0.0` and `1e0`, are valid. Negative zero has value zero.
@@ -508,7 +507,7 @@ Profile-specific extensions belong inside `parameters`.
   - Unknown parameters MAY be retained in catalog metadata. If a built-in
     profile containing an unknown parameter is selected, the resolver MUST
     report `unsupported_operation` before accessing the endpoint.
-  - Credentials, bearer tokens, passwords and private keys MUST NOT be
+  - Credentials, bearer tokens, passwords, and private keys MUST NOT be
     included. Authentication configuration is external to the catalog.
   - The empty-object default is a processing rule, not a non-scalar Core
     model default.
@@ -521,7 +520,7 @@ Profile-specific extensions belong inside `parameters`.
 The `http` profile provides access to the target Registry through the
 [Core HTTP binding][HTTP]. Its endpoint MUST be an absolute HTTP or HTTPS URL
 of that Registry's root, with no query or fragment. It MUST NOT point to a
-Group, Resource, Version, website or domain document in place of the root.
+Group, Resource, Version, website, or domain document in place of the root.
 This revision defines no HTTP parameters. If `parameters` is present in a
 supported advertisement, it MUST be empty.
 
@@ -554,7 +553,7 @@ not a new Core HTTP endpoint.
     digits, using [OCI Distribution][OCI Distribution] reference syntax.
   - A tag MUST contain 1 to 128 ASCII characters. Its first character
     MUST be alphanumeric or `_`. Subsequent characters MUST be
-    alphanumeric, `_`, `.` or `-`.
+    alphanumeric, `_`, `.`, or `-`.
   - A tag is mutable. A resolver MUST pin the resolved root digest for
     the operation. The digest identifies exact published bytes.
   - MUST NOT replace a target XID or target Resource `versionid`.
@@ -564,7 +563,7 @@ not a new Core HTTP endpoint.
     [multi-profile-catalog.json](samples/multi-profile-catalog.json).
 
 Native OCI access does not require an xRegistry HTTP facade. Packaging,
-graph completeness and content verification belong to the OCI federation
+graph completeness, and content verification belong to the OCI federation
 binding, not to the catalog. The [OCI image specification][OCI Image] alone
 does not establish conformance to that binding.
 
@@ -573,7 +572,7 @@ does not establish conformance to that binding.
 The `git` profile reads a Registry snapshot from a repository. Its endpoint
 MUST be an absolute HTTPS repository URL without a query or fragment. It
 MUST NOT be a hosting website's file-view URL. This revision does not advertise
-shell commands, SSH credentials or arbitrary repository execution.
+shell commands, SSH credentials, or arbitrary repository execution.
 
 #### 5.4.1. `parameters.revision`
 
@@ -585,7 +584,7 @@ shell commands, SSH credentials or arbitrary repository execution.
     rules, or a complete 40-digit SHA-1 or 64-digit SHA-256 hexadecimal
     object ID.
   - Abbreviated object IDs, unqualified branch names such as `main`,
-    `HEAD` and revision expressions MUST NOT be used.
+    `HEAD`, and revision expressions MUST NOT be used.
   - A reference or tag MUST be resolved to one commit before traversal.
     The commit MUST remain pinned for the complete operation.
   - A Git object ID MUST NOT be substituted for an OCI content digest or
@@ -603,8 +602,8 @@ shell commands, SSH credentials or arbitrary repository execution.
   - OPTIONAL. Absence MUST select `xregistry`.
   - The empty string MUST select the repository root.
   - A nonempty value MUST be a portable relative directory path using `/`
-    as its segment separator. It MUST NOT contain an empty, `.` or `..`
-    segment, a backslash, a drive prefix or an absolute-path prefix.
+    as its segment separator. It MUST NOT contain an empty, `.`, or `..`
+    segment, a backslash, a drive prefix, or an absolute-path prefix.
   - The selected path MUST remain within the repository tree. Consumers
     MUST NOT reinterpret it as an operating-system command or a URL.
 - Examples:
@@ -619,10 +618,10 @@ does not remove Group or Resource type names from entity identities.
 ### 5.5. File
 
 The `file` profile reads a Registry representation from a directory. Its
-endpoint MUST be an absolute [file URI][File URI] identifying that directory,
-with no query or fragment. The selected binding and caller remain responsible
-for filesystem authority, containment and access policy. A locator does not
-grant permission to read a local or network path.
+endpoint MUST be an absolute [file URI][File URI] that identifies that
+directory, with no query or fragment. The selected binding and caller remain
+responsible for filesystem authority, containment, and access policy. A
+locator does not grant permission to read a local or network path.
 
 #### 5.5.1. `parameters.layout`
 
@@ -633,7 +632,7 @@ grant permission to read a local or network path.
   - MUST be exactly `document-tree` or `oci-layout`.
   - `document-tree` selects a directory with the shared Registry document
     tree. `oci-layout` selects an OCI image layout.
-  - A consumer MUST NOT guess a layout by trying one interpretation after
+  - A Consumer MUST NOT guess a layout by trying one interpretation after
     another fails.
 - Examples:
   - `document-tree`
@@ -710,7 +709,7 @@ discovery, including
 - Description: The requested OPC UA transport profile.
 - Constraints:
   - OPTIONAL.
-  - MUST be an absolute transport-profile URI recognized by the consumer.
+  - MUST be an absolute transport-profile URI recognized by the Consumer.
   - An unsupported requested profile MUST produce `unsupported_operation`.
     It MUST NOT be silently dropped to select a weaker transport.
 - Examples:
@@ -718,17 +717,17 @@ discovery, including
 
 The native binding's companion model is a proposal, not an adopted OPC
 Foundation xRegistry standard. This domain does not define a Cloud Library
-bridge, NodeSet export domain or additional OPC UA Services.
+bridge, NodeSet export domain, or additional OPC UA Services.
 
 ### 5.7. Extensions
 
 The model's advisory `enum` permits extension `binding` values. An extension
 SHOULD use a collision-resistant name under its publisher's control and
-document its endpoint, parameters, version rules, security properties and
+document its endpoint, parameters, version rules, security properties, and
 conformance requirements.
 
 Unknown profiles remain valid catalog descriptions when their common
-fields are valid. A consumer that does not implement their semantics MUST
+fields are valid. A Consumer that does not implement their semantics MUST
 exclude them from supported resolution candidates. It MUST NOT infer a
 known binding from their endpoints. Parameters in an extension profile are
 owned by that extension. Their names do not activate built-in semantics.
@@ -765,28 +764,28 @@ flowchart TB
 ```
 
 Catalog-entry XIDs, catalog-description Version IDs, target Registry
-identity, target XIDs and binding revision pins are distinct values. A
+identity, target XIDs, and binding revision pins are distinct values. A
 target Resource Version is selected within the target Registry context.
 It is not the catalog-description Version or a binding revision pin.
 
 ### 6.1. Entry Selection
 
-A consumer MUST select the containing catalog, Category and catalog entry
+A Consumer MUST select the containing catalog, Category, and catalog entry
 before interpreting advertisements. XIDs are resolved within that catalog
-only. When selecting by a label, the consumer MUST name the collection and
+only. When selecting by a label, the Consumer MUST name the collection and
 use [Core string matching][Core filter] and the
 [shared selector rules][Selectors].
 
 Label values are literal strings, including the empty string. An absent
 label does not match. String matching is case-insensitive under Core. This
-domain MUST NOT impose NFC normalization, language-key selection or a
-case-sensitive alternate default. A consumer MUST examine every necessary
+domain MUST NOT impose NFC normalization, language-key selection, or a
+case-sensitive alternate default. A Consumer MUST examine every necessary
 page before claiming a unique match. Zero matches yield `not_found`.
 Multiple matches yield `ambiguous`, not an arbitrary first entry.
 
-The consumer MUST select an explicit catalog-description Version if the
+The Consumer MUST select an explicit catalog-description Version if the
 caller supplied one. Otherwise it MUST use the Core default Version.
-In document view, the consumer obtains that Version through the entry's
+In document view, the Consumer obtains that Version through the entry's
 Meta entity and Versions collection. It MUST NOT merge advertisements
 from different description Versions.
 
@@ -803,20 +802,20 @@ Selection MUST use the following procedure:
    MUST fail. Comparison here is exact string comparison, not URI
    normalization or a global identity rule.
 3. A present `xregurl` contributes an implicit `http` candidate with that
-   endpoint, priority `0` and empty parameters, ordered after the explicit
+   endpoint, priority `0`, and empty parameters, ordered after the explicit
    advertisements. Its selection defaults MUST NOT be inherited from a
    different explicit candidate.
 4. Apply the caller's explicit advertisement choice, including a selected
    `binding` value or original array position, and the caller's access
-   policy. The producer's priority MUST NOT override that choice.
-5. Exclude `binding` values the consumer does not support. If no supported
+   policy. The Producer's priority MUST NOT override that choice.
+5. Exclude `binding` values the Consumer does not support. If no supported
    candidate remains, report `unsupported_binding`. If policy rejects
    the selection, report `policy_denied`.
 6. Order eligible candidates by ascending priority, treating an absent
    value as `0`. Preserve original array order for equal priorities,
    including the appended implicit candidate.
 7. Select the first candidate. Validate its binding parameters, establish
-   the target Registry context and perform the shared federation
+   the target Registry context, and perform the shared federation
    operation. Unknown parameters of a selected built-in profile produce
    `unsupported_operation`, not a retry with those parameters removed.
 
@@ -848,20 +847,20 @@ After selection, target XIDs and reads use the selected
 ### 6.3. Consistency and Failure
 
 An entry's advertisements assert access to a common logical target; its
-contents can differ between access methods at a given instant. A consumer MUST
-record the chosen catalog entry, description Version, advertisement and binding
+contents can differ between access methods at a given instant. A Consumer MUST
+record the chosen catalog entry, description Version, advertisement, and binding
 revision separately from target entity IDs. It MUST NOT equate two target
-snapshots solely because their endpoint URLs, labels or `registryid` values
+snapshots solely because their endpoint URLs, labels, or `registryid` values
 match.
 
-A consumer MUST check the target's model, Core version and applicable
+A Consumer MUST check the target's model, Core version, and applicable
 capabilities. Neither `registrytypes` nor a successful endpoint connection
 replaces those checks. If advertisements demonstrably identify different
-logical Registries, the consumer MUST report an inconsistent selection rather
+logical Registries, the Consumer MUST report an inconsistent selection rather
 than silently merge them.
 
 An integrity error, policy rejection, unsupported version, ambiguous
-selection or inconsistent snapshot MUST NOT trigger silent fallback to a
+selection, or inconsistent snapshot MUST NOT trigger silent fallback to a
 different candidate. A caller MAY initiate a new operation with an explicit
 alternative after inspecting the failure. This specification does not
 authorize automatic retries through weaker trust or integrity mechanisms.
@@ -894,7 +893,7 @@ Core `labels`. No other fields are defined in the relationship object.
 | `federates-with` | Source and target are intended for a consuming view. |
 
 `mirrors` MUST NOT be treated as proof of matching bytes, revision,
-completeness or freshness. `supersedes` MUST NOT automatically redirect
+completeness, or freshness. `supersedes` MUST NOT automatically redirect
 selection, and `depends-on` does not enumerate all transitive dependencies.
 
 ### 7.2. `target`
@@ -908,7 +907,7 @@ selection, and `depends-on` does not enumerate all transitive dependencies.
     network-path reference beginning `//`.
   - An absolute URI MUST identify a catalog entry in another catalog,
     not merely a target Registry's serving endpoint.
-  - Other relative references, including `../`, bare IDs and document
+  - Other relative references, including `../`, bare IDs, and document
     fragments, MUST NOT be used.
   - The local base remains the containing catalog Registry, even when
     the relationship is read from a stand-alone Version document.
@@ -926,7 +925,7 @@ selection, and `depends-on` does not enumerate all transitive dependencies.
   - OPTIONAL and MAY be empty.
   - Keys and values MUST follow [Core label rules][Core labels],
     including permitting an empty string value.
-  - MUST NOT select an endpoint, imply a language-key comparison rule or
+  - MUST NOT select an endpoint, imply a language-key comparison rule, or
     establish trust.
 - Examples:
   - `{"purpose": "discovery", "note": ""}`
@@ -934,12 +933,12 @@ selection, and `depends-on` does not enumerate all transitive dependencies.
 Relationships MAY contain cycles and duplicate assertions. Consumers MUST
 NOT traverse them automatically as part of ordinary entry selection.
 An application explicitly traversing them MUST apply access policy,
-cycle detection and finite depth and size limits, and MUST report limits
+cycle detection, and finite depth and size limits, and MUST report limits
 rather than presenting truncated results as complete.
 
 ## 8. Error Handling
 
-Catalog writers and servers MUST apply Core model, attribute and entity
+Catalog writers and servers MUST apply Core model, attribute, and entity
 errors. For example, a value that violates an attribute constraint
 generates Core `invalid_attribute`. A field not permitted by the model
 generates `unknown_attribute`. This domain does not add Core error codes.
@@ -958,27 +957,27 @@ operation reports `not_found`.
 ## 9. Security Considerations
 
 A catalog is untrusted input unless independently authenticated. A URI,
-`authority`, label or relationship is an assertion, not authorization.
+`authority`, label, or relationship is an assertion, not authorization.
 Consumers MUST establish endpoint trust and credentials independently.
-Producers MUST NOT store credentials in URLs, parameters, labels or other
+Producers MUST NOT store credentials in URLs, parameters, labels, or other
 catalog metadata.
 
-Consumers MUST apply policy to the selected scheme, destination and
+Consumers MUST apply policy to the selected scheme, destination, and
 operation before resolving an advertisement or explicitly following a
 relationship. They MUST protect against requests to unintended local or
-private services, filesystem escape, redirect loops and resource
+private services, filesystem escape, redirect loops, and resource
 exhaustion. Redirects MUST NOT cause credentials to be forwarded to an
 unauthorized destination.
 
-Names, descriptions, labels and websites MUST be treated as untrusted
-display data. Consumers MUST NOT execute catalog strings, repository hooks
+Names, descriptions, labels, and websites MUST be treated as untrusted
+display data. Consumers MUST NOT execute catalog strings, repository hooks,
 or commands derived from them. Merely displaying `weburl` does not
 authorize fetching it.
 
 Digest and commit pins establish particular published bytes or repository
 objects, not publisher authorization. Consumers MUST validate integrity
 and publisher trust separately, including native OPC UA application and
-certificate checks. Catalog mutation, mutable tags and changing endpoints
+certificate checks. Catalog mutation, mutable tags, and changing endpoints
 can make previously observed descriptions stale.
 
 ## 10. Conformance
@@ -986,10 +985,10 @@ can make previously observed descriptions stale.
 ### 10.1. Base Catalog
 
 A base catalog implementation MUST conform to Core 1.0-rc4, implement the
-authoritative domain model and preserve this specification's hierarchy,
-metadata-only Resources and Version semantics. It MUST accept conforming
+authoritative domain model, and preserve this specification's hierarchy,
+metadata-only Resources, and Version semantics. It MUST accept conforming
 entries without labels, `registrytypes`, `authority`, `relationships`,
-`federationprofiles`, `xregurl` or `weburl`.
+`federationprofiles`, `xregurl`, or `weburl`.
 
 When a domain attribute is supplied, its types and semantic constraints
 apply. Unknown `binding` values and relationship types MUST remain valid
@@ -1004,18 +1003,18 @@ base catalog conformance.
 
 A federation-resolvable entry MUST first be a conforming base entry. In
 its selected description Version it MUST provide at least one valid
-advertisement for a binding supported by the consumer, either explicitly
+advertisement for a binding supported by the Consumer, either explicitly
 or through `xregurl`, with all parameters needed to identify the target.
 Any xregurl/explicit HTTP consistency constraint MUST also hold.
 
-This is relative to a consumer's supported bindings and policy. A
+This is relative to a Consumer's supported bindings and policy. A
 well-formed extension-only entry can be resolvable by an extension-aware
 consumer and unsupported by another. Website-only data never satisfies
 this class. No conformance claim guarantees current endpoint availability.
 
 ### 10.3. Catalog Consumer
 
-A catalog consumer claiming resolution conformance MUST implement the
+A catalog Consumer claiming resolution conformance MUST implement the
 selection procedure. It MUST preserve origin and revision distinctions. It
 MUST conform to [shared federation][Federation] and each binding it claims
 to support. It MUST report unsupported operations and failures explicitly.
@@ -1028,13 +1027,13 @@ write-through to a target Registry.
 ## 11. Examples and Derived Schemas
 
 The [sample directory](samples/README.md) contains complete Core document
-views with inlined Categories, Resources, Meta entities and Versions.
+views with inlined Categories, Resources, Meta entities, and Versions.
 It includes unchanged base vocabulary, multiple access methods, distinct
-description Versions and descriptive relationships.
+description Versions, and descriptive relationships.
 
 The [schema directory](schemas/README.md) contains descriptions derived
 from `model.json` using the repository's existing generator: JSON Schema,
-JSON Structure, Avro and HTTP OpenAPI. The OpenAPI description concerns the
+JSON Structure, Avro, and HTTP OpenAPI. The OpenAPI description concerns the
 catalog's HTTP API, not the wire APIs of all advertised bindings.
 
 There is no hand-maintained full Resource schema duplicating the authoritative

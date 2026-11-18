@@ -49,8 +49,8 @@ document are to be interpreted as described in
 
 [Core 1.0-rc4](../../core/spec.md), its
 [model language](../../core/model.md) and [federation](../federation/spec.md)
-define entity semantics, selection and errors. Servers, write-through
-interfaces, global identifiers and synchronization protocols are outside
+define entity semantics, selection, and errors. Servers, write-through
+interfaces, global identifiers, and synchronization protocols are outside
 the scope of this format. The normative schemas define storage
 representations rather than a separate domain model:
 
@@ -59,8 +59,8 @@ representations rather than a separate domain model:
 
 Both schemas use JSON Schema Draft 2020-12. Their URNs identify this draft's
 schemas. They are not network retrieval endpoints. Producers and consumers
-MUST also implement the semantic constraints below. Schema validity alone
-does not establish Core model compliance or graph completeness.
+MUST also implement the semantic constraints in this specification. Schema
+validity alone does not establish Core model compliance or graph completeness.
 
 ## Motivation and Use
 
@@ -79,11 +79,11 @@ This format adds complete typed collection indexes and references that
 record exact byte sizes and digests. A reader uses them to select and verify
 content without requiring changes to existing filenames or directory
 structure. The stored records are metadata fragments. The reader assembles
-them into the Core document view defined below; it does not return them as
-Core API responses.
+them into the Core document view defined in the Reads and Core Document View
+section; it does not return them as Core API responses.
 
 For example, a project can already contain `source/specs/widget.json`,
-`engineering/assets/image.dat`, its application code and a README. Adding
+`engineering/assets/image.dat`, its application code, and a README. Adding
 the mapping can produce:
 
 ```text
@@ -108,16 +108,16 @@ relative to the selected root, regardless of which file holds the Version
 record. The descriptor's `size` and `sha256` describe the file's exact
 bytes. Neither `widget.json` nor `image.dat` needs to move or change.
 
-A publisher can instead store any record or index in a separate metadata
-file, beside the described files or in a directory of its choice. A publisher
-need not use inline storage. Unreferenced files, such as `source/main.py` and
-the README, neither become Resources automatically nor participate in the
-Registry's declared content closure.
+A publisher can store any record or index in a separate metadata file, either
+beside the described files or in another directory. A publisher need not use
+inline storage. Unreferenced files, such as `source/main.py` and the README,
+neither become Resources automatically nor participate in the Registry's
+declared content closure.
 
-The [worked example](#worked-example-map-one-existing-file) below shows
+The [example](#worked-example-map-one-existing-file) shows
 every file needed to map one existing document and the resulting reads.
 The `portable` example in the [shared source](../federation/samples/examples.json)
-demonstrates multiple Resource types, aliases and binary content.
+demonstrates multiple Resource types, aliases, and binary content.
 
 Git chooses the directory through `parameters.path` and pins its commit.
 File selects that same directory through a file URI. The shared
@@ -133,7 +133,7 @@ This example maps one existing file to Resource
 The selected root is the `project` directory. No file outside that
 directory is read.
 
-To save the JSON block below, use UTF-8, two-space indentation, LF line
+To save the following JSON block, use UTF-8, two-space indentation, LF line
 endings and one final newline. The size and digest values describe those
 exact bytes. After changing the document, recalculate its size and digest
 in the Version's document descriptor inside `registry.json`.
@@ -147,8 +147,8 @@ python -B -m workingdrafts.federation.tools.generate_examples file --example wal
 
 The generator writes the unchanged document, an inline `registry.json` and
 a `.gitattributes` file that disables text conversion for the document.
-Unlike the listing below, the generated Registry root also contains the
-full captured Core model from the shared source. The `registry.json` listing
+Unlike the `registry.json` listing, the generated Registry root also contains
+the full captured Core model from the shared source. The `registry.json` listing
 omits `model` and retains only `modelsource`, so its size and digest differ
 from the generated root. The [walkthrough tests](tools/test_mapping_examples.py)
 check that removing the model reproduces the listed bytes exactly.
@@ -501,7 +501,7 @@ not supply the base. The `/` character separates components in serialized
 storage names; filesystem bindings translate it to the native separator
 without URI decoding.
 
-Only the entry-point filename is fixed. Directory names, file extensions and
+Only the entry-point filename is fixed. Directory names, file extensions, and
 the correspondence between physical and Registry hierarchies are producer
 choices. The `href` of an external record or index reference identifies the
 complete metadata JSON document at that location. An inline reference has
@@ -511,7 +511,7 @@ format.
 
 Paths MUST be nonempty, normalized root-relative strings with `/` separators.
 They MUST NOT be absolute, contain empty components, `.` or `..` components,
-backslashes, NUL/control characters or surrogate code points. A consumer
+backslashes, NUL/control characters, or surrogate code points. A consumer
 MUST NOT apply URI decoding. It MUST reject percent encodings that could be
 interpreted as separators or parent-path components, such as `%2f`, `%5c`
 and `%2e%2e`, as described in
@@ -719,8 +719,9 @@ Model results MUST preserve `modelbase` when present. Registry metadata
 envelopes retain `snapshot` and available `source` outside `entity`. These
 are capture context, not new Core attributes.
 
-`entity.capabilities` MUST describe access to this snapshot, not copy claims
-of upstream writes or filtering that the selected binding cannot implement.
+`entity.capabilities` MUST describe access to this snapshot, not copy
+upstream declarations of write or filtering capabilities that the selected
+binding cannot implement.
 It MUST include Core's `available` map. The bindings are read-only.
 
 It also carries the [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
@@ -784,7 +785,7 @@ A present zero-byte document is a different case.
 ## Reads and Core Document View
 
 Core's [`doc` flag](../../core/spec.md#doc-flag) defines document-view
-metadata. The `document` operation below instead retrieves domain bytes.
+metadata. The `document` operation instead retrieves domain bytes.
 
 An exact read starts at the Registry record and follows the necessary typed
 collection indexes and selected child records. A Version read MUST NOT
@@ -915,7 +916,7 @@ reference, and every inline descendant by its containing file. Newly
 published states MUST be complete without
 replaying a prior snapshot. Shared content reuse does not relax closure.
 
-Missing indexed objects, invalid kinds, invalid model types and inconsistent
+Missing indexed objects, invalid kinds, invalid model types, and inconsistent
 defaults are `invalid_package`. A requested absent XID is `not_found`.
 Descriptor mismatch is `integrity_error`. Observed mutation during a File
 read or loss of already selected Git objects is `inconsistent_snapshot`.
@@ -933,13 +934,13 @@ or OS aliases.
 
 Consumers MUST enforce selected-root containment before reading bytes.
 
-Dot segments, empty components, backslashes and absolute paths are invalid
+Dot segments, empty components, backslashes, and absolute paths are invalid
 in an `href`. Percent encodings that could be interpreted as separators or
-parent-path components, such as `%2f`, `%5c` and `%2e%2e`, are also rejected.
+parent-path components, such as `%2f`, `%5c`, and `%2e%2e`, are also rejected.
 The reader does not decode an `href` as a URI.
 
 Bindings define access to the selected root and race protection. Consumers
-MUST impose explicit file, byte and traversal limits. Traversal limits cover
+MUST impose explicit file, byte, and traversal limits. Traversal limits cover
 inline nesting depth, counted within each containing file, and the cumulative
 number of decoded metadata objects. Integrity checks do not
 ensure authorized filesystem access or establish publisher trust. Before
@@ -982,8 +983,10 @@ assembly and an OPTIONAL local Git object-store reader. It uses the common
 `FederationError`, XID validation, label selection and Resource type helper.
 It does not fetch repositories or external documents.
 
-Run from the repository root, selecting a new or empty output directory
-outside the checkout:
+These commands generate the `portable` Registry, validate its mapping, and
+read the selected Version's entity and document data. Run them from the
+repository root, selecting a new or empty output directory outside the
+checkout:
 
 ```text
 python -B -m workingdrafts.federation.tools.generate_examples file --example portable --output D:\temp\xregistry-portable
@@ -999,9 +1002,10 @@ how metadata can be added around existing project files without moving or
 changing them. The new generator itself writes only to an empty destination.
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`
-and `collection` return the materialized envelopes above. `document` returns
-`bytes`, including `b""`. `document_descriptor` exposes an external locator
-without fetching it. `reads` exposes storage-file reads so tests can
+and `collection` return the materialized envelopes defined in the Reads and
+Core Document View section. `document` returns `bytes`, including `b""`.
+`document_descriptor` exposes an external locator without fetching it.
+`reads` exposes storage-file reads so tests can
 distinguish full validation from selective retrieval. CLI JSON metadata
 includes this trace outside `entity`, without moving the pointer root.
 
