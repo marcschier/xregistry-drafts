@@ -824,6 +824,93 @@ def test_profile_schema_keeps_empty_base_inventory_valid():
     jsonschema.validate({"references": {}}, PROFILE_SCHEMA)
 
 
+@pytest.mark.parametrize("reference_class", ["thingdescription", "thingmodel"])
+def test_profile_schema_allows_unselected_unknown_bare_classes(reference_class):
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    descriptor["references"]["other"] = {"class": reference_class}
+    jsonschema.validate(descriptor, PROFILE_SCHEMA)
+    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/subjectDescriptor"}
+    jsonschema.validate(descriptor, schema)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://example.com/%ZZ",
+        "https://example.com/<plan>",
+        "https://example.com/plan\n",
+        "https://example.com/plan#fragment",
+        "https://example.com:bad/plan",
+        "https://example.com/a%2",
+        "https://[2001:db8:::1]/plan",
+        "https://example.com/a b",
+    ],
+)
+@pytest.mark.parametrize("definition", ["tdReference", "tmReference"])
+@pytest.mark.parametrize("attribute", ["url", "planurl"])
+def test_wot_reference_schema_rejects_malformed_absolute_urls(
+    url, definition, attribute
+):
+    kind = "thingdescription" if definition == "tdReference" else "thingmodel"
+    reference = {
+        "class": f"https://xregistry.io/classes/{kind}",
+        "url": "https://example.com/td",
+        attribute: url,
+    }
+    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": f"#/$defs/{definition}"}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(reference, schema)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://example.com/a%2Fb?version=1",
+        "https://[2001:db8::1]/plan",
+        "https://[::ffff:192.0.2.1]/plan",
+        "https://[v1.fe80::]/plan",
+        "urn:example:plan",
+        "mailto:person@example.com",
+    ],
+)
+def test_wot_reference_schema_accepts_absolute_fragment_free_urls(url):
+    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/tdReference"}
+    jsonschema.validate(
+        {"class": "https://xregistry.io/classes/thingdescription", "url": url},
+        schema,
+    )
+
+
+def test_direct_subject_descriptor_reference_applies_reference_constraints():
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    descriptor["references"]["other"] = {
+        "class": "schema",
+        "planurl": "https://example.com/plan",
+    }
+    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/subjectDescriptor"}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(descriptor, schema)
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        PROFILE_SCHEMA,
+        {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/subjectDescriptor"},
+    ],
+    ids=["profile-root", "subject-descriptor"],
+)
+@pytest.mark.parametrize("planurl", ["https://example.com/%ZZ", "https://example.com/#fragment"])
+def test_reference_map_rejects_malformed_plan_urls(schema, planurl):
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    descriptor["references"]["other"] = {
+        "class": "https://xregistry.io/classes/thingdescription",
+        "planurl": planurl,
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(descriptor, schema)
+
+
 @pytest.mark.parametrize(
     ("reference_class", "planurl"),
     [
