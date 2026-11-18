@@ -1735,7 +1735,7 @@ Omitting `affordanceselector` from this example describes the whole Thing
 selected by `thingref`. Whole-subject annotations then remain at Descriptor
 level rather than being placed in a selector with an empty pointer.
 
-The [attribute model fragment](descriptor-profile.model.json) declares
+The [attribute model fragment](descriptor-profile.attributes.json) declares
 `thingref` and `affordanceselector` for a Descriptor Resource's Version
 attributes. It does not add fields to WoT Registry Resources. Deployments
 extend the selector with their typed affordance annotations. The

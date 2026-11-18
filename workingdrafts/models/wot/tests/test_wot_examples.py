@@ -934,7 +934,7 @@ def test_subject_attribute_model_fragment_uses_core_definitions():
     core_schema = json.loads(
         (ROOT.parents[2] / "core" / "model.schema.json").read_bytes()
     )
-    fragment = json.loads((ROOT / "descriptor-profile.model.json").read_bytes())
+    fragment = json.loads((ROOT / "descriptor-profile.attributes.json").read_bytes())
     jsonschema.Draft7Validator(
         {**core_schema, "$ref": "#/definitions/AttributeDefinitions"}
     ).validate(fragment)

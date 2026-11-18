@@ -18,7 +18,7 @@ the result. This profile defines the TD and TM URI class identifiers, and
 [`thingref`](spec.md#664-subject-descriptors) selects a Thing, with OPTIONAL
 `affordanceselector` selecting and annotating one affordance, without
 supplying processing metadata. The
-[attribute model fragment](descriptor-profile.model.json) and
+[attribute model fragment](descriptor-profile.attributes.json) and
 [profile schema fragment](schemas/descriptor-profile.schema.json) describe
 its fields alongside the generic Descriptor model; they do not change the
 WoT Registry's [model](model.json).
