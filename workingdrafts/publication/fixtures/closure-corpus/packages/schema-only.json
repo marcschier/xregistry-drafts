@@ -1,0 +1,82 @@
+{
+  "format": "xregistry-publication-package/1",
+  "context": {
+    "format": "xregistry-open/1",
+    "scope": "urn:example:closure-corpus",
+    "snapshot": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/10eb07796cc6714fd14bbb9423584e4a990fc07a787aae3f9ea6c72d5f1391f7/versions/manifest"
+      },
+      "digest": "sha256:10eb07796cc6714fd14bbb9423584e4a990fc07a787aae3f9ea6c72d5f1391f7",
+      "size": 2423
+    },
+    "registry": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-schema-only/versions/content"
+      },
+      "digest": "sha256:cb7b9fb953c826e244c0d5a7dd1e472c500f2e1afa79daa592ea4bbd80807ef8",
+      "size": 1147
+    },
+    "completeness": "offline-complete"
+  },
+  "objects": [
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/10eb07796cc6714fd14bbb9423584e4a990fc07a787aae3f9ea6c72d5f1391f7/versions/manifest"
+      },
+      "path": "manifests/schema-only.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-schema-only/versions/content"
+      },
+      "path": "registries/schema-only.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/address/versions/1.0.0"
+      },
+      "path": "documents/schemas/address.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/common/versions/2.1.0"
+      },
+      "path": "documents/schemas/common.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/schema-schema-only/versions/content"
+      },
+      "path": "descriptors/schema/schema-only.json"
+    }
+  ]
+}

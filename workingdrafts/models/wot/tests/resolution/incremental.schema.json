@@ -1,0 +1,487 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/xregistry/wot/incremental-vectors.schema.json",
+  "title": "WoT Registry Incremental profile vectors",
+  "type": "object",
+  "minProperties": 1,
+  "patternProperties": {
+    "^i[0-9]{3}-[a-z0-9]+(?:-[a-z0-9]+)*$": {
+      "$ref": "#/$defs/case"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "version": {
+      "type": "object",
+      "properties": {
+        "versionid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "versionorigin": {
+          "enum": [
+            "authored",
+            "generated"
+          ]
+        },
+        "contentdigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "compatibilityline": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "versionid",
+        "versionorigin",
+        "contentdigest"
+      ],
+      "additionalProperties": false
+    },
+    "resource": {
+      "type": "object",
+      "properties": {
+        "wotid": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "tm",
+            "td"
+          ]
+        },
+        "defaultversionsticky": {
+          "type": "boolean"
+        },
+        "defaultversionid": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "highwatermark": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/version"
+          }
+        }
+      },
+      "required": [
+        "wotid",
+        "kind",
+        "defaultversionsticky",
+        "defaultversionid",
+        "versions"
+      ],
+      "additionalProperties": false
+    },
+    "reference": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "extends",
+            "submodel",
+            "ref",
+            "type",
+            "td-extends",
+            "td-subthing",
+            "td-ref"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "requirements": {
+          "type": "object",
+          "properties": {
+            "uav:compatibilityLine": {
+              "type": "string"
+            },
+            "uav:minVersion": {
+              "type": "string"
+            },
+            "tm:minVersion": {
+              "type": "string"
+            },
+            "td:minVersion": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "requirements"
+      ],
+      "additionalProperties": false
+    },
+    "tuple": {
+      "type": "object",
+      "properties": {
+        "wotid": {
+          "type": "string"
+        },
+        "versionid": {
+          "type": "string"
+        },
+        "contentdigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "versionprofile": {
+          "enum": [
+            "semver",
+            "incremental"
+          ]
+        },
+        "compatibilityline": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "wotid",
+        "versionid",
+        "contentdigest",
+        "versionprofile"
+      ],
+      "additionalProperties": false
+    },
+    "expect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "result": {
+              "$ref": "#/$defs/tuple"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "assigned": {
+              "type": "object",
+              "properties": {
+                "versionid": {
+                  "type": "string"
+                },
+                "versionorigin": {
+                  "enum": [
+                    "authored",
+                    "generated"
+                  ]
+                },
+                "ancestorid": {
+                  "type": "string"
+                },
+                "highwatermark": {
+                  "type": "string"
+                },
+                "compatibilityline": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "versionid",
+                "versionorigin",
+                "ancestorid",
+                "highwatermark"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "assigned"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "updated": {
+              "type": "object",
+              "properties": {
+                "versionid": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "versionid"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "updated"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "enum": [
+                "not-found",
+                "pin-mismatch",
+                "unsatisfied",
+                "ambiguous-floor",
+                "invalid-floor",
+                "version-mismatch",
+                "invalid-version",
+                "unknown-profile",
+                "invalid-line",
+                "compatibility-required",
+                "closure-incomplete",
+                "inconsistent-publication"
+              ]
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "case": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile": {
+          "enum": [
+            "semver",
+            "incremental",
+            "unknown"
+          ]
+        },
+        "operation": {
+          "enum": [
+            "live",
+            "replay",
+            "compose",
+            "local",
+            "publish",
+            "update"
+          ]
+        },
+        "registry": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resource"
+          }
+        },
+        "reference": {
+          "$ref": "#/$defs/reference"
+        },
+        "pin": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "digest": {
+                  "$ref": "#/$defs/digest"
+                }
+              },
+              "required": [
+                "digest"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "versionid": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "versionid"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "binding": {
+          "type": "object",
+          "properties": {
+            "versionid": {
+              "type": "string"
+            },
+            "contentdigest": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "required": [
+            "versionid",
+            "contentdigest"
+          ],
+          "additionalProperties": false
+        },
+        "document": {
+          "type": "object",
+          "properties": {
+            "versionid": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "versionid"
+          ],
+          "additionalProperties": false
+        },
+        "publish": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "versionid": {
+              "type": "string"
+            },
+            "ancestorid": {
+              "type": "string"
+            },
+            "rootLine": {
+              "type": "string"
+            },
+            "metadataLine": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "target"
+          ],
+          "additionalProperties": false
+        },
+        "update": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "type": "string"
+            },
+            "versionid": {
+              "type": "string"
+            },
+            "compatibilityline": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "target",
+            "versionid"
+          ],
+          "additionalProperties": false
+        },
+        "expect": {
+          "$ref": "#/$defs/expect"
+        }
+      },
+      "required": [
+        "description",
+        "profile",
+        "operation",
+        "registry",
+        "expect"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "live",
+                  "replay",
+                  "compose",
+                  "local"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reference"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "replay"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pin"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "local"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "document"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "publish"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "publish"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "update"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "update"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

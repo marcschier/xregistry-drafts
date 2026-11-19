@@ -1,0 +1,182 @@
+{
+  "format": "xregistry-publication-package/1",
+  "context": {
+    "format": "xregistry-open/1",
+    "scope": "urn:example:closure-corpus",
+    "snapshot": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/bd2fc09e3bd1a854cd89cd18a4b0a9379a4d471af4e3a5293e8192ef690153c3/versions/manifest"
+      },
+      "digest": "sha256:bd2fc09e3bd1a854cd89cd18a4b0a9379a4d471af4e3a5293e8192ef690153c3",
+      "size": 8671
+    },
+    "registry": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-semver-two-versions/versions/content"
+      },
+      "digest": "sha256:e197ae3b474183793dbd8c222b4ecb82dd25bc7419a3454bd843a42e68a6e892",
+      "size": 4931
+    },
+    "completeness": "offline-complete"
+  },
+  "objects": [
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/bd2fc09e3bd1a854cd89cd18a4b0a9379a4d471af4e3a5293e8192ef690153c3/versions/manifest"
+      },
+      "path": "manifests/two-versions.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-semver-two-versions/versions/content"
+      },
+      "path": "registries/semver-two-versions.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/pump/versions/1.3.0"
+      },
+      "path": "documents/models/pump-1-3-0.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0"
+      },
+      "path": "documents/things/pump-7.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0"
+      },
+      "path": "documents/things/pump-template.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+      },
+      "path": "documents/models/pump.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0"
+      },
+      "path": "documents/models/base.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/address/versions/1.0.0"
+      },
+      "path": "documents/schemas/address.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/common/versions/2.1.0"
+      },
+      "path": "documents/schemas/common.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/contextgroups/acme/contexts/pump/versions/1.0.0"
+      },
+      "path": "documents/contexts/pump.jsonld"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0"
+      },
+      "path": "documents/nodesets/pump.xml"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/composite-semver/versions/content"
+      },
+      "path": "descriptors/composite/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/wot-semver/versions/content"
+      },
+      "path": "descriptors/wot/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/schema-semver/versions/content"
+      },
+      "path": "descriptors/schema/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/opcua-semver/versions/content"
+      },
+      "path": "descriptors/opcua/semver.json"
+    }
+  ]
+}

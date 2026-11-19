@@ -1,0 +1,1838 @@
+{
+  "i001-line-highest-at-floor": {
+    "description": "Select the highest revision on the required line at or above the floor, skipping a higher revision on another line.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "42"
+      }
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "44",
+        "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i002-sticky-default-other-line": {
+    "description": "A sticky default on another line fails instead of falling back to the required line.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": true,
+        "defaultversionid": "43",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "42"
+      }
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i003-sticky-default-on-line": {
+    "description": "Honor a sticky default on the required line despite a newer revision on that line.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": true,
+        "defaultversionid": "41",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "41",
+        "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i004-sticky-default-below-floor": {
+    "description": "A sticky default on the required line but below the floor fails.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": true,
+        "defaultversionid": "41",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "42"
+      }
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i005-floor-without-line": {
+    "description": "A floor without a compatibility line does not select an Incremental target.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:minVersion": "42"
+      }
+    },
+    "expect": {
+      "error": "compatibility-required"
+    }
+  },
+  "i006-no-requirement": {
+    "description": "An unpinned reference to an Incremental target needs a compatibility line.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {}
+    },
+    "expect": {
+      "error": "compatibility-required"
+    }
+  },
+  "i007-legacy-floor-on-incremental-target": {
+    "description": "A SemVer floor term on a reference to an Incremental target is rejected.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "tm:minVersion": "1.0.0"
+      }
+    },
+    "expect": {
+      "error": "invalid-floor"
+    }
+  },
+  "i008-noncanonical-floor": {
+    "description": "An Incremental floor with a leading zero is not a canonical revision.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "042"
+      }
+    },
+    "expect": {
+      "error": "invalid-version"
+    }
+  },
+  "i009-relative-line": {
+    "description": "A compatibility line that is not an absolute IRI is rejected.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "line-a"
+      }
+    },
+    "expect": {
+      "error": "invalid-line"
+    }
+  },
+  "i010-unknown-profile": {
+    "description": "A target whose profile is not known from trusted metadata is not resolved.",
+    "profile": "unknown",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "expect": {
+      "error": "unknown-profile"
+    }
+  },
+  "i011-no-revision-on-line": {
+    "description": "No revision on the required line fails without trying another line.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-c"
+      }
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i012-lineless-revision-excluded": {
+    "description": "A Version without a line is not eligible for live selection.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "45",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "45",
+            "versionorigin": "generated",
+            "contentdigest": "sha256:4545454545454545454545454545454545454545454545454545454545454545"
+          }
+        ],
+        "highwatermark": "45"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "41",
+        "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i013-generated-revision-satisfies-floor": {
+    "description": "A generated revision is an ordinary revision and satisfies a floor.",
+    "profile": "incremental",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "42",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "42",
+            "versionorigin": "generated",
+            "contentdigest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "42"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "42"
+      }
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "42",
+        "contentdigest": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i014-semver-uav-floor": {
+    "description": "On a SemVer target, uav:minVersion replaces tm:minVersion with the same meaning.",
+    "profile": "semver",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model:v1",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "1.4.0",
+        "versions": [
+          {
+            "versionid": "1.2.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1212121212121212121212121212121212121212121212121212121212121212"
+          },
+          {
+            "versionid": "1.4.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+          }
+        ]
+      }
+    ],
+    "reference": {
+      "kind": "extends",
+      "target": "urn:example:pump-model:v1",
+      "requirements": {
+        "uav:minVersion": "1.3.0"
+      }
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model:v1",
+        "versionid": "1.4.0",
+        "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "versionprofile": "semver"
+      }
+    }
+  },
+  "i015-semver-uav-beside-legacy-floor": {
+    "description": "uav:minVersion beside tm:minVersion is rejected even when the values agree.",
+    "profile": "semver",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model:v1",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "1.4.0",
+        "versions": [
+          {
+            "versionid": "1.2.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1212121212121212121212121212121212121212121212121212121212121212"
+          },
+          {
+            "versionid": "1.4.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+          }
+        ]
+      }
+    ],
+    "reference": {
+      "kind": "extends",
+      "target": "urn:example:pump-model:v1",
+      "requirements": {
+        "uav:minVersion": "1.3.0",
+        "tm:minVersion": "1.3.0"
+      }
+    },
+    "expect": {
+      "error": "invalid-floor"
+    }
+  },
+  "i016-semver-target-with-line": {
+    "description": "A compatibility line on a reference to a SemVer target is rejected.",
+    "profile": "semver",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model:v1",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "1.4.0",
+        "versions": [
+          {
+            "versionid": "1.2.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1212121212121212121212121212121212121212121212121212121212121212"
+          },
+          {
+            "versionid": "1.4.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+          }
+        ]
+      }
+    ],
+    "reference": {
+      "kind": "extends",
+      "target": "urn:example:pump-model:v1",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "expect": {
+      "error": "invalid-line"
+    }
+  },
+  "i017-semver-td-uav-floor-major-cap": {
+    "description": "On a SemVer TD target, uav:minVersion acts as td:minVersion and keeps the major cap.",
+    "profile": "semver",
+    "operation": "live",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-base",
+        "kind": "td",
+        "defaultversionsticky": false,
+        "defaultversionid": "2.0.0",
+        "versions": [
+          {
+            "versionid": "1.4.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+          },
+          {
+            "versionid": "2.0.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:2020202020202020202020202020202020202020202020202020202020202020"
+          }
+        ]
+      }
+    ],
+    "reference": {
+      "kind": "td-extends",
+      "target": "urn:example:pump-base",
+      "requirements": {
+        "uav:minVersion": "1.2.0"
+      }
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-base",
+        "versionid": "1.4.0",
+        "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+        "versionprofile": "semver"
+      }
+    }
+  },
+  "i020-replay-digest-duplicate-highest": {
+    "description": "Raw exact replay of duplicate bytes returns the highest revision and checks no requirement.",
+    "profile": "incremental",
+    "operation": "replay",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:0101010101010101010101010101010101010101010101010101010101010101",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:0101010101010101010101010101010101010101010101010101010101010101",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "pin": {
+      "digest": "sha256:0101010101010101010101010101010101010101010101010101010101010101"
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "44",
+        "contentdigest": "sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-b"
+      }
+    }
+  },
+  "i021-replay-versionid-other-line": {
+    "description": "Raw exact replay returns the pinned Version even when it is on another line.",
+    "profile": "incremental",
+    "operation": "replay",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "pin": {
+      "versionid": "43"
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "43",
+        "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-b"
+      }
+    }
+  },
+  "i022-compose-bound-lower-revision": {
+    "description": "Snapshot-bound composition uses the bound revision, not the newest one on the line.",
+    "profile": "incremental",
+    "operation": "compose",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "40"
+      }
+    },
+    "binding": {
+      "versionid": "41",
+      "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141"
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "41",
+        "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i023-compose-bound-other-line": {
+    "description": "A binding to another line fails the requirement check and does not fall back.",
+    "profile": "incremental",
+    "operation": "compose",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "binding": {
+      "versionid": "43",
+      "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343"
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i024-compose-missing-binding": {
+    "description": "A required reference without a binding leaves the closure incomplete.",
+    "profile": "incremental",
+    "operation": "compose",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "expect": {
+      "error": "closure-incomplete"
+    }
+  },
+  "i025-compose-bound-below-floor": {
+    "description": "A bound revision below the floor fails the requirement check.",
+    "profile": "incremental",
+    "operation": "compose",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "42"
+      }
+    },
+    "binding": {
+      "versionid": "41",
+      "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141"
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i026-compose-binding-digest-mismatch": {
+    "description": "A binding whose digest differs from the captured Version leaves the closure incomplete.",
+    "profile": "incremental",
+    "operation": "compose",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "type",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "binding": {
+      "versionid": "44",
+      "contentdigest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "expect": {
+      "error": "closure-incomplete"
+    }
+  },
+  "i030-local-containing-revision": {
+    "description": "A local reference checks the containing revision and line, not a newer revision.",
+    "profile": "incremental",
+    "operation": "local",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "ref",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "40"
+      }
+    },
+    "document": {
+      "versionid": "41"
+    },
+    "expect": {
+      "result": {
+        "wotid": "urn:example:pump-model",
+        "versionid": "41",
+        "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+        "versionprofile": "incremental",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i031-local-below-floor": {
+    "description": "A local reference fails when the containing revision is below its floor.",
+    "profile": "incremental",
+    "operation": "local",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "reference": {
+      "kind": "ref",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a",
+        "uav:minVersion": "42"
+      }
+    },
+    "document": {
+      "versionid": "41"
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i032-local-lineless-containing-revision": {
+    "description": "A local reference fails when the containing revision has no line.",
+    "profile": "incremental",
+    "operation": "local",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "45",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "45",
+            "versionorigin": "generated",
+            "contentdigest": "sha256:4545454545454545454545454545454545454545454545454545454545454545"
+          }
+        ],
+        "highwatermark": "45"
+      }
+    ],
+    "reference": {
+      "kind": "ref",
+      "target": "urn:example:pump-model",
+      "requirements": {
+        "uav:compatibilityLine": "urn:example:pump-model:line-a"
+      }
+    },
+    "document": {
+      "versionid": "45"
+    },
+    "expect": {
+      "error": "unsatisfied"
+    }
+  },
+  "i040-publish-authored-above-mark": {
+    "description": "An authored canonical revision above the high-water mark becomes the versionid.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "version": "50",
+      "rootLine": "urn:example:pump-model:line-a",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "assigned": {
+        "versionid": "50",
+        "versionorigin": "authored",
+        "ancestorid": "44",
+        "highwatermark": "50",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i041-publish-authored-at-mark": {
+    "description": "An authored revision at the high-water mark is rejected.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "version": "44",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "error": "version-mismatch"
+    }
+  },
+  "i042-publish-semver-string-generated": {
+    "description": "A SemVer authored value is not interpreted; the registry assigns the next integer.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "version": "1.2.0",
+      "metadataLine": "urn:example:pump-model:line-b",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "assigned": {
+        "versionid": "45",
+        "versionorigin": "generated",
+        "ancestorid": "44",
+        "highwatermark": "45",
+        "compatibilityline": "urn:example:pump-model:line-b"
+      }
+    }
+  },
+  "i043-publish-mark-survives-deletion": {
+    "description": "Deleted revisions are not reused; the ancestor is the highest existing revision.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "41",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "assigned": {
+        "versionid": "45",
+        "versionorigin": "generated",
+        "ancestorid": "41",
+        "highwatermark": "45"
+      }
+    }
+  },
+  "i044-publish-first-revision": {
+    "description": "The first revision is 1 and is its own ancestor.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": null,
+        "versions": [],
+        "highwatermark": "0"
+      }
+    ],
+    "publish": {
+      "metadataLine": "urn:example:pump-model:line-a",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "assigned": {
+        "versionid": "1",
+        "versionorigin": "generated",
+        "ancestorid": "1",
+        "highwatermark": "1",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i045-publish-line-conflict": {
+    "description": "Root line and creation metadata that disagree are rejected.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "rootLine": "urn:example:pump-model:line-a",
+      "metadataLine": "urn:example:pump-model:line-b",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "error": "inconsistent-publication"
+    }
+  },
+  "i046-publish-supplied-versionid-mismatch": {
+    "description": "A supplied versionid that differs from the assignment is rejected.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "versionid": "46",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "error": "version-mismatch"
+    }
+  },
+  "i047-publish-supplied-versionid-noncanonical": {
+    "description": "A supplied versionid with a leading zero is rejected.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "versionid": "045",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "error": "invalid-version"
+    }
+  },
+  "i048-publish-root-line-in-semver-registry": {
+    "description": "A root compatibility line in a SemVer registry is rejected.",
+    "profile": "semver",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model:v1",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "1.4.0",
+        "versions": [
+          {
+            "versionid": "1.2.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1212121212121212121212121212121212121212121212121212121212121212"
+          },
+          {
+            "versionid": "1.4.0",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+          }
+        ]
+      }
+    ],
+    "publish": {
+      "version": "1.5.0",
+      "rootLine": "urn:example:pump-model:line-a",
+      "target": "urn:example:pump-model:v1"
+    },
+    "expect": {
+      "error": "invalid-line"
+    }
+  },
+  "i049-publish-relative-line": {
+    "description": "A root line that is not an absolute IRI is rejected.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "rootLine": "line-a",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "error": "invalid-line"
+    }
+  },
+  "i050-publish-ancestor-mismatch": {
+    "description": "A supplied ancestorid other than the highest existing revision is rejected.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "ancestorid": "41",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "error": "version-mismatch"
+    }
+  },
+  "i051-publish-matching-lines": {
+    "description": "Equal root and metadata lines are recorded once.",
+    "profile": "incremental",
+    "operation": "publish",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "publish": {
+      "rootLine": "urn:example:pump-model:line-a",
+      "metadataLine": "urn:example:pump-model:line-a",
+      "target": "urn:example:pump-model"
+    },
+    "expect": {
+      "assigned": {
+        "versionid": "45",
+        "versionorigin": "generated",
+        "ancestorid": "44",
+        "highwatermark": "45",
+        "compatibilityline": "urn:example:pump-model:line-a"
+      }
+    }
+  },
+  "i060-update-changes-line": {
+    "description": "A request that changes a Version's line is rejected.",
+    "profile": "incremental",
+    "operation": "update",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "update": {
+      "target": "urn:example:pump-model",
+      "versionid": "41",
+      "compatibilityline": "urn:example:pump-model:line-b"
+    },
+    "expect": {
+      "error": "inconsistent-publication"
+    }
+  },
+  "i061-update-adds-line": {
+    "description": "A line cannot be added to a Version created without one.",
+    "profile": "incremental",
+    "operation": "update",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "45",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "45",
+            "versionorigin": "generated",
+            "contentdigest": "sha256:4545454545454545454545454545454545454545454545454545454545454545"
+          }
+        ],
+        "highwatermark": "45"
+      }
+    ],
+    "update": {
+      "target": "urn:example:pump-model",
+      "versionid": "45",
+      "compatibilityline": "urn:example:pump-model:line-a"
+    },
+    "expect": {
+      "error": "inconsistent-publication"
+    }
+  },
+  "i062-update-keeps-line": {
+    "description": "Repeating the existing line is accepted.",
+    "profile": "incremental",
+    "operation": "update",
+    "registry": [
+      {
+        "wotid": "urn:example:pump-model",
+        "kind": "tm",
+        "defaultversionsticky": false,
+        "defaultversionid": "44",
+        "versions": [
+          {
+            "versionid": "41",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4141414141414141414141414141414141414141414141414141414141414141",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          },
+          {
+            "versionid": "43",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4343434343434343434343434343434343434343434343434343434343434343",
+            "compatibilityline": "urn:example:pump-model:line-b"
+          },
+          {
+            "versionid": "44",
+            "versionorigin": "authored",
+            "contentdigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "compatibilityline": "urn:example:pump-model:line-a"
+          }
+        ],
+        "highwatermark": "44"
+      }
+    ],
+    "update": {
+      "target": "urn:example:pump-model",
+      "versionid": "41",
+      "compatibilityline": "urn:example:pump-model:line-a"
+    },
+    "expect": {
+      "updated": {
+        "versionid": "41"
+      }
+    }
+  }
+}

@@ -36,6 +36,12 @@ jobs:
         run: python -B -m workingdrafts.federation.tools.generate_examples validate
       - name: Exercise generated bindings and WoT examples
         run: python -B -m pytest workingdrafts/bindings/tools workingdrafts/federation/tools workingdrafts/models/wot/tests tools/test_samples.py -q
+      - name: Check the closure fixture corpus bytes
+        run: python -B -m workingdrafts.publication.tools.build_closure_corpus --check
+      - name: Run the closure reference checker over the corpus
+        run: python -B -m workingdrafts.publication.tools.closure_checker
+      - name: Exercise publication closure and generated schemas
+        run: python -B -m pytest workingdrafts/publication/tools workingdrafts/tools/test_generated_schemas.py -q
 
   oci-roundtrip:
     name: OCI Distribution round trip

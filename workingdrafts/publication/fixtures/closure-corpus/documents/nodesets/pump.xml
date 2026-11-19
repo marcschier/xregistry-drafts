@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>urn:example:pump</Uri>
+  </NamespaceUris>
+</UANodeSet>

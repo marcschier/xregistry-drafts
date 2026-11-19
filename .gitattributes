@@ -4,5 +4,6 @@
 workingdrafts/federation/samples/examples.json text eol=lf
 workingdrafts/publication/samples/*.json text eol=lf
 workingdrafts/publication/samples/*.txt text eol=lf
+workingdrafts/publication/fixtures/closure-corpus/** -text
 workingdrafts/models/wot/tests/resolution/* text eol=lf
 workingdrafts/models/media-endpoints/sources/*.source.json -text

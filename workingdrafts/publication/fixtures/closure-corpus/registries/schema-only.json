@@ -1,0 +1,51 @@
+{
+  "specversion": "1.0",
+  "registryid": "closure-corpus",
+  "model": {
+    "groups": {
+      "schemagroups": {
+        "singular": "schemagroup",
+        "resources": {
+          "schemas": {
+            "singular": "schema",
+            "hasdocument": true,
+            "versionmode": "manual"
+          }
+        }
+      }
+    }
+  },
+  "schemagroups": {
+    "acme": {
+      "schemagroupid": "acme",
+      "schemas": {
+        "address": {
+          "schemaid": "address",
+          "meta": {
+            "defaultversionid": "1.0.0"
+          },
+          "versions": {
+            "1.0.0": {
+              "versionid": "1.0.0",
+              "format": "JsonSchema/draft/2020-12",
+              "contenttype": "application/schema+json"
+            }
+          }
+        },
+        "common": {
+          "schemaid": "common",
+          "meta": {
+            "defaultversionid": "2.1.0"
+          },
+          "versions": {
+            "2.1.0": {
+              "versionid": "2.1.0",
+              "format": "JsonSchema/draft/2020-12",
+              "contenttype": "application/schema+json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

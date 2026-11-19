@@ -1,0 +1,313 @@
+{
+  "format": "xregistry-closure-corpus-cases/1-experimental",
+  "handlers": [
+    "urn:example:opcua-materialization"
+  ],
+  "cases": {
+    "complete": {
+      "description": "Composite closure with WoT, schema and materialization members.",
+      "package": "packages/complete.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/contextgroups/acme/contexts/pump/versions/1.0.0",
+          "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+          "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+          "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+        ]
+      }
+    },
+    "without-materialization": {
+      "description": "The composite does not select materialization; the captured NodeSet is not reached.",
+      "package": "packages/without-materialization.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/contextgroups/acme/contexts/pump/versions/1.0.0",
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+          "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+          "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+        ]
+      }
+    },
+    "reformatted": {
+      "description": "Whitespace-only changes produce other digests and the same closure.",
+      "package": "packages/reformatted.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/contextgroups/acme/contexts/pump/versions/1.0.0",
+          "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+          "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+          "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+        ]
+      }
+    },
+    "describedby-mandatory": {
+      "description": "The composite makes describedby to a JSON Schema a required schema occurrence.",
+      "package": "packages/describedby-mandatory.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/contextgroups/acme/contexts/pump/versions/1.0.0",
+          "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+          "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+          "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+        ]
+      }
+    },
+    "incremental": {
+      "description": "Incremental profile with lines, revision floors and a generated revision.",
+      "package": "packages/incremental.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/contextgroups/acme/contexts/pump/versions/1.0.0",
+          "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2",
+          "/thingmodelgroups/acme/thingmodels/base/versions/2",
+          "/thingmodelgroups/acme/thingmodels/pump/versions/4"
+        ]
+      }
+    },
+    "two-versions": {
+      "description": "The snapshot holds two Thing Model Versions; the binding selects 1.4.0.",
+      "package": "packages/two-versions.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/contextgroups/acme/contexts/pump/versions/1.0.0",
+          "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+          "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+          "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+          "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+        ]
+      }
+    },
+    "bound-below-model": {
+      "description": "The binding selects 1.3.0, below the TD's version.model floor of 1.4.0.",
+      "package": "packages/bound-below-model.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "unsatisfied"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "schema-only": {
+      "description": "A standalone schema closure from one JSON Schema entry.",
+      "package": "packages/schema-only.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "complete"
+        },
+        "runtime": "not-established",
+        "reached": [
+          "/schemagroups/acme/schemas/address/versions/1.0.0",
+          "/schemagroups/acme/schemas/common/versions/2.1.0"
+        ]
+      }
+    },
+    "dynamic-reference": {
+      "description": "A reached schema uses $dynamicRef.",
+      "package": "packages/dynamic-reference.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "unsupported-dynamic-reference"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "ambiguous-identity": {
+      "description": "Two captured schemas declare the same $id under different bases.",
+      "package": "packages/ambiguous-identity.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "ambiguous-identity"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "missing-bytes": {
+      "description": "The package maps a captured document to a missing file.",
+      "package": "packages/missing-bytes.json",
+      "expect": {
+        "error": "unavailable"
+      }
+    },
+    "integrity": {
+      "description": "The package maps a captured document to other bytes.",
+      "package": "packages/integrity.json",
+      "expect": {
+        "error": "integrity_error"
+      }
+    },
+    "linked-missing-target": {
+      "description": "A linked snapshot omits a reached schema.",
+      "package": "packages/linked-missing-target.json",
+      "expect": {
+        "package": "linked",
+        "domain": {
+          "result": "incomplete",
+          "code": "missing-target"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "unknown-required-extension": {
+      "description": "The manifest requires an unknown extension.",
+      "package": "packages/unknown-required-extension.json",
+      "expect": {
+        "error": "unsupported_operation"
+      }
+    },
+    "conflicting-ownership": {
+      "description": "The WoT member also binds a tm:ref to a JSON Schema, which the schema member owns.",
+      "package": "packages/conflicting-ownership.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "conflicting-ownership"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "contradictory-binding": {
+      "description": "A WoT binding names another operator for a link.",
+      "package": "packages/contradictory-binding.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "contradictory-binding"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "missing-binding": {
+      "description": "The schema member omits the edge that closes a cycle.",
+      "package": "packages/missing-binding.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "missing-binding"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "literal-bound": {
+      "description": "The schema member binds a $ref inside an examples value.",
+      "package": "packages/literal-bound.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "unexpected-binding"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "live-context": {
+      "description": "A JSON-LD context is neither captured nor declared immutable.",
+      "package": "packages/live-context.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "live-context-required"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "integer-ids-without-profile": {
+      "description": "Integer Version IDs in a Registry without wotversionprofile stay SemVer.",
+      "package": "packages/integer-ids-without-profile.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "profile-mismatch"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "td-major-cap": {
+      "description": "A td:minVersion of 1.0.0 excludes the bound template 2.1.0.",
+      "package": "packages/td-major-cap.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "unsatisfied"
+        },
+        "runtime": "not-established"
+      }
+    },
+    "generated-floor": {
+      "description": "A generated 0.0.0-1 Version does not satisfy a floor.",
+      "package": "packages/generated-floor.json",
+      "expect": {
+        "package": "offline-complete",
+        "domain": {
+          "result": "incomplete",
+          "code": "unsatisfied"
+        },
+        "runtime": "not-established"
+      }
+    }
+  }
+}
