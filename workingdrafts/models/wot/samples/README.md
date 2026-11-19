@@ -5,7 +5,7 @@
 <!-- words: cloudevents wotversion wotdigest topology percent affordances standalone -->
 <!-- words: thingref affordanceselector quantitykind describedby marcschier descriptorgroups -->
 <!-- words: descriptorid thingdescription thingdescriptions -->
-<!-- words: assetinfo -->
+<!-- words: lampmodel modelref schemaref thingmodel -->
 
 [registry.json](registry.json) illustrates document identity, compatible
 Versions and provenance metadata using the [WoT Registry model](../model.json).
@@ -81,26 +81,22 @@ a composed TD or that an event version proves content integrity.
 [subject-descriptor.json](subject-descriptor.json) describes the same lamp
 event affordance using the
 [Subject Descriptor profile](../spec.md#664-subject-descriptors). Core
-bookkeeping is omitted. Its `thingref` selects the exact local TD Reference
-name in `references.thingdescription`;
-`affordanceselector.pointer` is a nonempty JSON Pointer string, without a
-leading `#`, selecting one event affordance.
+bookkeeping is omitted. `data.wot.subject.thingref` selects the exact name
+in `references.thingdescription`; its `affordanceselector` is a nonempty
+JSON Pointer string selecting one event affordance, without a leading `#`.
 This example's deployment defines `quantitykind` as an absolute-URI string
 identifying the measured quantity. It is an annotation, not authorization
-or a universal WoT vocabulary. It appears inside `affordanceselector`
-because it annotates the affordance. Omitting that object describes the whole
-Thing, with whole-subject metadata such as `description` at Descriptor level:
+or a universal WoT vocabulary. It appears beside the subject's selector.
+Omitting the selector describes the whole Thing; subject annotations then
+describe that Thing:
 
 ```json
 {
   "descriptorid": "lamp-42",
   "versionid": "1",
-  "thingref": "lamp42",
   "description": "Lamp on the factory floor",
   "data": {
-    "com.example.assetinfo": {
-      "location": "factory-floor"
-    }
+    "wot": {"subject": {"thingref": "lamp42"}}
   },
   "references": {
     "thingdescription": {
@@ -112,24 +108,8 @@ Thing, with whole-subject metadata such as `description` at Descriptor level:
 }
 ```
 
-For this example, the deployment defines `com.example.assetinfo` as an
-object with a string `location` describing the whole Thing. This is not a
-standard WoT data type.
-
-The third event in `cloudevents.json` uses the Subject Descriptor route and
-selects that Descriptor at an exact Version URL without a fragment:
-
-```json
-{
-  "specversion": "1.0",
-  "id": "lamp-42-overheated-3",
-  "source": "urn:fabrikam:actor:telemetry-service",
-  "type": "com.fabrikam.lamp.overheated.v1",
-  "subject": "https://example.com/descriptorgroups/subjects/descriptors/lamp-42-temperature/versions/1",
-  "datacontenttype": "application/json",
-  "data": {"temperature": 87}
-}
-```
+The third event in `cloudevents.json` selects the Subject Descriptor at an
+exact Version URL without a fragment; the event envelope is unchanged.
 
 The agreed URL binding identifies that exact Descriptor Version; spelling
 `versions` in a URL alone does not establish Version identity. The Subject
@@ -137,13 +117,13 @@ Descriptor selects `/events/overheated` in the lamp TD at Version `1.0.0`.
 The Consumer does not retrieve the source or use Subject Descriptor schemas
 as processing inputs. Here the event and agreed payload contract supply the
 remaining inputs. The [CloudEvents review](https://github.com/cloudevents/spec/pull/1406)
-aligns the binding with these fields and type-keyed `references` and `data`;
+aligns the binding with `data.wot.subject` and `data.wot.event`;
 the pinned draft uses an earlier representation.
 
 If the event also supplies `describedby`, that Processing Descriptor remains
 authoritative and MUST contain exactly one TD Reference with the same URL.
 Zero matches or duplicate URLs fail correlation even though
-`thingref` selects a unique local entry in the Subject
+`data.wot.subject.thingref` selects a unique local entry in the Subject
 Descriptor. Only `references.thingdescription` participates in that URL
 match. Reference names are unique across all type buckets. The Consumer
 does not merge missing processing inputs from the
@@ -151,8 +131,8 @@ Subject Descriptor or retry another route.
 
 The fourth event demonstrates this explicit `describedby` case. Its direct
 TD subject URL matches the Descriptor's `lamp42` Reference exactly. This
-Descriptor is selected for processing; its `affordanceselector` does not replace the
-event's direct TD pointer.
+Descriptor is selected for processing; its `data.wot.subject` selector
+does not replace the event's direct TD pointer.
 
 The fifth event uses that same Descriptor Version URL as `source`, omits
 `describedby` and selects `lamp42#/events/overheated`. The agreed
@@ -160,14 +140,35 @@ source-Descriptor binding selects it as the Processing Descriptor. This
 example intentionally identifies the Descriptor as the originating context;
 it has a different source-plus-id identity scope from the actor-source
 examples. The named subject selects the TD Reference, not the Descriptor's
-`affordanceselector`. The agreed payload contract supplies the processing inputs
-needed by these examples; they do not need an external payload schema.
+`data.wot.subject` selector. The agreed payload contract supplies the
+processing inputs; these examples need no external payload schema.
 
 Inline profile metadata belongs in `data.<type>`, with its shape defined by
 that type's profile.
-`affordanceselector.quantitykind` annotates the affordance; a profile that
-defines whole-Thing inline metadata places it in a Descriptor-level data
-bucket instead. Neither Reference records nor data values need a `class`
-member to repeat their bucket type.
+`data.wot.subject.quantitykind` annotates the subject, not a selector object.
+Independent `data.wot.event` binds a full event type to a TM Reference:
+
+```json
+{
+  "data": {
+    "wot": {
+      "event": {
+        "type": "com.fabrikam.lamp.overheated.v1",
+        "modelref": "lampmodel",
+        "affordanceselector": "/events/overheated"
+      }
+    }
+  },
+  "references": {
+    "thingmodel": {"lampmodel": {"url": "https://example.com/tm/lamp/versions/1.0.0"}}
+  }
+}
+```
+
+Core bookkeeping is omitted. The TM declares that event. When this
+Descriptor is selected for processing, CE defines the exact type check;
+the profile then resolves `modelref` and its OPTIONAL declaration selector.
+Presence alone does not trigger a TM fetch. Subject and event objects can
+occur separately or together; neither changes `data.schema.schemaref`.
 
 [CloudEvents WoT]: https://github.com/marcschier/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/wot.md

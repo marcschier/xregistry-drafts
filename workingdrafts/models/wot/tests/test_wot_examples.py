@@ -616,8 +616,8 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         assert event["subject"] == descriptor_url
         assert "describedby" not in event
         assert event["source"] == "urn:fabrikam:actor:telemetry-service"
-        assert SUBJECT_DESCRIPTOR["thingref"] == "lamp42"
-        pointer = SUBJECT_DESCRIPTOR["affordanceselector"]["pointer"]
+        assert SUBJECT_DESCRIPTOR["data"]["wot"]["subject"]["thingref"] == "lamp42"
+        pointer = SUBJECT_DESCRIPTOR["data"]["wot"]["subject"]["affordanceselector"]
     elif index == 3:
         assert event["describedby"] == descriptor_url
         assert event["source"] == "urn:fabrikam:actor:telemetry-service"
@@ -652,9 +652,9 @@ def test_subject_descriptor_sample_selects_lamp_affordance():
     jsonschema.Draft202012Validator.check_schema(PROFILE_SCHEMA)
     schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
     jsonschema.validate(SUBJECT_DESCRIPTOR, schema)
-    selector = SUBJECT_DESCRIPTOR["affordanceselector"]
+    subject = SUBJECT_DESCRIPTOR["data"]["wot"]["subject"]
     reference = SUBJECT_DESCRIPTOR["references"]["thingdescription"][
-        SUBJECT_DESCRIPTOR["thingref"]
+        subject["thingref"]
     ]
     jsonschema.validate(
         reference, {**PROFILE_SCHEMA, "$ref": "#/$defs/wotReference"}
@@ -666,7 +666,7 @@ def test_subject_descriptor_sample_selects_lamp_affordance():
     td = resource["thingdescription"]
     selected = _select_sample_subject(SUBJECT_DESCRIPTOR, td)
     assert selected is td["events"]["overheated"]
-    assert selector["quantitykind"] == "https://example.com/quantities/temperature"
+    assert subject["quantitykind"] == "https://example.com/quantities/temperature"
     assert "quantitykind" not in SUBJECT_DESCRIPTOR
 
 
@@ -681,30 +681,35 @@ def _validate_sample_descriptor(descriptor):
 
 def _select_sample_subject(descriptor, td):
     _validate_sample_descriptor(descriptor)
-    descriptor["references"]["thingdescription"][descriptor["thingref"]]
-    if "affordanceselector" not in descriptor:
-        return td
-    category, name = descriptor["affordanceselector"]["pointer"].split("/")[1:]
+    subject = descriptor["data"]["wot"]["subject"]
+    descriptor["references"]["thingdescription"][subject["thingref"]]
+    return _select_affordance(subject, td)
+
+
+def _select_affordance(binding, document):
+    if "affordanceselector" not in binding:
+        return document
+    category, name = binding["affordanceselector"].split("/")[1:]
     name = name.replace("~1", "/").replace("~0", "~")
-    return td[category][name]
+    return document[category][name]
 
 
 def test_omitted_affordance_selector_selects_whole_thing_with_descriptor_metadata():
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    del descriptor["affordanceselector"]
-    descriptor["description"] = "The whole lamp"
-    descriptor["data"] = {"com.example.assetinfo": {"location": "factory-floor"}}
+    subject = descriptor["data"]["wot"]["subject"]
+    del subject["affordanceselector"]
+    subject["description"] = "The whole lamp"
     td = {"title": "Lamp"}
     assert _select_sample_subject(descriptor, td) is td
-    assert descriptor["description"] == "The whole lamp"
-    assert descriptor["data"]["com.example.assetinfo"]["location"] == "factory-floor"
-    assert "quantitykind" not in descriptor
+    assert subject["description"] == "The whole lamp"
+    assert subject["quantitykind"] == "https://example.com/quantities/temperature"
 
 
-def test_pointer_outside_affordance_selector_does_not_select_an_affordance():
+def test_pointer_annotation_is_not_a_selector_alias():
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    del descriptor["affordanceselector"]
-    descriptor["pointer"] = "/events/overheated"
+    subject = descriptor["data"]["wot"]["subject"]
+    del subject["affordanceselector"]
+    subject["pointer"] = "/events/overheated"
     td = {"events": {"overheated": {}}}
     assert _select_sample_subject(descriptor, td) is td
 
@@ -715,60 +720,57 @@ def test_pointer_outside_affordance_selector_does_not_select_an_affordance():
      "/properties/a%2Fb"],
 )
 def test_subject_pointer_schema_accepts_string_form(pointer):
-    schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/affordanceSelector"}
-    jsonschema.validate({"pointer": pointer}, schema)
+    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/affordanceSelector"}
+    jsonschema.validate(pointer, schema)
 
 
 @pytest.mark.parametrize(
     "pointer",
-    [None, 0, "", "/", "#", "#/events/overheated", "events/alarm",
+    [None, 0, {}, {"pointer": "/events/overheated"}, "", "/", "#", "#/events/overheated", "events/alarm",
      "/events", "/events/", "/events/a~2b", "/events/a~",
      "/events/overheated/data", "/title", "/links/0"],
 )
 def test_subject_pointer_schema_rejects_non_string_or_fragment_form(pointer):
-    schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/affordanceSelector"}
+    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/affordanceSelector"}
     with pytest.raises(jsonschema.ValidationError):
-        jsonschema.validate({"pointer": pointer}, schema)
+        jsonschema.validate(pointer, schema)
 
 
-@pytest.mark.parametrize("member", ["thingref", "pointer"])
+@pytest.mark.parametrize("member", ["data", "wot", "subject", "thingref"])
 def test_subject_descriptor_schema_requires_selector_members(member):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    if member == "thingref":
-        del descriptor[member]
-    else:
-        del descriptor["affordanceselector"][member]
+    parent = {"data": descriptor, "wot": descriptor["data"],
+              "subject": descriptor["data"]["wot"],
+              "thingref": descriptor["data"]["wot"]["subject"]}[member]
+    del parent[member]
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(
             descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
         )
 
 
-@pytest.mark.parametrize("member", ["thingref", "affordanceselector", "pointer"])
+@pytest.mark.parametrize("member", ["wot", "subject", "thingref", "affordanceselector"])
 def test_subject_descriptor_schema_rejects_null_selector_members(member):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    if member in {"thingref", "affordanceselector"}:
-        descriptor[member] = None
-    else:
-        descriptor["affordanceselector"][member] = None
+    parent = {"wot": descriptor["data"], "subject": descriptor["data"]["wot"],
+              "thingref": descriptor["data"]["wot"]["subject"],
+              "affordanceselector": descriptor["data"]["wot"]["subject"]}[member]
+    parent[member] = None
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(
             descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
         )
 
 
-def test_old_wotsubject_is_rejected_only_for_subject_admission():
-    descriptor = {"references": {}, "wotsubject": {"reference": "lamp42", "pointer": ""}}
-    jsonschema.validate(descriptor, PROFILE_SCHEMA)
+@pytest.mark.parametrize("member", ["thingref", "affordanceselector", "wotsubject"])
+@pytest.mark.parametrize("definition", [None, "subjectDescriptor"])
+def test_top_level_wot_fields_are_not_aliases(member, definition):
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    descriptor[member] = "lamp42"
+    schema = PROFILE_SCHEMA if definition is None else {
+        "$defs": PROFILE_SCHEMA["$defs"], "$ref": f"#/$defs/{definition}"}
     with pytest.raises(jsonschema.ValidationError):
-        jsonschema.validate(
-            descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
-        )
-    descriptor["thingref"] = "lamp42"
-    with pytest.raises(jsonschema.ValidationError):
-        jsonschema.validate(
-            descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
-        )
+        jsonschema.validate(descriptor, schema)
 
 
 @pytest.mark.parametrize(
@@ -778,7 +780,7 @@ def test_old_wotsubject_is_rejected_only_for_subject_admission():
 )
 def test_affordance_pointer_decodes_tokens_but_not_percent(pointer, expected):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["affordanceselector"]["pointer"] = pointer
+    descriptor["data"]["wot"]["subject"]["affordanceselector"] = pointer
     td = {"properties": {"a/b": "slash", "a%2Fb": "percent", "a~b": "tilde"}}
     assert _select_sample_subject(descriptor, td) == expected
 
@@ -792,7 +794,7 @@ def test_affordance_pointer_requires_existing_member():
 @pytest.mark.parametrize("kind", ["properties", "actions", "events"])
 def test_affordance_selector_selects_one_member_of_each_kind(kind):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["affordanceselector"]["pointer"] = f"/{kind}/target"
+    descriptor["data"]["wot"]["subject"]["affordanceselector"] = f"/{kind}/target"
     target = {"title": "Selected affordance"}
     td = {kind: {"target": target, "other": {}}}
     assert _select_sample_subject(descriptor, td) is target
@@ -801,7 +803,7 @@ def test_affordance_selector_selects_one_member_of_each_kind(kind):
 @pytest.mark.parametrize("thingref", ["absent", None])
 def test_subject_thingref_requires_exact_existing_reference(thingref):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["thingref"] = thingref
+    descriptor["data"]["wot"]["subject"]["thingref"] = thingref
     with pytest.raises((KeyError, jsonschema.ValidationError)):
         _select_sample_subject(descriptor, {})
 
@@ -811,6 +813,65 @@ def test_subject_thingref_cannot_select_a_thingmodel():
     descriptor["references"]["thingmodel"] = descriptor["references"].pop("thingdescription")
     with pytest.raises(KeyError):
         _select_sample_subject(descriptor, {})
+
+
+@pytest.mark.parametrize("members", [[], ["subject"], ["event"], ["subject", "event"]])
+def test_wot_subject_and_event_are_independently_optional(members):
+    subject = deepcopy(SUBJECT_DESCRIPTOR["data"]["wot"]["subject"])
+    event = {"type": "com.fabrikam.lamp.overheated.v1", "modelref": "lampmodel"}
+    descriptor = {"references": {}, "data": {
+        "wot": {key: {"subject": subject, "event": event}[key] for key in members},
+        "schema": {"schemaref": "payload"}}}
+    jsonschema.validate(descriptor, PROFILE_SCHEMA)
+    assert descriptor["data"]["schema"] == {"schemaref": "payload"}
+    if "subject" not in members:
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(descriptor, {
+                "$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/subjectDescriptor"})
+
+
+@pytest.mark.parametrize("member", ["type", "modelref"])
+@pytest.mark.parametrize("value", [None, "", 3])
+def test_present_event_requires_typed_nonempty_contract_and_modelref(member, value):
+    event = {"type": "com.example.event.v1", "modelref": "model"}
+    event[member] = value
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"data": {"wot": {"event": event}}}, PROFILE_SCHEMA)
+    del event[member]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"data": {"wot": {"event": event}}}, PROFILE_SCHEMA)
+
+
+@pytest.mark.parametrize("event", [None, "", [], {"type": "com.example.event.v1"}])
+def test_event_shape_is_validated_without_processing_selection(event):
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"data": {"wot": {"event": event}}}, PROFILE_SCHEMA)
+
+
+@pytest.mark.parametrize("selector", [None, "", "#/events/alarm", "/", "/events", "/events/alarm/data", {"pointer": "/events/alarm"}])
+def test_event_selector_rejects_empty_fragment_nested_and_object_forms(selector):
+    event = {"type": "com.example.event.v1", "modelref": "model", "affordanceselector": selector}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"data": {"wot": {"event": event}}}, PROFILE_SCHEMA)
+
+
+def test_event_modelref_and_selector_use_only_named_tm_declaration():
+    event = {"type": "com.example.event.v1", "modelref": "lampmodel",
+             "affordanceselector": "/events/a~1b", "description": "TM declaration"}
+    descriptor = {"references": {"thingmodel": {
+        "lampmodel": {"url": "https://example.com/tm/lamp"}}},
+        "data": {"wot": {"event": event}}}
+    jsonschema.validate(descriptor, PROFILE_SCHEMA)
+    assert descriptor["references"]["thingmodel"][event["modelref"]]["url"].endswith("/tm/lamp")
+    target = {"title": "Alarm"}; tm = {"events": {"a/b": target}}
+    assert _select_affordance(event, tm) is target
+    with pytest.raises(KeyError):
+        _select_affordance(event, {"events": {}})
+    del event["affordanceselector"]
+    assert _select_affordance(event, tm) is tm
+    descriptor["references"]["thingdescription"] = descriptor["references"].pop("thingmodel")
+    with pytest.raises(KeyError):
+        descriptor["references"]["thingmodel"][event["modelref"]]
 
 
 @pytest.mark.parametrize("kind", ["thingdescription", "thingmodel"])

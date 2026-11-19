@@ -1,16 +1,22 @@
 {
-  "thingref": {
-    "type": "string",
-    "description": "Required for a Subject Descriptor: exact globally unique Reference name in references.thingdescription. Reference records have no class attribute."
-  },
-  "affordanceselector": {
+  "wot": {
     "type": "object",
-    "description": "Optional selection of one existing TD property, action or event affordance. Omission selects the whole Thing. Additional typed annotations are defined by the applicable profile.",
+    "description": "WoT data bucket; subject and event are independently optional.",
     "attributes": {
-      "pointer": {
-        "type": "string",
-        "required": true,
-        "description": "Nonempty RFC 6901 JSON Pointer string selecting exactly one existing property, action or event affordance in the ordinary resolved TD. URI-fragment and percent decoding do not apply."
+      "subject": {
+        "type": "object",
+        "attributes": {
+          "thingref": {"type": "string", "required": true},
+          "affordanceselector": {"type": "string"}
+        }
+      },
+      "event": {
+        "type": "object",
+        "attributes": {
+          "type": {"type": "string", "required": true},
+          "modelref": {"type": "string", "required": true},
+          "affordanceselector": {"type": "string"}
+        }
       }
     }
   }

@@ -1,16 +1,11 @@
 {
   "descriptorid": "lamp-42-temperature",
   "versionid": "1",
-  "thingref": "lamp42",
-  "affordanceselector": {
-    "pointer": "/events/overheated",
+  "data": {"wot": {"subject": {
+    "thingref": "lamp42", "affordanceselector": "/events/overheated",
     "quantitykind": "https://example.com/quantities/temperature"
-  },
-  "references": {
-    "thingdescription": {
-      "lamp42": {
-        "url": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
-      }
-    }
-  }
+  }}},
+  "references": {"thingdescription": {"lamp42": {
+    "url": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
+  }}}
 }

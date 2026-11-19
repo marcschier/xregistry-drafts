@@ -17,20 +17,20 @@ when a deployment selects it. TD and TM References identify resolved
 documents; OPTIONAL `planurl` records projection provenance without replacing
 the result. This profile defines the `thingdescription` and `thingmodel`
 Reference type buckets, and
-[`thingref`](spec.md#664-subject-descriptors) selects a Thing, with OPTIONAL
-`affordanceselector` selecting and annotating one affordance, without
-supplying processing metadata. The
+[`data.wot.subject`](spec.md#664-subject-descriptors) selects a Thing or
+affordance; independent `data.wot.event` names an event contract and TM.
+String selectors have profile-defined annotation siblings. The
 [attribute model fragment](descriptor-profile.attributes.json) and
 [profile schema fragment](schemas/descriptor-profile.schema.json) describe
 its fields alongside the generic Descriptor model; they do not change the
 WoT Registry's [model](model.json).
 
-The [CloudEvents WoT extension draft][CloudEvents WoT]
+[CloudEvents WoT][CloudEvents WoT]
 owns event routing and subject syntax. Its direct TD route does not require a
 Descriptor. The [current CloudEvents review](https://github.com/cloudevents/spec/pull/1406)
-aligns the Subject Descriptor route and type-keyed `references` and `data`
+aligns routes and `data.wot.subject` / `data.wot.event`
 with this profile; the pinned draft uses an earlier representation.
-These drafts are not released specifications.
+These are not released specifications.
 
 The [publication companion][Publication] defines dependency binding and set
 publication using the [generic publication contract](../../publication/spec.md).

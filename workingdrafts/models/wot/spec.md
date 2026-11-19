@@ -17,6 +17,7 @@
 <!-- words: wotversion wotdigest topology percent dereferenceable -->
 <!-- words: vn -->
 <!-- words: planurl entityid wotsubject thingref affordanceselector quantitykind processData subjectDescriptor -->
+<!-- words: modelref pumpmodel schemaref subobjects -->
 
 ## Abstract
 
@@ -1560,9 +1561,9 @@ rules. A Context Descriptor can reference several Things and supply schemas
 and other shared inputs needed by its processing profile. Inline metadata
 is grouped in `data` by its profile-defined type key. Each defining profile
 specifies the value's shape and semantics. Whole-Thing metadata can use
-such a Descriptor-level data bucket; affordance annotations remain inside
-`affordanceselector`. This WoT profile defines no universal inline metadata
-bucket. These specializations use the same Descriptor Resource shape.
+such a Descriptor-level data bucket. WoT subject and event metadata use
+`data.wot`, as defined below. These specializations use the same Descriptor
+Resource shape.
 
 #### 6.6.2. Thing Description Selection
 
@@ -1641,133 +1642,103 @@ defined by the projection format's profile.
 
 #### 6.6.4. Subject Descriptors
 
-A Subject Descriptor identifies a Thing through a named TD Reference and
-optionally selects one of its affordances. It can carry typed annotations
-about that subject without changing the TD. It uses the generic Descriptor Resource
-shape; it is not a new Resource type or an implicit Processing Descriptor.
-The CloudEvents WoT extension defines recognition of a fragment-free
-Descriptor Version URL in `subject`, independently of its direct TD
-URL-with-fragment form.
+This profile defines the `data.wot` object with independently OPTIONAL
+`subject` and `event` objects. `subject` describes a Thing or affordance;
+`event` describes an event contract and its model declaration. Either,
+both or neither MAY occur. When present, these objects MUST NOT be `null`.
+The common CloudEvents `describedby` contract owns processing selection and
+its failure boundary. The CloudEvents WoT extension owns event `type`
+matching, derivation and `source`/`subject` interpretation.
 
-##### `thingref` Attribute
+| Member | Type | Constraints |
+| --- | --- | --- |
+| `data.wot.subject.thingref` | String | REQUIRED exact Reference name in `references.thingdescription`. |
+| `data.wot.subject.affordanceselector` | String | OPTIONAL pointer to one affordance in that TD; omission selects the whole Thing. |
+| `data.wot.event.type` | String | REQUIRED nonempty full CloudEvent type, including its contract revision. |
+| `data.wot.event.modelref` | String | REQUIRED exact Reference name in `references.thingmodel`. |
+| `data.wot.event.affordanceselector` | String | OPTIONAL pointer to one affordance declaration in that TM; omission selects no individual declaration. |
 
-- Type: String
-- Description: The local TD Reference selecting the described Thing.
+Reference names MUST be compared exactly within their specified buckets.
+A missing name or a name found only in another bucket is invalid. A selected
+subject Reference MUST identify an ordinary resolved TD, not a TM or another
+Subject Descriptor. A selected event Reference MUST identify an ordinary
+resolved TM. Event and subject model selection are independent; matching
+affordance names do not establish declaration lineage.
 
-- Constraints:
-  - REQUIRED when a Descriptor serves as a Subject Descriptor. It MUST name
-    an existing entry of this Descriptor's `references.thingdescription`
-    bucket, compared
-    exactly. A missing or `null` value is invalid.
-  - A name found only in another type bucket does not select a TD. Other
-    entries MAY exist; they do not participate in this selection.
-  - The Consumer MUST obtain the selected ordinary resolved TD. A Thing
-    Model or another Subject Descriptor MUST NOT substitute for the TD.
+Both `affordanceselector` values MUST be nonempty RFC 6901 JSON Pointer
+strings containing exactly two tokens: `properties`, `actions` or `events`,
+then the name of one existing appropriate affordance in the selected document.
+Tokens use `~0` and `~1` escaping. A `null`, empty, fragment-form, root,
+collection, nested-member or non-affordance selector is invalid. Consumers
+MUST NOT percent-decode selectors or remove a leading `#`. A selector object
+containing `pointer` is not an alternative to the string.
 
-##### `affordanceselector` Attribute
+Additional members of `subject` or `event` MUST have types and semantics
+defined by the applicable profile. They annotate that object's selected
+subject or event, beside `affordanceselector`, not inside it. In this
+section's example, the deployment defines `quantitykind` as an absolute-URI
+string describing the subject's measured quantity. It is not a universal
+annotation vocabulary. Without a subject selector, subject annotations
+describe the whole Thing. Annotation omission and `null` handling follow
+the defining profile and Core writes, not CloudEvents attribute decoding.
+Annotations MUST NOT authenticate an entity, authorize an operation or
+replace processing inputs.
 
-- Type: Object
-- Description: Selects one affordance of the Thing identified by `thingref`,
-  with any affordance annotations defined by the applicable profile.
+The top-level `thingref`, `affordanceselector` and `wotsubject` shapes are
+not accepted as aliases for this profile. `data.schema.schemaref` is
+independent of both WoT subobjects and follows its defining profile.
 
-- Constraints:
-  - OPTIONAL. Omission selects the whole Thing. When present, the object
-    MUST contain a nonempty string `pointer`. A `null` object, missing
-    pointer, `null` pointer or empty pointer is invalid.
-  - `pointer` MUST be an RFC 6901 JSON Pointer in string form. It MUST
-    consist of two tokens: `properties`, `actions` or `events`, followed
-    by the name of one existing affordance. Tokens use `~0` and `~1` for
-    escaping. A root, collection, nested member or non-affordance pointer
-    is invalid. The pointer is not a URI fragment.
-    The Consumer MUST NOT percent-decode the stored pointer or remove a
-    leading `#`.
-  - The Consumer MUST obtain the selected ordinary resolved TD and apply
-    the pointer to that document. The pointer MUST identify exactly one
-    affordance appropriate to the operation. Invalid syntax, an absent
-    value or an inappropriate target MUST cause a reported correlation
-    failure. A Thing Model MUST NOT substitute for the TD.
-  - Additional `affordanceselector` attributes MUST have types and semantics
-    defined by the applicable profile. They annotate the selected affordance;
-    this specification defines no universal annotation vocabulary or
-    arbitrary annotation map. An annotation MUST NOT authenticate an
-    entity, authorize an operation or replace processing inputs.
-    Annotation omission and `null` handling follow the defining profile
-    and Core's Descriptor write rules, not CloudEvents context-attribute
-    decoding.
+The CloudEvents WoT extension defines how a fragment-free Descriptor Version
+URL selects the subject role. That role requires `data.wot.subject`. For
+its route with explicit `describedby`, the selected subject TD URL MUST
+equal exactly one `references.thingdescription` URL in the Processing
+Descriptor, byte-for-byte. Missing or duplicate matches fail correlation;
+URI normalization, redirects or entity identity MUST NOT repair a mismatch.
+The same URL can serve both roles, independently evaluated with retrieval
+reuse under the same representation and authorization context.
 
-Metadata describing the whole subject remains at Descriptor level, including
-profile-defined inline metadata in `data`, when `affordanceselector` is
-absent. Affordance annotations belong beside
-`pointer` inside `affordanceselector`; their defining profile determines
-their types and scope. The `wotsubject` shape is not accepted for the subject
-role. This profile does not otherwise restrict generic Descriptor extension
-attributes.
+Presence of `event` requires its structural validation but does not by
+itself require retrieving the TM. When used in the selected Processing
+Descriptor, the
+CloudEvents WoT extension defines the exact full-type comparison with the
+event before using its named TM and OPTIONAL model-affordance selector.
+Subject selection alone does not supply these processing inputs. The
+Producer MUST preserve the selected representations and processing-significant
+WoT metadata under Descriptor Version and publication-stability rules;
+a changed published subject or event contract requires a new Version.
 
-CloudEvents defines the common `describedby` contract, including decoding,
-Processing Descriptor selection, input isolation and the failure boundary.
-The CloudEvents WoT extension defines `source` and `subject` interpretation.
-For its Subject Descriptor route with an explicit `describedby`, before
-accepting the subject result, the Consumer MUST require exactly one TD
-Reference in the Processing Descriptor's `references.thingdescription`
-bucket whose `url` equals the Subject
-Descriptor's selected TD `url`
-byte-for-byte. Missing or duplicate matches MUST cause a reported correlation
-failure. URI normalization, redirects, TD identity or equal `entityid`
-values MUST NOT repair a mismatch.
-
-Subject selection supplies the Thing or affordance and its annotations.
-Processing inputs follow the CloudEvents contract and applicable native
-metadata profile. When the same Descriptor URL is explicitly selected for
-both roles, each role is evaluated independently, including the exact-one
-TD URL match; a retrieval can be reused under the same representation and
-authorization context.
-
-The Producer MUST preserve the selected TD representation, selector and
-processing-significant annotations for the intended processing and replay
-period under the Descriptor Registry's Version and publication-stability
-rules. A changed subject selection or processing-significant annotation
-requires a new published Subject Descriptor Version.
-
-For example, the following Subject Descriptor excerpt selects a property.
-Core bookkeeping is omitted. In this example, the deployment defines
-`quantitykind` as an absolute-URI string identifying the measured quantity;
-it is not a generic Descriptor or universal WoT annotation.
+This excerpt omits Core bookkeeping:
 
 ```json
 {
-  "thingref": "pump7",
-  "affordanceselector": {
-    "pointer": "/properties/pressure",
-    "quantitykind": "https://example.com/quantities/pressure"
-  },
-  "references": {
-    "thingdescription": {
-      "pump7": {
-        "url": "https://example.com/td/pump7/versions/3"
+  "data": {
+    "wot": {
+      "subject": {
+        "thingref": "pump7",
+        "affordanceselector": "/properties/pressure",
+        "quantitykind": "https://example.com/quantities/pressure"
+      },
+      "event": {
+        "type": "com.example.pump.pressure.v1",
+        "modelref": "pumpmodel",
+        "affordanceselector": "/properties/pressure"
       }
     }
+  },
+  "references": {
+    "thingdescription": {"pump7": {"url": "https://example.com/td/pump7"}},
+    "thingmodel": {"pumpmodel": {"url": "https://example.com/tm/pump"}}
   }
 }
 ```
 
-Omitting `affordanceselector` from this example describes the whole Thing
-selected by `thingref`. Whole-subject annotations then remain at Descriptor
-level rather than being placed in a selector with an empty pointer.
-
-The [attribute model fragment](descriptor-profile.attributes.json) declares
-`thingref` and `affordanceselector` for a Descriptor Resource's Version
-attributes. It does not add fields to WoT Registry Resources. Deployments
-extend the selector with their typed affordance annotations. The
-conditional presence, selector relation and pointer rules above remain
-normative.
-
-The [profile schema fragment](schemas/descriptor-profile.schema.json)
-describes the profile's fields, not the generic Descriptor model. Its
-`subjectDescriptor` definition requires `thingref`. The schema does not
-validate global Reference-name uniqueness, selector relations, TD content,
-pointer existence, inline data or annotation
-semantics or cross-Descriptor correlation. Consumers MUST perform those
-checks in addition to structural validation.
+The [attribute fragment](descriptor-profile.attributes.json) describes the
+`wot` data bucket, not new Core fields. The
+[schema fragment](schemas/descriptor-profile.schema.json) validates shape;
+its `subjectDescriptor` definition requires `data.wot.subject`. Global
+Reference-name uniqueness, bucket relations, document validity, pointer
+existence and annotation semantics require additional validation. Consumers
+MUST apply those checks as well as the CloudEvents extension's role rules.
 
 ## 7. Security
 
