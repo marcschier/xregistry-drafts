@@ -5,6 +5,7 @@
 <!-- words: cloudevents wotversion wotdigest topology percent affordances standalone -->
 <!-- words: thingref affordanceselector quantitykind describedby marcschier descriptorgroups -->
 <!-- words: descriptorid thingdescription thingdescriptions -->
+<!-- words: assetinfo -->
 
 [registry.json](registry.json) illustrates document identity, compatible
 Versions and provenance metadata using the [WoT Registry model](../model.json).
@@ -80,7 +81,8 @@ a composed TD or that an event version proves content integrity.
 [subject-descriptor.json](subject-descriptor.json) describes the same lamp
 event affordance using the
 [Subject Descriptor profile](../spec.md#664-subject-descriptors). Core
-bookkeeping is omitted. Its `thingref` selects the exact local TD Reference;
+bookkeeping is omitted. Its `thingref` selects the exact local TD Reference
+name in `references.thingdescription`;
 `affordanceselector.pointer` is a nonempty JSON Pointer string, without a
 leading `#`, selecting one event affordance.
 This example's deployment defines `quantitykind` as an absolute-URI string
@@ -95,14 +97,24 @@ Thing, with whole-subject metadata such as `description` at Descriptor level:
   "versionid": "1",
   "thingref": "lamp42",
   "description": "Lamp on the factory floor",
+  "data": {
+    "com.example.assetinfo": {
+      "location": "factory-floor"
+    }
+  },
   "references": {
-    "lamp42": {
-      "class": "https://xregistry.io/classes/thingdescription",
-      "url": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
+    "thingdescription": {
+      "lamp42": {
+        "url": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
+      }
     }
   }
 }
 ```
+
+For this example, the deployment defines `com.example.assetinfo` as an
+object with a string `location` describing the whole Thing. This is not a
+standard WoT data type.
 
 The third event in `cloudevents.json` uses the Subject Descriptor route and
 selects that Descriptor at an exact Version URL without a fragment:
@@ -125,14 +137,16 @@ Descriptor selects `/events/overheated` in the lamp TD at Version `1.0.0`.
 The Consumer does not retrieve the source or use Subject Descriptor schemas
 as processing inputs. Here the event and agreed payload contract supply the
 remaining inputs. The [CloudEvents review](https://github.com/cloudevents/spec/pull/1406)
-aligns the binding with these fields; the pinned draft uses the earlier
-selector shape.
+aligns the binding with these fields and type-keyed `references` and `data`;
+the pinned draft uses an earlier representation.
 
 If the event also supplies `describedby`, that Processing Descriptor remains
 authoritative and MUST contain exactly one TD Reference with the same URL.
 Zero matches or duplicate URLs fail correlation even though
 `thingref` selects a unique local entry in the Subject
-Descriptor. The Consumer does not merge missing processing inputs from the
+Descriptor. Only `references.thingdescription` participates in that URL
+match. Reference names are unique across all type buckets. The Consumer
+does not merge missing processing inputs from the
 Subject Descriptor or retry another route.
 
 The fourth event demonstrates this explicit `describedby` case. Its direct
@@ -148,5 +162,12 @@ it has a different source-plus-id identity scope from the actor-source
 examples. The named subject selects the TD Reference, not the Descriptor's
 `affordanceselector`. The agreed payload contract supplies the processing inputs
 needed by these examples; they do not need an external payload schema.
+
+Inline profile metadata belongs in `data.<type>`, with its shape defined by
+that type's profile.
+`affordanceselector.quantitykind` annotates the affordance; a profile that
+defines whole-Thing inline metadata places it in a Descriptor-level data
+bucket instead. Neither Reference records nor data values need a `class`
+member to repeat their bucket type.
 
 [CloudEvents WoT]: https://github.com/marcschier/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/wot.md

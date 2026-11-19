@@ -609,7 +609,7 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         "https://example.com/descriptorgroups/subjects/descriptors/"
         "lamp-42-temperature/versions/1"
     )
-    reference = SUBJECT_DESCRIPTOR["references"]["lamp42"]
+    reference = SUBJECT_DESCRIPTOR["references"]["thingdescription"]["lamp42"]
     assert event["id"] == f"lamp-42-overheated-{index + 1}"
     assert event["type"] == events[0]["type"]
     if index == 2:
@@ -624,9 +624,8 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         url, delimiter, pointer = event["subject"].partition("#")
         assert delimiter == "#"
         matches = [
-            item for item in SUBJECT_DESCRIPTOR["references"].values()
-            if item["class"] == "https://xregistry.io/classes/thingdescription"
-            and item["url"] == url
+            item for item in SUBJECT_DESCRIPTOR["references"]["thingdescription"].values()
+            if item["url"] == url
         ]
         assert matches == [reference]
     else:
@@ -634,9 +633,9 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         assert "describedby" not in event
         name, delimiter, pointer = event["subject"].partition("#")
         assert delimiter == "#"
-        assert SUBJECT_DESCRIPTOR["references"][name] is reference
+        assert SUBJECT_DESCRIPTOR["references"]["thingdescription"][name] is reference
     assert pointer == "/events/overheated"
-    assert reference["class"] == "https://xregistry.io/classes/thingdescription"
+    assert "class" not in reference
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
     path = urlsplit(reference["url"]).path.split("/")
     resource = registry[path[1]][path[2]][path[3]][path[4]]
@@ -654,9 +653,11 @@ def test_subject_descriptor_sample_selects_lamp_affordance():
     schema = {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
     jsonschema.validate(SUBJECT_DESCRIPTOR, schema)
     selector = SUBJECT_DESCRIPTOR["affordanceselector"]
-    reference = SUBJECT_DESCRIPTOR["references"][SUBJECT_DESCRIPTOR["thingref"]]
+    reference = SUBJECT_DESCRIPTOR["references"]["thingdescription"][
+        SUBJECT_DESCRIPTOR["thingref"]
+    ]
     jsonschema.validate(
-        reference, {**PROFILE_SCHEMA, "$ref": "#/$defs/tdReference"}
+        reference, {**PROFILE_SCHEMA, "$ref": "#/$defs/wotReference"}
     )
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
     path = urlsplit(reference["url"]).path.split("/")
@@ -669,14 +670,18 @@ def test_subject_descriptor_sample_selects_lamp_affordance():
     assert "quantitykind" not in SUBJECT_DESCRIPTOR
 
 
-def _select_sample_subject(descriptor, td):
+def _validate_sample_descriptor(descriptor):
     jsonschema.validate(
         descriptor, {**PROFILE_SCHEMA, "$ref": "#/$defs/subjectDescriptor"}
     )
-    reference = descriptor["references"][descriptor["thingref"]]
-    jsonschema.validate(
-        reference, {**PROFILE_SCHEMA, "$ref": "#/$defs/tdReference"}
-    )
+    names = [name for bucket in descriptor["references"].values() for name in bucket]
+    if len(names) != len(set(names)):
+        raise ValueError("Reference names must be globally unique.")
+
+
+def _select_sample_subject(descriptor, td):
+    _validate_sample_descriptor(descriptor)
+    descriptor["references"]["thingdescription"][descriptor["thingref"]]
     if "affordanceselector" not in descriptor:
         return td
     category, name = descriptor["affordanceselector"]["pointer"].split("/")[1:]
@@ -688,9 +693,12 @@ def test_omitted_affordance_selector_selects_whole_thing_with_descriptor_metadat
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
     del descriptor["affordanceselector"]
     descriptor["description"] = "The whole lamp"
+    descriptor["data"] = {"com.example.assetinfo": {"location": "factory-floor"}}
     td = {"title": "Lamp"}
     assert _select_sample_subject(descriptor, td) is td
     assert descriptor["description"] == "The whole lamp"
+    assert descriptor["data"]["com.example.assetinfo"]["location"] == "factory-floor"
+    assert "quantitykind" not in descriptor
 
 
 def test_pointer_outside_affordance_selector_does_not_select_an_affordance():
@@ -800,34 +808,104 @@ def test_subject_thingref_requires_exact_existing_reference(thingref):
 
 def test_subject_thingref_cannot_select_a_thingmodel():
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["references"]["lamp42"]["class"] = "https://xregistry.io/classes/thingmodel"
-    with pytest.raises(jsonschema.ValidationError):
+    descriptor["references"]["thingmodel"] = descriptor["references"].pop("thingdescription")
+    with pytest.raises(KeyError):
         _select_sample_subject(descriptor, {})
 
 
 @pytest.mark.parametrize("kind", ["thingdescription", "thingmodel"])
-def test_wot_reference_schema_requires_owned_uri_class(kind):
-    definition = "tdReference" if kind == "thingdescription" else "tmReference"
-    schema = {**PROFILE_SCHEMA, "$ref": f"#/$defs/{definition}"}
+def test_wot_reference_schema_requires_type_bucket_without_class(kind):
     reference = {
-        "class": f"https://xregistry.io/classes/{kind}",
         "url": "https://example.com/wot/versions/1",
         "planurl": "https://example.com/plans/versions/1",
     }
-    jsonschema.validate(reference, schema)
+    descriptor = {"references": {kind: {"result": reference}}}
+    jsonschema.validate(descriptor, PROFILE_SCHEMA)
     reference["class"] = kind
     with pytest.raises(jsonschema.ValidationError):
-        jsonschema.validate(reference, schema)
+        jsonschema.validate(descriptor, PROFILE_SCHEMA)
+
+
+def test_flat_reference_map_is_not_an_alias():
+    descriptor = {
+        "references": {
+            "pump7": {"class": "thingdescription", "url": "https://example.com/td"}
+        }
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(descriptor, PROFILE_SCHEMA)
+
+
+def test_reference_names_must_be_unique_across_type_buckets():
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    descriptor["references"]["thingmodel"] = {
+        "lamp42": {"url": "https://example.com/tm"}
+    }
+    with pytest.raises(ValueError, match="globally unique"):
+        _select_sample_subject(descriptor, {})
+
+
+def test_direct_td_url_matching_uses_only_td_bucket_and_preserves_duplicates():
+    descriptor = deepcopy(SUBJECT_DESCRIPTOR)
+    td_bucket = descriptor["references"]["thingdescription"]
+    url = td_bucket["lamp42"]["url"]
+    descriptor["references"]["thingmodel"] = {"model": {"url": url}}
+    matches = [
+        name for name, reference in td_bucket.items() if reference["url"] == url
+    ]
+    assert matches == ["lamp42"]
+    td_bucket["second"] = {"url": url}
+    matches = [
+        name for name, reference in td_bucket.items() if reference["url"] == url
+    ]
+    assert matches == ["lamp42", "second"]
+    assert not [
+        name for name, reference in td_bucket.items()
+        if reference["url"] == url.replace("example.com", "EXAMPLE.com")
+    ]
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["thingdescription", "com.example.calibration", "com.ex-ample.calibration",
+     "ex-ample.com.calibration", "1example.com.calibration", "a" * 63],
+)
+def test_profile_type_keys_accept_short_and_domain_qualified_names(key):
+    descriptor = {
+        "references": {key: {"record1": {"url": "https://example.com/document"}}},
+        "data": {key: {"value": 1}},
+    }
+    jsonschema.validate(descriptor, PROFILE_SCHEMA)
+
+
+@pytest.mark.parametrize("value", [{"quantity": "temperature"}, ["a", "b"], "metadata", 3, True, None])
+def test_inline_data_shape_is_defined_by_its_profile(value):
+    jsonschema.validate({"references": {}, "data": {"com.example.metadata": value}}, PROFILE_SCHEMA)
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["https://xregistry.io/classes/thingdescription", "ThingDescription",
+     "com..example", "com.example/calibration", "a" * 64,
+     "1short", "short-name", "-example.com", "com.example-"],
+)
+@pytest.mark.parametrize("field", ["references", "data"])
+def test_profile_type_keys_reject_uri_aliases_and_invalid_keys(key, field):
+    value = {"entry1": {"url": "https://example.com/document"}} if field == "references" else {}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({field: {key: value}}, PROFILE_SCHEMA)
 
 
 def test_profile_schema_keeps_empty_base_inventory_valid():
     jsonschema.validate({"references": {}}, PROFILE_SCHEMA)
 
 
-@pytest.mark.parametrize("reference_class", ["thingdescription", "thingmodel"])
-def test_profile_schema_allows_unselected_unknown_bare_classes(reference_class):
+@pytest.mark.parametrize("reference_type", ["schema", "endpoint"])
+def test_profile_schema_allows_unselected_reference_types(reference_type):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["references"]["other"] = {"class": reference_class}
+    descriptor["references"][reference_type] = {
+        "other": {"url": "https://example.com/document"},
+    }
     jsonschema.validate(descriptor, PROFILE_SCHEMA)
     schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/subjectDescriptor"}
     jsonschema.validate(descriptor, schema)
@@ -846,20 +924,15 @@ def test_profile_schema_allows_unselected_unknown_bare_classes(reference_class):
         "https://example.com/a b",
     ],
 )
-@pytest.mark.parametrize("definition", ["tdReference", "tmReference"])
+@pytest.mark.parametrize("reference_type", ["thingdescription", "thingmodel"])
 @pytest.mark.parametrize("attribute", ["url", "planurl"])
 def test_wot_reference_schema_rejects_malformed_absolute_urls(
-    url, definition, attribute
+    url, reference_type, attribute
 ):
-    kind = "thingdescription" if definition == "tdReference" else "thingmodel"
-    reference = {
-        "class": f"https://xregistry.io/classes/{kind}",
-        "url": "https://example.com/td",
-        attribute: url,
-    }
-    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": f"#/$defs/{definition}"}
+    reference = {"url": "https://example.com/document", attribute: url}
+    descriptor = {"references": {reference_type: {"entry": reference}}}
     with pytest.raises(jsonschema.ValidationError):
-        jsonschema.validate(reference, schema)
+        jsonschema.validate(descriptor, PROFILE_SCHEMA)
 
 
 @pytest.mark.parametrize(
@@ -874,18 +947,19 @@ def test_wot_reference_schema_rejects_malformed_absolute_urls(
     ],
 )
 def test_wot_reference_schema_accepts_absolute_fragment_free_urls(url):
-    schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/tdReference"}
     jsonschema.validate(
-        {"class": "https://xregistry.io/classes/thingdescription", "url": url},
-        schema,
+        {"references": {"thingdescription": {"entry": {"url": url}}}},
+        PROFILE_SCHEMA,
     )
 
 
 def test_direct_subject_descriptor_reference_applies_reference_constraints():
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["references"]["other"] = {
-        "class": "schema",
-        "planurl": "https://example.com/plan",
+    descriptor["references"]["schema"] = {
+        "other": {
+            "url": "https://example.com/schema",
+            "planurl": "https://example.com/plan",
+        },
     }
     schema = {"$defs": PROFILE_SCHEMA["$defs"], "$ref": "#/$defs/subjectDescriptor"}
     with pytest.raises(jsonschema.ValidationError):
@@ -901,10 +975,10 @@ def test_direct_subject_descriptor_reference_applies_reference_constraints():
     ids=["profile-root", "subject-descriptor"],
 )
 @pytest.mark.parametrize("planurl", ["https://example.com/%ZZ", "https://example.com/#fragment"])
-def test_reference_map_rejects_malformed_plan_urls(schema, planurl):
+def test_reference_buckets_reject_malformed_plan_urls(schema, planurl):
     descriptor = deepcopy(SUBJECT_DESCRIPTOR)
-    descriptor["references"]["other"] = {
-        "class": "https://xregistry.io/classes/thingdescription",
+    descriptor["references"]["thingdescription"]["other"] = {
+        "url": "https://example.com/td",
         "planurl": planurl,
     }
     with pytest.raises(jsonschema.ValidationError):
@@ -912,19 +986,21 @@ def test_reference_map_rejects_malformed_plan_urls(schema, planurl):
 
 
 @pytest.mark.parametrize(
-    ("reference_class", "planurl"),
+    ("reference_type", "planurl"),
     [
         ("schema", "https://example.com/plan"),
-        ("thingdescription", "https://example.com/plan"),
-        ("https://xregistry.io/classes/thingdescription", "/plan"),
-        ("https://xregistry.io/classes/thingmodel", "https://example.com/plan#"),
+        ("https://xregistry.io/classes/thingdescription", "https://example.com/plan"),
+        ("thingdescription", "/plan"),
+        ("thingmodel", "https://example.com/plan#"),
     ],
 )
-def test_profile_schema_restricts_planurl_to_wot_uri_classes_and_document_urls(
-    reference_class, planurl
+def test_profile_schema_restricts_planurl_to_wot_buckets_and_document_urls(
+    reference_type, planurl
 ):
     descriptor = {
-        "references": {"result": {"class": reference_class, "planurl": planurl}}
+        "references": {
+            reference_type: {"result": {"url": "https://example.com/document", "planurl": planurl}}
+        }
     }
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(descriptor, PROFILE_SCHEMA)

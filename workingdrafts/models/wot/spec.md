@@ -1516,19 +1516,30 @@ event or change the WoT Registry model.
 
 #### 6.6.1. Referenced Representations
 
-This profile defines the following Reference class identifiers:
+This profile defines the following Reference type keys:
 
-| Class identifier | Referenced representation |
+| Type key | Referenced representation |
 | --- | --- |
-| `https://xregistry.io/classes/thingdescription` | Ordinary resolved WoT TD document. |
-| `https://xregistry.io/classes/thingmodel` | Ordinary resolved WoT TM document. |
+| `thingdescription` | Ordinary resolved WoT TD document. |
+| `thingmodel` | Ordinary resolved WoT TM document. |
 
-These URIs identify classes. They are not retrieval instructions and require
-no registration or dereferencing. Consumers MUST compare class identifiers
-exactly. The bare strings `thingdescription` and `thingmodel` are not aliases
-for these classes.
+References are grouped by type, then by name. For example,
+`references.thingdescription.pump7` identifies a TD Reference named `pump7`.
+Consumers MUST compare type keys exactly. Type keys MUST be canonical
+short names matching `[a-z][a-z0-9]*` or reverse-DNS domain-qualified names
+such as `com.example.calibration`. A domain-qualified key has at least two
+dot-separated labels, each starting and ending with a lowercase ASCII
+letter or digit, with hyphens permitted internally. Keys follow Core's
+map-key limits, including a maximum of 63 characters.
+URI keys, per-Reference `class` attributes and the flat Reference map are
+not alternative representations.
 
-A Reference of either class MUST identify its document at `url`.
+Reference names MUST be unique across all type buckets in a Descriptor.
+A type bucket contains named Reference records, each with a `url`. An empty
+`references` map is valid under the generic Descriptor rules, but supplies
+no TD for an operation that needs one.
+
+A Reference in either WoT bucket MUST identify its document at `url`.
 Neither URL identifies Registry metadata or a
 projection plan. When a WoT Registry serves the document, the Producer
 MUST supply its document-view URL, as defined in
@@ -1537,7 +1548,7 @@ MUST supply its document-view URL, as defined in
 The Producer MUST resolve and validate a projected TD or TM before
 publishing the Descriptor for use. The referenced representation MUST be
 the resolved result. The Consumer MUST validate that the retrieved
-representation conforms to its declared TD or TM class.
+representation conforms to its TD or TM bucket type.
 These retrieval and content-validation requirements apply to selected or
 REQUIRED representations, not every unselected Reference in the inventory.
 Descriptor and profile-field validity remain subject to their own rules.
@@ -1546,8 +1557,12 @@ An Asset or Device Descriptor can reference a TD and other representations
 of the same entity. The catalog profile defines the association with
 `entityid`, subject to the Descriptor Registry's stable entity-association
 rules. A Context Descriptor can reference several Things and supply schemas
-and other shared inputs needed by its processing profile. These
-specializations use the same Descriptor Resource shape.
+and other shared inputs needed by its processing profile. Inline metadata
+is grouped in `data` by its profile-defined type key. Each defining profile
+specifies the value's shape and semantics. Whole-Thing metadata can use
+such a Descriptor-level data bucket; affordance annotations remain inside
+`affordanceselector`. This WoT profile defines no universal inline metadata
+bucket. These specializations use the same Descriptor Resource shape.
 
 #### 6.6.2. Thing Description Selection
 
@@ -1555,13 +1570,12 @@ When an operation selects a TD from a Descriptor, the Consumer MUST apply
 these steps in order:
 
 1. If the operation supplies a Reference name, require that the name exists
-   and has exactly class `https://xregistry.io/classes/thingdescription`,
-   then select that Reference.
-2. Otherwise, collect entries with exactly that class.
+   in `references.thingdescription`, then select that Reference.
+2. Otherwise, collect the entries in `references.thingdescription`.
 3. Select the Reference if there is one candidate. Zero candidates means
    absence; more than one means ambiguity.
 
-A missing named Reference, wrong class, ambiguity or absent REQUIRED TD
+A missing named Reference, wrong type bucket, ambiguity or absent REQUIRED TD
 MUST make the operation's processing inputs unavailable. The Consumer MUST
 report the condition and MUST NOT substitute another Reference.
 
@@ -1584,8 +1598,9 @@ an attribute defined by the generic Descriptor Registry.
   identified by the Reference's `url`.
 
 - Constraints:
-  - `planurl` MUST occur only on References with one of the two class
-    identifiers defined in [Section 6.6.1](#661-referenced-representations).
+  - `planurl` MUST occur only on Reference records in the `thingdescription`
+    or `thingmodel` bucket defined in
+    [Section 6.6.1](#661-referenced-representations).
   - When present, `planurl` MUST be an absolute URL without a fragment.
   - The Consumer MUST use the representation at `url` for the operation.
     It MUST NOT independently resolve the plan to replace that result.
@@ -1601,22 +1616,28 @@ an attribute defined by the generic Descriptor Registry.
     pairing disagreement MUST still be reported and MUST make the processing
     inputs unavailable.
 
-For example, this Reference identifies a resolved TD and its projection
-plan. Both URLs serve documents, not Registry metadata:
+For example, this Reference excerpt identifies a resolved TD and its
+projection plan. Both URLs serve documents, not Registry metadata:
 
 ```json
 {
-  "class": "https://xregistry.io/classes/thingdescription",
-  "url": "https://example.com/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
-  "planurl": "https://example.com/projections/pump7/versions/3.0.0"
+  "references": {
+    "thingdescription": {
+      "pump7": {
+        "url": "https://example.com/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
+        "planurl": "https://example.com/projections/pump7/versions/3.0.0"
+      }
+    }
+  }
 }
 ```
 
-A Descriptor bundle collects `references.*.url`; it does not implicitly
-retrieve `planurl`. If an operation needs the plan in that bundle, the
-Producer MUST list it separately as a named Reference. Its class MUST be
-an absolute URI controlled by the format's defining authority, identifying
-the projection format rather than using a reserved bare class name.
+A Descriptor bundle collects `references.*.*.url`. Its document map is the
+flat union of Reference names across all type buckets. Bundle assembly
+does not retrieve inline `data` values or implicitly retrieve `planurl`.
+If an operation needs the plan in that bundle, the
+Producer MUST list it separately as a named Reference under a type key
+defined by the projection format's profile.
 
 #### 6.6.4. Subject Descriptors
 
@@ -1635,11 +1656,11 @@ URL-with-fragment form.
 
 - Constraints:
   - REQUIRED when a Descriptor serves as a Subject Descriptor. It MUST name
-    an existing entry of this Descriptor's `references` map, compared
+    an existing entry of this Descriptor's `references.thingdescription`
+    bucket, compared
     exactly. A missing or `null` value is invalid.
-  - The selected entry's class MUST be
-    `https://xregistry.io/classes/thingdescription`. Other entries MAY
-    exist; they do not participate in this selection.
+  - A name found only in another type bucket does not select a TD. Other
+    entries MAY exist; they do not participate in this selection.
   - The Consumer MUST obtain the selected ordinary resolved TD. A Thing
     Model or another Subject Descriptor MUST NOT substitute for the TD.
 
@@ -1675,34 +1696,31 @@ URL-with-fragment form.
     decoding.
 
 Metadata describing the whole subject remains at Descriptor level, including
-when `affordanceselector` is absent. Affordance annotations belong beside
+profile-defined inline metadata in `data`, when `affordanceselector` is
+absent. Affordance annotations belong beside
 `pointer` inside `affordanceselector`; their defining profile determines
 their types and scope. The `wotsubject` shape is not accepted for the subject
 role. This profile does not otherwise restrict generic Descriptor extension
 attributes.
 
-When `describedby` is present after CloudEvents decoding, it remains the
-authoritative Processing Descriptor. Before accepting the subject result,
-the Consumer MUST require exactly one TD Reference in that Processing
-Descriptor whose `url` equals the Subject Descriptor's selected TD `url`
+CloudEvents defines the common `describedby` contract, including decoding,
+Processing Descriptor selection, input isolation and the failure boundary.
+The CloudEvents WoT extension defines `source` and `subject` interpretation.
+For its Subject Descriptor route with an explicit `describedby`, before
+accepting the subject result, the Consumer MUST require exactly one TD
+Reference in the Processing Descriptor's `references.thingdescription`
+bucket whose `url` equals the Subject
+Descriptor's selected TD `url`
 byte-for-byte. Missing or duplicate matches MUST cause a reported correlation
 failure. URI normalization, redirects, TD identity or equal `entityid`
 values MUST NOT repair a mismatch.
 
-The Consumer MUST NOT merge schema, native publisher metadata or other
-processing inputs from the Subject Descriptor into the Processing
-Descriptor. Without `describedby`, this route supplies only the subject;
-the event, agreed profile and any native envelope supply the remaining
-REQUIRED processing inputs. The Consumer MUST NOT synthesize a Processing
-Descriptor or automatically retrieve `source` for those inputs. Failure
-MUST NOT trigger another description route or substitute a different TD.
-
-The same Descriptor URL MAY be explicitly selected for both subject and
-processing roles. The Consumer MUST evaluate each role independently,
-including the exact-one TD URL match. One retrieval MAY serve both roles
-under the same representation and authorization context. Processing inputs
-then come from the explicitly selected Processing Descriptor, not from an
-implicit fallback through the subject role.
+Subject selection supplies the Thing or affordance and its annotations.
+Processing inputs follow the CloudEvents contract and applicable native
+metadata profile. When the same Descriptor URL is explicitly selected for
+both roles, each role is evaluated independently, including the exact-one
+TD URL match; a retrieval can be reused under the same representation and
+authorization context.
 
 The Producer MUST preserve the selected TD representation, selector and
 processing-significant annotations for the intended processing and replay
@@ -1723,9 +1741,10 @@ it is not a generic Descriptor or universal WoT annotation.
     "quantitykind": "https://example.com/quantities/pressure"
   },
   "references": {
-    "pump7": {
-      "class": "https://xregistry.io/classes/thingdescription",
-      "url": "https://example.com/td/pump7/versions/3"
+    "thingdescription": {
+      "pump7": {
+        "url": "https://example.com/td/pump7/versions/3"
+      }
     }
   }
 }
@@ -1745,7 +1764,8 @@ normative.
 The [profile schema fragment](schemas/descriptor-profile.schema.json)
 describes the profile's fields, not the generic Descriptor model. Its
 `subjectDescriptor` definition requires `thingref`. The schema does not
-validate Reference-name relations, TD content, pointer existence, annotation
+validate global Reference-name uniqueness, selector relations, TD content,
+pointer existence, inline data or annotation
 semantics or cross-Descriptor correlation. Consumers MUST perform those
 checks in addition to structural validation.
 

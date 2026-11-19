@@ -1,39 +1,63 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "WoT Descriptor profile fields",
-  "description": "Compose with the generic Descriptor schema. Semantic relations and profile-defined annotation types need additional validation.",
+  "description": "Compose with the generic Descriptor schema. Global Reference-name uniqueness, selector relations and profile-defined inline data or annotation semantics need additional validation.",
   "type": "object",
   "properties": {
     "thingref": {"$ref": "#/$defs/thingRef"},
     "affordanceselector": {"$ref": "#/$defs/affordanceSelector"},
-    "references": {"$ref": "#/$defs/referenceMap"}
+    "references": {"$ref": "#/$defs/referenceBuckets"},
+    "data": {"$ref": "#/$defs/dataBuckets"}
   },
   "$defs": {
-    "referenceMap": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "class": {"type": "string"},
-          "planurl": {"$ref": "#/$defs/absoluteUrl"}
-        },
-        "if": {"required": ["planurl"]},
-        "then": {
-          "required": ["class"],
-          "properties": {
-            "class": {
-              "enum": [
-                "https://xregistry.io/classes/thingdescription",
-                "https://xregistry.io/classes/thingmodel"
-              ]
-            }
-          }
-        }
-      }
+    "typeKey": {
+      "type": "string",
+      "maxLength": 63,
+      "pattern": "^(?:[a-z][a-z0-9]*|[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+)$"
     },
     "thingRef": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9:_.-]{0,62}$"
+    },
+    "referenceBuckets": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/typeKey"},
+      "properties": {
+        "thingdescription": {"$ref": "#/$defs/wotBucket"},
+        "thingmodel": {"$ref": "#/$defs/wotBucket"}
+      },
+      "additionalProperties": {"$ref": "#/$defs/otherBucket"}
+    },
+    "wotBucket": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/thingRef"},
+      "additionalProperties": {"$ref": "#/$defs/wotReference"}
+    },
+    "otherBucket": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/thingRef"},
+      "additionalProperties": {
+        "$ref": "#/$defs/reference",
+        "properties": {"planurl": false}
+      }
+    },
+    "dataBuckets": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/typeKey"}
+    },
+    "reference": {
+      "type": "object",
+      "required": ["url"],
+      "properties": {
+        "url": {"$ref": "#/$defs/absoluteUrl"},
+        "class": false
+      }
+    },
+    "wotReference": {
+      "$ref": "#/$defs/reference",
+      "properties": {
+        "planurl": {"$ref": "#/$defs/absoluteUrl"}
+      }
     },
     "affordanceSelector": {
       "description": "Selects exactly one affordance. Additional annotation attributes require types and semantics from the applicable profile.",
@@ -59,25 +83,8 @@
       "properties": {
         "thingref": {"$ref": "#/$defs/thingRef"},
         "affordanceselector": {"$ref": "#/$defs/affordanceSelector"},
-        "references": {"$ref": "#/$defs/referenceMap"}
-      }
-    },
-    "tdReference": {
-      "type": "object",
-      "required": ["class", "url"],
-      "properties": {
-        "class": {"const": "https://xregistry.io/classes/thingdescription"},
-        "url": {"$ref": "#/$defs/absoluteUrl"},
-        "planurl": {"$ref": "#/$defs/absoluteUrl"}
-      }
-    },
-    "tmReference": {
-      "type": "object",
-      "required": ["class", "url"],
-      "properties": {
-        "class": {"const": "https://xregistry.io/classes/thingmodel"},
-        "url": {"$ref": "#/$defs/absoluteUrl"},
-        "planurl": {"$ref": "#/$defs/absoluteUrl"}
+        "references": {"$ref": "#/$defs/referenceBuckets"},
+        "data": {"$ref": "#/$defs/dataBuckets"}
       }
     }
   }

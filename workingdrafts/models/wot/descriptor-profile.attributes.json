@@ -1,7 +1,7 @@
 {
   "thingref": {
     "type": "string",
-    "description": "Required for a Subject Descriptor: exact local name of the selected TD Reference, whose class is https://xregistry.io/classes/thingdescription."
+    "description": "Required for a Subject Descriptor: exact globally unique Reference name in references.thingdescription. Reference records have no class attribute."
   },
   "affordanceselector": {
     "type": "object",
