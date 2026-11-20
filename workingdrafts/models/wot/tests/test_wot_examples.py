@@ -16,11 +16,8 @@ SCHEMA = json.loads((ROOT / "schemas" / "publication-closure.schema.json").read_
 EXAMPLE = json.loads((ROOT / "samples" / "publication-closure.json").read_text())
 VECTORS = check_vectors.load_vectors()
 VECTOR_SCHEMA = json.loads((check_vectors.HERE / "schema.json").read_bytes())
-DOCUMENT_URL_SCHEMA = json.loads(
-    (ROOT / "schemas" / "absolute-document-url.schema.json").read_bytes()
-)
-SUBJECT_DESCRIPTOR = json.loads(
-    (ROOT / "samples" / "subject-descriptor.json").read_bytes()
+DESCRIPTOR = json.loads(
+    (ROOT / "samples" / "descriptor-entry.json").read_bytes()
 )
 
 
@@ -609,9 +606,9 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         "https://example.com/descriptorgroups/subjects/descriptors/"
         "lamp-42-temperature/versions/1"
     )
-    reference = SUBJECT_DESCRIPTOR["entries"]["lamp42"]
+    reference = DESCRIPTOR["entries"]["lamp42"]
     assert descriptor_url.endswith(
-        f"/{SUBJECT_DESCRIPTOR['descriptorid']}/versions/{SUBJECT_DESCRIPTOR['versionid']}"
+        f"/{DESCRIPTOR['descriptorid']}/versions/{DESCRIPTOR['versionid']}"
     )
     assert event["id"] == f"lamp-42-overheated-{index + 1}"
     assert event["type"] == events[0]["type"]
@@ -626,7 +623,7 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         url, delimiter, pointer = event["subject"].partition("#")
         assert delimiter == "#"
         matches = [
-            item for item in SUBJECT_DESCRIPTOR["entries"].values()
+            item for item in DESCRIPTOR["entries"].values()
             if item["class"] == "thingdescription" and item["url"] == url
         ]
         assert matches == [reference]
@@ -635,7 +632,7 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
         assert "describedby" not in event
         name, delimiter, pointer = event["subject"].partition("#")
         assert delimiter == "#"
-        assert SUBJECT_DESCRIPTOR["entries"][name] is reference
+        assert DESCRIPTOR["entries"][name] is reference
     assert pointer == "/events/overheated"
     assert reference["class"] == "thingdescription"
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
@@ -650,9 +647,8 @@ def test_descriptor_event_routes_select_sample_lamp_td(index):
     jsonschema.validate(event["data"], selected["data"])
 
 
-def test_subject_descriptor_sample_selects_lamp_affordance():
-    reference = SUBJECT_DESCRIPTOR["entries"]["lamp42"]
-    jsonschema.validate(reference["url"], DOCUMENT_URL_SCHEMA)
+def test_descriptor_entry_sample_selects_lamp_affordance():
+    reference = DESCRIPTOR["entries"]["lamp42"]
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
     path = urlsplit(reference["url"]).path.split("/")
     resource = registry[path[1]][path[2]][path[3]][path[4]]
@@ -661,38 +657,3 @@ def test_subject_descriptor_sample_selects_lamp_affordance():
     category, name = reference["affordanceselector"].split("/")[1:]
     selected = td[category][name.replace("~1", "/").replace("~0", "~")]
     assert selected is td["events"]["overheated"]
-    assert reference["quantitykind"] == "https://example.com/quantities/temperature"
-    assert "quantitykind" not in SUBJECT_DESCRIPTOR
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://example.com/%ZZ",
-        "https://example.com/<plan>",
-        "https://example.com/plan\n",
-        "https://example.com/plan#fragment",
-        "https://example.com:bad/plan",
-        "https://example.com/a%2",
-        "https://[2001:db8:::1]/plan",
-        "https://example.com/a b",
-    ],
-)
-def test_document_url_schema_rejects_malformed_absolute_urls(url):
-    with pytest.raises(jsonschema.ValidationError):
-        jsonschema.validate(url, DOCUMENT_URL_SCHEMA)
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://example.com/a%2Fb?version=1",
-        "https://[2001:db8::1]/plan",
-        "https://[::ffff:192.0.2.1]/plan",
-        "https://[v1.fe80::]/plan",
-        "urn:example:plan",
-        "mailto:person@example.com",
-    ],
-)
-def test_document_url_schema_accepts_absolute_fragment_free_urls(url):
-    jsonschema.validate(url, DOCUMENT_URL_SCHEMA)

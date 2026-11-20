@@ -18,8 +18,7 @@ for that mapping without defining a second Descriptor format or changing
 its [model](model.json). Direct TD use can stand alone; Descriptor-driven
 selection is enabled only by an agreed CloudEvents binding.
 The [samples](samples/README.md) illustrate document URLs and Descriptor
-entries. The [URL-check schema](schemas/absolute-document-url.schema.json)
-preserves URI validation independently of the CE-owned wire representation.
+entries.
 
 The [publication companion][Publication] defines dependency binding and set
 publication using the [generic publication contract](../../publication/spec.md).

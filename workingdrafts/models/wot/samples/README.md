@@ -2,7 +2,7 @@
 
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
 <!-- words: factoryfloor inletpressure cloudevents describedby descriptorid -->
-<!-- words: thingdescription thingdescriptions quantitykind affordanceselector -->
+<!-- words: thingdescription thingdescriptions affordanceselector -->
 <!-- words: affordances bundleurl nonselecting planurl standalone tds -->
 
 [registry.json](registry.json) illustrates the
@@ -56,12 +56,11 @@ Descriptor as the originating context and has a different source-plus-id
 identity scope. In an explicitly agreed Descriptor-driven mode, `subject`
 can instead be omitted or remain nonselecting; CE defines that interpretation.
 
-[subject-descriptor.json](subject-descriptor.json) uses named `entries`.
+[descriptor-entry.json](descriptor-entry.json) shows one named entry inside
+the Descriptor used by these event examples.
 Its `lamp42` entry has class `thingdescription`, an ordinary TD document
 URL, and the OPTIONAL plain JSON Pointer `affordanceselector` selecting
-`/events/overheated`. This deployment defines `quantitykind` as an
-absolute-URI annotation identifying the measured quantity; it is not
-authorization or a universal WoT vocabulary.
+`/events/overheated`.
 
 The entry URL serves the resolved lamp TD at Version `1.0.0`, not Registry
 metadata. Removing `affordanceselector` leaves the whole Thing available
