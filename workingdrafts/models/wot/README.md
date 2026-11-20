@@ -3,7 +3,7 @@
 <!-- words: WoT readme -->
 <!-- words: py pytest workingdrafts -->
 <!-- words: workflows -->
-<!-- words: planurl thingref affordanceselector marcschier -->
+<!-- words: planurl -->
 <!-- words: thingdescription thingmodel -->
 
 The [WoT Registry specification][Spec] and [model][Model] define this draft's
@@ -11,26 +11,15 @@ document storage, identity and resolution rules. The
 [decision record][Decisions] explains the design decisions. The informative
 [versioning design][Versioning] and [samples][Samples] provide supporting detail.
 
-The [WoT Descriptor profile](spec.md#66-wot-descriptor-profile) specializes
-the [Descriptor Registry draft](https://github.com/xregistry/spec/pull/796)
-when a deployment selects it. TD and TM References identify resolved
-documents; OPTIONAL `planurl` records projection provenance without replacing
-the result. This profile defines the `thingdescription` and `thingmodel`
-Reference type buckets, and
-[`data.wot.subject`](spec.md#664-subject-descriptors) selects a Thing or
-affordance; independent `data.wot.event` names an event contract and TM.
-String selectors have profile-defined annotation siblings. The
-[attribute model fragment](descriptor-profile.attributes.json) and
-[profile schema fragment](schemas/descriptor-profile.schema.json) describe
-its fields alongside the generic Descriptor model; they do not change the
-WoT Registry's [model](model.json).
-
-[CloudEvents WoT][CloudEvents WoT]
-owns event routing and subject syntax. Its direct TD route does not require a
-Descriptor. The [current CloudEvents review](https://github.com/cloudevents/spec/pull/1406)
-aligns routes and `data.wot.subject` / `data.wot.event`
-with this profile; the pinned draft uses an earlier representation.
-These are not released specifications.
+The [CloudEvents WoT draft][CloudEvents WoT] owns Descriptor entries,
+TD/TM selection, event routing, affordance selectors and provenance fields.
+The WoT Registry [provisions ordinary resolved documents](spec.md#66-provisioning-documents-for-cloudevents)
+for that mapping without defining a second Descriptor format or changing
+its [model](model.json). Direct TD use can stand alone; Descriptor-driven
+selection is enabled only by an agreed CloudEvents binding.
+The [samples](samples/README.md) illustrate document URLs and Descriptor
+entries. The [URL-check schema](schemas/absolute-document-url.schema.json)
+preserves URI validation independently of the CE-owned wire representation.
 
 The [publication companion][Publication] defines dependency binding and set
 publication using the [generic publication contract](../../publication/spec.md).
@@ -65,4 +54,4 @@ The vectors do not provide exhaustive regression coverage.
 [Decisions]: decisions.md
 [Versioning]: ../../publication/design/design.md#wot-versioning-design-overview
 [Samples]: samples/README.md
-[CloudEvents WoT]: https://github.com/marcschier/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/wot.md
+[CloudEvents WoT]: https://github.com/cloudevents/spec/pull/1406

@@ -16,8 +16,7 @@
 <!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
 <!-- words: wotversion wotdigest topology percent dereferenceable -->
 <!-- words: vn -->
-<!-- words: planurl entityid wotsubject thingref affordanceselector quantitykind processData subjectDescriptor -->
-<!-- words: modelref pumpmodel schemaref subobjects -->
+<!-- words: planurl -->
 
 ## Abstract
 
@@ -72,11 +71,7 @@ storing, managing, and discovering W3C
     - [6.3. Thing Description to Endpoint Registry](#63-thing-description-to-endpoint-registry)
     - [6.4. Thing Description to Schema Registry](#64-thing-description-to-schema-registry)
     - [6.5. Affordance Grouping](#65-affordance-grouping)
-    - [6.6. WoT Descriptor Profile](#66-wot-descriptor-profile)
-      - [6.6.1. Referenced Representations](#661-referenced-representations)
-      - [6.6.2. Thing Description Selection](#662-thing-description-selection)
-      - [6.6.3. Projection Provenance](#663-projection-provenance)
-      - [6.6.4. Subject Descriptors](#664-subject-descriptors)
+    - [6.6. Provisioning Documents for CloudEvents](#66-provisioning-documents-for-cloudevents)
   - [7. Security](#7-security)
 
 ## 1. Overview
@@ -1034,9 +1029,9 @@ description selection, subject syntax and event-contract types. The
 CloudEvents Descriptor Reference extension defines `describedby` selection
 and decoding.
 
-When that extension selects a Descriptor, the WoT requirements in
-[Section 6.6](#66-wot-descriptor-profile) apply. The extension can instead
-select a direct TD document URL without a Descriptor.
+When that extension selects a Descriptor, the document-provision requirements
+in [Section 6.6](#66-provisioning-documents-for-cloudevents) apply. The
+extension can instead select a direct TD document URL without a Descriptor.
 
 A selected WoT Registry document-view URL identifies either an exact
 Version or the Resource's current Core default Version, including a sticky
@@ -1067,10 +1062,8 @@ publish the resolved bytes as a publication Version and retain the authored
 source bytes separately. This applies both to the exact Version selected by
 the document URL and to a Core default selected through a Resource URL.
 
-The Consumer evaluates the subject's pointer against the Document bytes of
-the selected resolved TD, following the CloudEvents WoT extension. It MUST NOT
-evaluate that pointer against Registry metadata or an unresolved source
-document.
+The Consumer MUST evaluate the pointer selected by the CloudEvents WoT mapping
+against the resolved TD document, not Registry metadata or unresolved sources.
 
 A Consumer MAY retrieve the published resolved TD or reconstruct the same
 logical view from a complete pinned source closure and the applicable
@@ -1385,7 +1378,7 @@ Sections [6.1](#61-thing-description-to-thing-model) through
 xRegistry mechanisms compose. They place no requirements on a conformant
 registry.
 Sections [6.5](#65-affordance-grouping) and
-[6.6](#66-wot-descriptor-profile) are normative.
+[6.6](#66-provisioning-documents-for-cloudevents) are normative.
 
 ### 6.1. Thing Description to Thing Model
 
@@ -1506,239 +1499,33 @@ unchanged, as specified in
 Documents authored outside the Registry routinely contain no grouping
 construct. They MUST remain fully supported.
 
-### 6.6. WoT Descriptor Profile
+### 6.6. Provisioning Documents for CloudEvents
 
-A deployment MAY apply this profile to Resources in a Descriptor Registry.
-The following requirements apply when the deployment's catalog, publication
-or processing agreement selects this profile. Descriptor identity, Reference
-syntax and publication stability follow the Descriptor Registry
-specification. This profile does not require a Descriptor for every WoT
-event or change the WoT Registry model.
+The CloudEvents WoT extension defines the Descriptor representation,
+TD/TM entry classes, selection and projection-provenance fields. Its
+Descriptor-driven and subject-driven modes determine which document an
+operation uses. This specification defines how a WoT Registry provisions
+those documents; it does not define another Descriptor wire format.
 
-#### 6.6.1. Referenced Representations
+When a Producer supplies a WoT Registry document to that mapping, it MUST
+use the document-view URL from [Section 1.4](#14-document-store). The URL
+serves an ordinary resolved TD or TM, not Registry metadata or a projection
+plan. A projected document MUST be resolved and validated before it is
+published for use. Producing that result MUST preserve authored sources
+under [Section 5.2](#52-preserving-customer-documents).
 
-This profile defines the following Reference type keys:
+A Version used for processing or replay MUST retain the resolved logical
+view for the intended period under
+[Section 5.3.1](#531-cloudevents-wot-source-resolution). Selecting a document
+by URL does not prove content integrity or complete dependency closure.
+Reconstruction follows [Section 5.4.4](#544-publication-closure).
 
-| Type key | Referenced representation |
-| --- | --- |
-| `thingdescription` | Ordinary resolved WoT TD document. |
-| `thingmodel` | Ordinary resolved WoT TM document. |
-
-References are grouped by type, then by name. For example,
-`references.thingdescription.pump7` identifies a TD Reference named `pump7`.
-Consumers MUST compare type keys exactly. Type keys MUST be canonical
-short names matching `[a-z][a-z0-9]*` or reverse-DNS domain-qualified names
-such as `com.example.calibration`. A domain-qualified key has at least two
-dot-separated labels, each starting and ending with a lowercase ASCII
-letter or digit, with hyphens permitted internally. Keys follow Core's
-map-key limits, including a maximum of 63 characters.
-URI keys, per-Reference `class` attributes and the flat Reference map are
-not alternative representations.
-
-Reference names MUST be unique across all type buckets in a Descriptor.
-A type bucket contains named Reference records, each with a `url`. An empty
-`references` map is valid under the generic Descriptor rules, but supplies
-no TD for an operation that needs one.
-
-A Reference in either WoT bucket MUST identify its document at `url`.
-Neither URL identifies Registry metadata or a
-projection plan. When a WoT Registry serves the document, the Producer
-MUST supply its document-view URL, as defined in
-[Section 1.4](#14-document-store).
-
-The Producer MUST resolve and validate a projected TD or TM before
-publishing the Descriptor for use. The referenced representation MUST be
-the resolved result. The Consumer MUST validate that the retrieved
-representation conforms to its TD or TM bucket type.
-These retrieval and content-validation requirements apply to selected or
-REQUIRED representations, not every unselected Reference in the inventory.
-Descriptor and profile-field validity remain subject to their own rules.
-
-An Asset or Device Descriptor can reference a TD and other representations
-of the same entity. The catalog profile defines the association with
-`entityid`, subject to the Descriptor Registry's stable entity-association
-rules. A Context Descriptor can reference several Things and supply schemas
-and other shared inputs needed by its processing profile. Inline metadata
-is grouped in `data` by its profile-defined type key. Each defining profile
-specifies the value's shape and semantics. Whole-Thing metadata can use
-such a Descriptor-level data bucket. WoT subject and event metadata use
-`data.wot`, as defined below. These specializations use the same Descriptor
-Resource shape.
-
-#### 6.6.2. Thing Description Selection
-
-When an operation selects a TD from a Descriptor, the Consumer MUST apply
-these steps in order:
-
-1. If the operation supplies a Reference name, require that the name exists
-   in `references.thingdescription`, then select that Reference.
-2. Otherwise, collect the entries in `references.thingdescription`.
-3. Select the Reference if there is one candidate. Zero candidates means
-   absence; more than one means ambiguity.
-
-A missing named Reference, wrong type bucket, ambiguity or absent REQUIRED TD
-MUST make the operation's processing inputs unavailable. The Consumer MUST
-report the condition and MUST NOT substitute another Reference.
-
-The applicable CloudEvents extension defines subject syntax and
-whether a Descriptor or direct TD supplies the processing inputs. A direct
-TD remains usable without a Descriptor when that extension selects the direct
-route. When the CloudEvents extension requires correlation of a direct TD URL
-with an explicit Descriptor, the URL MUST exactly match one named
-TD Reference's `url`. No match or multiple matches MUST
-make the processing inputs unavailable. The Consumer MUST report the
-condition and MUST NOT bypass the Descriptor to use the direct TD.
-
-#### 6.6.3. Projection Provenance
-
-This profile defines `planurl` as an OPTIONAL Reference attribute. It is not
-an attribute defined by the generic Descriptor Registry.
-
-- Type: Absolute, fragment-free URL
-- Description: The projection plan that produced the resolved TD or TM
-  identified by the Reference's `url`.
-
-- Constraints:
-  - `planurl` MUST occur only on Reference records in the `thingdescription`
-    or `thingmodel` bucket defined in
-    [Section 6.6.1](#661-referenced-representations).
-  - When present, `planurl` MUST be an absolute URL without a fragment.
-  - The Consumer MUST use the representation at `url` for the operation.
-    It MUST NOT independently resolve the plan to replace that result.
-  - If provenance checking is REQUIRED by the deployment, the Consumer
-    MUST check the plan/result pairing under the agreed projection format.
-    Any shared identifier, scenario or result-kind fields MUST agree
-    according to that format's pairing rules.
-  - Unavailable REQUIRED provenance or a detected pairing disagreement
-    MUST make the processing inputs unavailable. The Consumer MUST report
-    the condition and MUST NOT select a different result to repair it.
-  - When provenance checking is OPTIONAL, absence or unavailability of
-    `planurl` MAY leave an otherwise valid representation usable. A detected
-    pairing disagreement MUST still be reported and MUST make the processing
-    inputs unavailable.
-
-For example, this Reference excerpt identifies a resolved TD and its
-projection plan. Both URLs serve documents, not Registry metadata:
-
-```json
-{
-  "references": {
-    "thingdescription": {
-      "pump7": {
-        "url": "https://example.com/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
-        "planurl": "https://example.com/projections/pump7/versions/3.0.0"
-      }
-    }
-  }
-}
-```
-
-A Descriptor bundle collects `references.*.*.url`. Its document map is the
-flat union of Reference names across all type buckets. Bundle assembly
-does not retrieve inline `data` values or implicitly retrieve `planurl`.
-If an operation needs the plan in that bundle, the
-Producer MUST list it separately as a named Reference under a type key
-defined by the projection format's profile.
-
-#### 6.6.4. Subject Descriptors
-
-This profile defines the `data.wot` object with independently OPTIONAL
-`subject` and `event` objects. `subject` describes a Thing or affordance;
-`event` describes an event contract and its model declaration. Either,
-both or neither MAY occur. When present, these objects MUST NOT be `null`.
-The common CloudEvents `describedby` contract owns processing selection and
-its failure boundary. The CloudEvents WoT extension owns event `type`
-matching, derivation and `source`/`subject` interpretation.
-
-| Member | Type | Constraints |
-| --- | --- | --- |
-| `data.wot.subject.thingref` | String | REQUIRED exact Reference name in `references.thingdescription`. |
-| `data.wot.subject.affordanceselector` | String | OPTIONAL pointer to one affordance in that TD; omission selects the whole Thing. |
-| `data.wot.event.type` | String | REQUIRED nonempty full CloudEvent type, including its contract revision. |
-| `data.wot.event.modelref` | String | REQUIRED exact Reference name in `references.thingmodel`. |
-| `data.wot.event.affordanceselector` | String | OPTIONAL pointer to one affordance declaration in that TM; omission selects no individual declaration. |
-
-Reference names MUST be compared exactly within their specified buckets.
-A missing name or a name found only in another bucket is invalid. A selected
-subject Reference MUST identify an ordinary resolved TD, not a TM or another
-Subject Descriptor. A selected event Reference MUST identify an ordinary
-resolved TM. Event and subject model selection are independent; matching
-affordance names do not establish declaration lineage.
-
-Both `affordanceselector` values MUST be nonempty RFC 6901 JSON Pointer
-strings containing exactly two tokens: `properties`, `actions` or `events`,
-then the name of one existing appropriate affordance in the selected document.
-Tokens use `~0` and `~1` escaping. A `null`, empty, fragment-form, root,
-collection, nested-member or non-affordance selector is invalid. Consumers
-MUST NOT percent-decode selectors or remove a leading `#`. A selector object
-containing `pointer` is not an alternative to the string.
-
-Additional members of `subject` or `event` MUST have types and semantics
-defined by the applicable profile. They annotate that object's selected
-subject or event, beside `affordanceselector`, not inside it. In this
-section's example, the deployment defines `quantitykind` as an absolute-URI
-string describing the subject's measured quantity. It is not a universal
-annotation vocabulary. Without a subject selector, subject annotations
-describe the whole Thing. Annotation omission and `null` handling follow
-the defining profile and Core writes, not CloudEvents attribute decoding.
-Annotations MUST NOT authenticate an entity, authorize an operation or
-replace processing inputs.
-
-The top-level `thingref`, `affordanceselector` and `wotsubject` shapes are
-not accepted as aliases for this profile. `data.schema.schemaref` is
-independent of both WoT subobjects and follows its defining profile.
-
-The CloudEvents WoT extension defines how a fragment-free Descriptor Version
-URL selects the subject role. That role requires `data.wot.subject`. For
-its route with explicit `describedby`, the selected subject TD URL MUST
-equal exactly one `references.thingdescription` URL in the Processing
-Descriptor, byte-for-byte. Missing or duplicate matches fail correlation;
-URI normalization, redirects or entity identity MUST NOT repair a mismatch.
-The same URL can serve both roles, independently evaluated with retrieval
-reuse under the same representation and authorization context.
-
-Presence of `event` requires its structural validation but does not by
-itself require retrieving the TM. When used in the selected Processing
-Descriptor, the
-CloudEvents WoT extension defines the exact full-type comparison with the
-event before using its named TM and OPTIONAL model-affordance selector.
-Subject selection alone does not supply these processing inputs. The
-Producer MUST preserve the selected representations and processing-significant
-WoT metadata under Descriptor Version and publication-stability rules;
-a changed published subject or event contract requires a new Version.
-
-This excerpt omits Core bookkeeping:
-
-```json
-{
-  "data": {
-    "wot": {
-      "subject": {
-        "thingref": "pump7",
-        "affordanceselector": "/properties/pressure",
-        "quantitykind": "https://example.com/quantities/pressure"
-      },
-      "event": {
-        "type": "com.example.pump.pressure.v1",
-        "modelref": "pumpmodel",
-        "affordanceselector": "/properties/pressure"
-      }
-    }
-  },
-  "references": {
-    "thingdescription": {"pump7": {"url": "https://example.com/td/pump7"}},
-    "thingmodel": {"pumpmodel": {"url": "https://example.com/tm/pump"}}
-  }
-}
-```
-
-The [attribute fragment](descriptor-profile.attributes.json) describes the
-`wot` data bucket, not new Core fields. The
-[schema fragment](schemas/descriptor-profile.schema.json) validates shape;
-its `subjectDescriptor` definition requires `data.wot.subject`. Global
-Reference-name uniqueness, bucket relations, document validity, pointer
-existence and annotation semantics require additional validation. Consumers
-MUST apply those checks as well as the CloudEvents extension's role rules.
+Projection plans can be supplied separately as provenance under the
+CloudEvents profile. The ordinary resolved document remains the processing
+representation; plan/result checks follow the agreed projection format.
+Descriptor identity, entries, annotations, bundling, OPTIONAL `subject`
+handling and failure outcomes are defined by CloudEvents, not by the WoT
+Registry model.
 
 ## 7. Security
 
