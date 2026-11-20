@@ -69,9 +69,9 @@ entry name or a unique TD entry selects it and when repeated TDs are
 ambiguous. A TM entry can bind an event type and model declaration; it does
 not replace a TD's instance description.
 
-Entry `url` can be `null` in the CE representation. These provision samples
-use retrievable URLs; inline content and REQUIRED-input handling follow the
-entry class's CE profile. A projection plan, when supplied through `planurl`,
+TD and TM entries require retrievable `url` values under the CE profile;
+`null` is invalid. Inline-only classes omit `url` under their own profiles.
+A projection plan, when supplied through `planurl`,
 is provenance for the ordinary resolved document, not a replacement for it.
 Bundle assembly and `bundleurl` follow the CE contract.
 
