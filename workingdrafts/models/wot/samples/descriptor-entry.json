@@ -1,0 +1,11 @@
+{
+  "descriptorid": "lamp-42-temperature",
+  "versionid": "1",
+  "entries": {
+    "lamp42": {
+      "class": "thingdescription",
+      "url": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0",
+      "affordanceselector": "/events/overheated"
+    }
+  }
+}

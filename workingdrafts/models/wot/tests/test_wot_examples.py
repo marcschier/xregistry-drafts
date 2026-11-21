@@ -3,8 +3,7 @@
 from copy import deepcopy
 import json
 from pathlib import Path
-import re
-from urllib.parse import quote, unquote, urldefrag, urljoin, urlsplit
+from urllib.parse import urldefrag, urljoin, urlsplit
 
 import jsonschema
 import pytest
@@ -16,6 +15,9 @@ SCHEMA = json.loads((ROOT / "schemas" / "publication-closure.schema.json").read_
 EXAMPLE = json.loads((ROOT / "samples" / "publication-closure.json").read_text())
 VECTORS = check_vectors.load_vectors()
 VECTOR_SCHEMA = json.loads((check_vectors.HERE / "schema.json").read_bytes())
+DESCRIPTOR = json.loads(
+    (ROOT / "samples" / "descriptor-entry.json").read_bytes()
+)
 
 
 @pytest.mark.parametrize("name", VECTORS)
@@ -509,134 +511,29 @@ def test_closure_requires_exact_version_xids(field, value):
         jsonschema.validate(example, SCHEMA)
 
 
-@pytest.mark.parametrize(
-    (
-        "index",
-        "expected_query",
-        "expected_subject",
-        "expected_scheme",
-        "expected_netloc",
-        "expected_path",
-        "expected_extra",
-        "expected_fragment",
-    ),
-    [
-        (
-            0,
-            {"wotid": "urn:fabrikam:lamp:42", "wotversion": "1.0.0"},
-            "#/events/overheated",
-            "https",
-            "factory.example.com",
-            "/line1",
-            "site=north%2Fsouth",
-            "source-context",
-        ),
-        (
-            1,
-            {"wotid": "urn:fabrikam:lamp:42"},
-            "#",
-            "",
-            "",
-            "../things/lamp-42",
-            None,
-            "",
-        ),
-    ],
-    ids=["absolute-source-fragment-and-extra", "relative-source-empty-fragment"],
-)
-def test_cloudevents_source_and_subject_match_lamp_td(
-    index,
-    expected_query,
-    expected_subject,
-    expected_scheme,
-    expected_netloc,
-    expected_path,
-    expected_extra,
-    expected_fragment,
-):
-    events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
-    assert len(events) == 2
-    event = events[index]
-    assert set(event) == {
-        "specversion",
-        "id",
-        "source",
-        "type",
-        "subject",
-        "datacontenttype",
-        "data",
-    }
-    assert event["specversion"] == "1.0"
-    assert event["id"] == f"lamp-42-overheated-{index + 1}"
-    assert event["type"] == "com.fabrikam.lamp.overheated.v1"
-    assert re.fullmatch(
-        r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+",
-        event["type"],
+def test_describedby_sample_provisions_lamp_affordance():
+    event, = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
+    descriptor_url = urlsplit(event["describedby"])
+    assert descriptor_url.scheme == "https"
+    assert descriptor_url.netloc and "#" not in event["describedby"]
+    assert descriptor_url.path.endswith(
+        f"/{DESCRIPTOR['descriptorid']}/versions/{DESCRIPTOR['versionid']}"
     )
-    assert re.fullmatch(r"v[1-9][0-9]*", event["type"].rsplit(".", 1)[-1])
-    assert events[0]["type"] == events[1]["type"]
-    assert set(event["data"]) == {"temperature"}
-    assert type(event["data"]["temperature"]) is int
-    assert event["datacontenttype"] == "application/json"
-
-    source = urlsplit(event["source"])
-    assert (source.scheme, source.netloc, source.path) == (
-        expected_scheme,
-        expected_netloc,
-        expected_path,
-    )
-    assert source.fragment == expected_fragment
-    assert "#" in event["source"]
-    parameters = source.query.split(";")
-    parsed_parameters = [value.split("=", 1) for value in parameters]
-    query = {
-        name: unquote(value)
-        for name, value in parsed_parameters
-        if name in {"wotid", "wotversion"}
-    }
-    assert query == expected_query
-    names = [name for name, _ in parsed_parameters]
-    if "wotversion" in names:
-        assert names[:2] == ["wotid", "wotversion"]
-    else:
-        assert names[0] == "wotid"
-    additional = [
-        f"{name}={value}"
-        for name, value in parsed_parameters
-        if name not in {"wotid", "wotversion"}
+    reference, = [
+        entry for entry in DESCRIPTOR["entries"].values()
+        if entry["class"] == "thingdescription"
     ]
-    assert additional == ([expected_extra] if expected_extra else [])
-    safe = "!$'()*,:@/?"
-    expected_standardized = ";".join(
-        f"{key}={quote(value, safe=safe, encoding='utf-8', errors='strict')}"
-        for key, value in expected_query.items()
-    )
-    assert source.query.startswith(expected_standardized)
-    assert "wotid=urn:fabrikam:lamp:42" in source.query
-
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
-    resources = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
-        "thingdescriptions"
-    ]
-    matches = [
-        value for value in resources.values() if value["wotid"] == query["wotid"]
-    ]
-    assert len(matches) == 1
-    resource = matches[0]
-    assert resource is resources["urn.fabrikam.lamp.42"]
+    td_url = urlsplit(reference["url"])
+    assert td_url.scheme == "https"
+    assert td_url.netloc and not td_url.query and "#" not in reference["url"]
+    path = td_url.path.split("/")
+    resource = registry[path[1]][path[2]][path[3]][path[4]]
+    assert path[5:] == ["versions", resource["versionid"]]
     td = resource["thingdescription"]
-    assert td["id"] == query["wotid"]
-    assert resource["versionid"] == td["version"]["instance"] == "1.0.0"
-    if "wotversion" in query:
-        assert query["wotversion"] == resource["versionid"]
-
-    assert event["subject"] == expected_subject
-    selected = td
-    pointer = unquote(event["subject"][1:])
-    for token in pointer.split("/")[1:]:
-        selected = selected[token.replace("~1", "/").replace("~0", "~")]
-    if index == 0:
-        assert selected is td["events"]["overheated"]
-    else:
-        assert selected is td
-    jsonschema.validate(event["data"], td["events"]["overheated"]["data"])
+    assert td["id"] == resource["wotid"] == "urn:fabrikam:lamp:42"
+    assert td["version"]["instance"] == resource["versionid"]
+    category, name = reference["affordanceselector"].split("/")[1:]
+    selected = td[category][name.replace("~1", "/").replace("~0", "~")]
+    assert selected is td["events"]["overheated"]
+    jsonschema.validate(event["data"], selected["data"])
