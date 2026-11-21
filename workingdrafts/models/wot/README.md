@@ -3,7 +3,7 @@
 <!-- words: WoT readme -->
 <!-- words: py pytest workingdrafts -->
 <!-- words: workflows -->
-<!-- words: planurl -->
+<!-- words: describedby marcschier standalone -->
 <!-- words: thingdescription thingmodel -->
 
 The [WoT Registry specification][Spec] and [model][Model] define this draft's
@@ -15,8 +15,8 @@ The [CloudEvents WoT draft][CloudEvents WoT] owns Descriptor entries,
 TD/TM selection, event routing, affordance selectors and provenance fields.
 The WoT Registry [provisions ordinary resolved documents](spec.md#66-provisioning-documents-for-cloudevents)
 for that mapping without defining a second Descriptor format or changing
-its [model](model.json). Direct TD use can stand alone; Descriptor-driven
-selection is enabled only by an agreed CloudEvents binding.
+its [model](model.json). CloudEvents using the WoT mapping select the
+Descriptor through `describedby`; standalone registry access is unchanged.
 The [samples](samples/README.md) illustrate document URLs and Descriptor
 entries.
 
@@ -53,4 +53,4 @@ The vectors do not provide exhaustive regression coverage.
 [Decisions]: decisions.md
 [Versioning]: ../../publication/design/design.md#wot-versioning-design-overview
 [Samples]: samples/README.md
-[CloudEvents WoT]: https://github.com/cloudevents/spec/pull/1406
+[CloudEvents WoT]: https://github.com/marcschier/spec/blob/6ac67d40c38e63621d32f29c9f1a0d69c2d583da/cloudevents/extensions/wot.md

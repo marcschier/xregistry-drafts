@@ -4,6 +4,7 @@
 <!-- words: factoryfloor inletpressure cloudevents describedby descriptorid -->
 <!-- words: thingdescription thingdescriptions affordanceselector -->
 <!-- words: affordances bundleurl nonselecting planurl standalone tds -->
+<!-- words: marcschier opcuawriter -->
 
 [registry.json](registry.json) illustrates the
 [WoT Registry model](../model.json): stable authored identifiers, compatible
@@ -36,25 +37,12 @@ The [CloudEvents WoT draft][CloudEvents WoT] defines Descriptor entry shape,
 class-owned metadata, selection and failure outcomes. The registry supplies
 the ordinary resolved TD/TM documents under its
 [document-provision rules](../spec.md#66-provisioning-documents-for-cloudevents).
-No older immutable revision is used as authority for the new format.
 
-[cloudevents.json](cloudevents.json) contains five standalone event examples,
-not a transport batch. All use `com.fabrikam.lamp.overheated.v1` and the
-agreed numeric `temperature` payload contract.
-
-| Event | Provision and selection |
-| --- | --- |
-| 1 | Direct TD Version URL with `#/events/overheated`; no Descriptor. |
-| 2 | Direct default-Version TD URL with `#` for the whole Thing. |
-| 3 | Descriptor Version URL in `subject`, using the agreed subject-driven mode. |
-| 4 | Explicit `describedby` and a direct TD subject referring to the same document. |
-| 5 | Descriptor Version URL in `source`, with agreed source binding and named subject-driven selection. |
-
-The first source identifies a factory line; the actor-source events identify
-the telemetry service. The fifth source intentionally identifies the
-Descriptor as the originating context and has a different source-plus-id
-identity scope. In an explicitly agreed Descriptor-driven mode, `subject`
-can instead be omitted or remain nonselecting; CE defines that interpretation.
+[cloudevents.json](cloudevents.json) contains a standalone event example,
+not a transport batch. It uses `com.fabrikam.lamp.overheated.v1` and the
+agreed numeric `temperature` payload contract. `describedby` identifies the
+Descriptor Version. `source` identifies the telemetry service and `subject`
+labels the lamp for filtering; neither selects a document.
 
 [descriptor-entry.json](descriptor-entry.json) shows one named entry inside
 the Descriptor used by these event examples.
@@ -75,11 +63,13 @@ A projection plan, when supplied through `planurl`,
 is provenance for the ordinary resolved document, not a replacement for it.
 Bundle assembly and `bundleurl` follow the CE contract.
 
-For direct TD use, Consumers retrieve the fragment-free document URL and
-evaluate the URI-fragment pointer locally. For a Descriptor entry, the stored
-selector is a plain RFC 6901 string and is not percent-decoded. This sample's
-TD declares its affordances directly; no reconstruction is needed to select
-the overheated event. The samples do not claim that a Version proves content
-integrity or that the closure envelope reconstructs a composed TD.
+The stored selector is a plain RFC 6901 string. The lamp TD declares its
+affordances directly, so no reconstruction is needed to select the event.
+For events using both WoT and OPC UA, the same Descriptor supplies the WoT
+entry and any Descriptor-based OPC UA metadata. Native identity can come
+from the envelope, `source` query parameters or the selected `opcuawriter`
+entry. The [OPC UA mapping][CloudEvents OPC UA] defines these rules and
+allows OPC UA-only events without a Descriptor.
 
-[CloudEvents WoT]: https://github.com/cloudevents/spec/pull/1406
+[CloudEvents WoT]: https://github.com/marcschier/spec/blob/6ac67d40c38e63621d32f29c9f1a0d69c2d583da/cloudevents/extensions/wot.md
+[CloudEvents OPC UA]: https://github.com/marcschier/spec/blob/6ac67d40c38e63621d32f29c9f1a0d69c2d583da/cloudevents/extensions/opcua.md#wot-mapping

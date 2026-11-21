@@ -1024,14 +1024,11 @@ CloudEvents.
 
 #### 5.3.1. CloudEvents WoT Source Resolution
 
-The CloudEvents WoT extension defines event source identity,
-description selection, subject syntax and event-contract types. The
-CloudEvents Descriptor Reference extension defines `describedby` selection
-and decoding.
-
-When that extension selects a Descriptor, the document-provision requirements
-in [Section 6.6](#66-provisioning-documents-for-cloudevents) apply. The
-extension can instead select a direct TD document URL without a Descriptor.
+The CloudEvents WoT extension requires `describedby` to select the
+Descriptor that supplies the TD. `source` and `subject` retain their Core
+meaning. When the Descriptor identifies a WoT Registry document, the
+provisioning rules in [Section 6.6](#66-provisioning-documents-for-cloudevents)
+apply.
 
 A selected WoT Registry document-view URL identifies either an exact
 Version or the Resource's current Core default Version, including a sticky
@@ -1062,8 +1059,9 @@ publish the resolved bytes as a publication Version and retain the authored
 source bytes separately. This applies both to the exact Version selected by
 the document URL and to a Core default selected through a Resource URL.
 
-The Consumer MUST evaluate the pointer selected by the CloudEvents WoT mapping
-against the resolved TD document, not Registry metadata or unresolved sources.
+When the CloudEvents WoT mapping selects an affordance, the Consumer MUST
+evaluate its selector against the resolved TD, not Registry metadata or
+unresolved sources.
 
 A Consumer MAY retrieve the published resolved TD or reconstruct the same
 logical view from a complete pinned source closure and the applicable
@@ -1077,9 +1075,8 @@ reconstruction is possible.
 An exact Version identifies the stable view but is not a content-integrity check.
 Independent source and publication closure digests remain applicable.
 
-The [CloudEvents samples](samples/cloudevents.json) illustrate direct TD
-subjects selecting an exact Version and a current default, independently of
-event source identity.
+The [CloudEvents sample](samples/cloudevents.json) shows `describedby`
+selecting a Descriptor that links to an exact TD Version.
 
 ### 5.4. Versioned Reference Resolution
 
@@ -1501,11 +1498,10 @@ construct. They MUST remain fully supported.
 
 ### 6.6. Provisioning Documents for CloudEvents
 
-The CloudEvents WoT extension defines the Descriptor representation,
-TD/TM entry classes, selection and projection-provenance fields. Its
-Descriptor-driven and subject-driven modes determine which document an
-operation uses. This specification defines how a WoT Registry provisions
-those documents; it does not define another Descriptor wire format.
+The CloudEvents Descriptor Reference extension defines the Descriptor
+representation, and the WoT extension defines TD/TM entry classes,
+selection and projection-provenance fields. This specification defines how
+a WoT Registry provisions the selected documents.
 
 When a Producer supplies a WoT Registry document to that mapping, it MUST
 use the document-view URL from [Section 1.4](#14-document-store). The URL

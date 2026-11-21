@@ -2,57 +2,13 @@
   {
     "specversion": "1.0",
     "id": "lamp-42-overheated-1",
-    "source": "https://factory.example.com/line1",
-    "type": "com.fabrikam.lamp.overheated.v1",
-    "subject": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0#/events/overheated",
-    "datacontenttype": "application/json",
-    "data": {
-      "temperature": 85
-    }
-  },
-  {
-    "specversion": "1.0",
-    "id": "lamp-42-overheated-2",
     "source": "urn:fabrikam:actor:telemetry-service",
     "type": "com.fabrikam.lamp.overheated.v1",
-    "subject": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42#",
-    "datacontenttype": "application/json",
-    "data": {
-      "temperature": 86
-    }
-  },
-  {
-    "specversion": "1.0",
-    "id": "lamp-42-overheated-3",
-    "source": "urn:fabrikam:actor:telemetry-service",
-    "type": "com.fabrikam.lamp.overheated.v1",
-    "subject": "https://example.com/descriptorgroups/subjects/descriptors/lamp-42-temperature/versions/1",
-    "datacontenttype": "application/json",
-    "data": {
-      "temperature": 87
-    }
-  },
-  {
-    "specversion": "1.0",
-    "id": "lamp-42-overheated-4",
-    "source": "urn:fabrikam:actor:telemetry-service",
-    "type": "com.fabrikam.lamp.overheated.v1",
-    "subject": "https://example.com/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0#/events/overheated",
+    "subject": "lamp42",
     "describedby": "https://example.com/descriptorgroups/subjects/descriptors/lamp-42-temperature/versions/1",
     "datacontenttype": "application/json",
     "data": {
-      "temperature": 88
-    }
-  },
-  {
-    "specversion": "1.0",
-    "id": "lamp-42-overheated-5",
-    "source": "https://example.com/descriptorgroups/subjects/descriptors/lamp-42-temperature/versions/1",
-    "type": "com.fabrikam.lamp.overheated.v1",
-    "subject": "lamp42#/events/overheated",
-    "datacontenttype": "application/json",
-    "data": {
-      "temperature": 89
+      "temperature": 85
     }
   }
 ]
