@@ -237,10 +237,11 @@ A Consumer that cannot determine expanded IRIs under a context rejects it as
 
 ## Version Profiles
 
-The captured Registry JSON selects the WoT version profile. A Registry
-without `wotversionprofile` uses the SemVer base model. The value
+The captured Registry JSON selects the WoT version profile. A trusted
+Registry implementing the legacy SemVer model can omit `wotversionprofile`.
+The value `semver` explicitly selects SemVer. The value
 `incremental` selects the
-[Incremental Version Profile](../../models/wot/spec.md#55-incremental-version-profile).
+[Incremental Version Profile](../../models/wot/spec.md#55-incremental-profile).
 The spelling of Version IDs is not profile discovery. A Consumer MUST reject
 the composite as `profile-mismatch` if a captured TM or TD Resource's
 `versionmode`, or a captured Version ID, does not match the selected profile,

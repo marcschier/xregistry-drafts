@@ -226,7 +226,7 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 
 [incremental.json](incremental.json) holds 42 cases for the OPTIONAL
 Incremental version profile in
-[Section 5.5](../../spec.md#55-incremental-version-profile), checked by
+[Section 5.5](../../spec.md#55-incremental-profile), checked by
 [check_incremental.py](check_incremental.py) against
 [incremental.schema.json](incremental.schema.json). The SemVer collection
 above is unchanged. A case that targets a SemVer Resource passes its
@@ -242,10 +242,9 @@ python -B -m pytest workingdrafts/models/wot/tests/test_wot_incremental.py -q
 
 The pytest module also compares
 [model-incremental.json](../../model-incremental.json) with
-[model.json](../../model.json). With descriptions removed, the two models
-differ only in the declarations listed in
-[Section 5.5.1](../../spec.md#551-profile-selection-and-model-overlay). Both
-models are also validated against the Core model schema.
+[model.json](../../model.json), after resolving their includes. It checks the
+profile's Version mode, lineage, compatibility and immutable line overrides.
+Both resolved models are also validated against the Core model schema.
 
 Each case has `description`, `profile`, `operation`, `registry` and `expect`.
 The `profile` field is `incremental`, `semver` or `unknown`. A case states

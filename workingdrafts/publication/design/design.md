@@ -7,8 +7,9 @@
 <!-- words: workflow workflows -->
 <!-- words: href namespace nodeids opc workaround iri -->
 
-This document proposes an incremental versioning profile for WoT registries.
-No implementation exists yet. The
+The [WoT Registry specification](../../models/wot/spec.md#55-incremental-profile)
+defines the incremental versioning profile. This document explains the design
+and operating workflows; it does not establish adapter conformance. The
 [full design](#wot-versioning-design-and-operating-workflows) describes the
 mechanisms and 63 operating workflows, including defaults and exact pins in
 the [D7 selection flow][D7]. The
@@ -19,8 +20,8 @@ the [D7 selection flow][D7]. The
 - Managing channels and snapshots
 - Exporting manifests and federating sources
 
-The existing [specification](../../models/wot/spec.md) defines SemVer rules. The
-[vectors](../../models/wot/tests/resolution/README.md) exercise that baseline.
+The [specification](../../models/wot/spec.md) retains SemVer rules. The
+[vectors](../../models/wot/tests/resolution/README.md) exercise resolution.
 
 ### Decision and problem
 
@@ -662,15 +663,14 @@ lockfile, exactly-once protocol, or replacement for xRegistry Core.
 
 #### D1. Fixed endpoint profiles
 
-The Incremental model declares the registry metadata `wotversionprofile`
-with the single strict, read-only value `incremental`. The SemVer model
-declares no profile attribute, and absence means SemVer. An unknown profile
-causes version-aware resolution to fail. Integer-looking content does not
-identify a profile.
+The models declare the registry metadata `wotversionprofile` with the strict,
+read-only value `semver` or `incremental`. A trusted legacy SemVer provider
+can omit the attribute. An unknown profile causes version-aware resolution
+to fail. Integer-looking content does not identify a profile.
 
 The design retains `../model.json` as the SemVer model and adds
-`model-incremental.json` for the Incremental profile. Section 5.5.1 of the
-WoT specification lists the declarations in which the two differ. Providers
+`model-incremental.json` for the Incremental profile. Section 5.5 of the
+WoT specification defines its publication and selection rules. Providers
 and offline catalogs carry equivalent profile information for their candidate
 sets.
 
