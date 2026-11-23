@@ -32,7 +32,7 @@ echo -n "# Starting xrserver"
 docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
     --backend=memory --rootapp=xreg > /dev/null
 
-while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep 2;done
+while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep .1;done
 echo ; echo
 
 # Validate all model.json files in the entire repo

@@ -3,7 +3,8 @@
 from copy import deepcopy
 import json
 from pathlib import Path
-from urllib.parse import urldefrag, urljoin, urlsplit
+import re
+from urllib.parse import parse_qsl, unquote, urldefrag, urljoin, urlsplit
 
 import jsonschema
 import pytest
@@ -512,7 +513,7 @@ def test_closure_requires_exact_version_xids(field, value):
 
 
 def test_describedby_sample_provisions_lamp_affordance():
-    event, = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
+    event = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())[0]
     descriptor_url = urlsplit(event["describedby"])
     assert descriptor_url.scheme == "https"
     assert descriptor_url.netloc and "#" not in event["describedby"]
@@ -537,3 +538,124 @@ def test_describedby_sample_provisions_lamp_affordance():
     selected = td[category][name.replace("~1", "/").replace("~0", "~")]
     assert selected is td["events"]["overheated"]
     jsonschema.validate(event["data"], selected["data"])
+@pytest.mark.parametrize(
+    (
+        "index",
+        "expected_subject",
+        "expected_scheme",
+        "expected_netloc",
+        "expected_path",
+        "expected_fragment",
+    ),
+    [
+        (
+            0,
+            "lamp42",
+            "https",
+            "factory.example.com",
+            "/line1",
+            "source-context",
+        ),
+        (
+            1,
+            "lamp42",
+            "",
+            "",
+            "../things/lamp-42",
+            "",
+        ),
+    ],
+    ids=["absolute-source", "relative-source"],
+)
+def test_cloudevents_source_and_subject_match_lamp_td(
+    index,
+    expected_subject,
+    expected_scheme,
+    expected_netloc,
+    expected_path,
+    expected_fragment,
+):
+    events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
+    assert len(events) == 2
+    event = events[index]
+    assert set(event) == {
+        "specversion",
+        "id",
+        "source",
+        "type",
+        "subject",
+        "datacontenttype",
+        "describedby",
+        "data",
+    }
+    assert event["specversion"] == "1.0"
+    assert event["id"] == f"lamp-42-overheated-{index + 1}"
+    assert event["type"] == "com.fabrikam.lamp.overheated.v1"
+    assert re.fullmatch(
+        r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+",
+        event["type"],
+    )
+    assert re.fullmatch(r"v[1-9][0-9]*", event["type"].rsplit(".", 1)[-1])
+    assert events[0]["type"] == events[1]["type"]
+    assert set(event["data"]) == {"temperature"}
+    assert type(event["data"]["temperature"]) is int
+    assert event["datacontenttype"] == "application/json"
+
+    source = urlsplit(event["source"])
+    assert (source.scheme, source.netloc, source.path) == (
+        expected_scheme,
+        expected_netloc,
+        expected_path,
+    )
+    assert source.fragment == expected_fragment
+    assert "#" in event["source"]
+    names = {
+        name
+        for name, _ in parse_qsl(source.query.replace(";", "&"), keep_blank_values=True)
+    }
+    assert names.isdisjoint({"wotid", "wotversion"})
+
+    descriptor_url = urlsplit(event["describedby"])
+    assert descriptor_url.scheme == "https"
+    assert descriptor_url.netloc == "registry.example"
+    assert "#" not in event["describedby"]
+
+    readme = (ROOT / "samples" / "README.md").read_text(encoding="utf-8")
+    descriptors = json.loads(re.search(r"```json\n(.*?)\n```", readme, re.DOTALL)[1])
+    descriptor = descriptors[index]
+    if index == 0:
+        assert descriptor == DESCRIPTOR
+    assert descriptor_url.path == (
+        f"/descriptorgroups/subjects/descriptors/{descriptor['descriptorid']}"
+        f"/versions/{descriptor['versionid']}"
+    )
+    entries = [
+        entry for entry in descriptor["entries"].values()
+        if entry["class"] == "thingdescription"
+    ]
+    assert len(entries) == 1
+    entry = entries[0]
+
+    registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
+    resource = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
+        "thingdescriptions"
+    ]["urn.fabrikam.lamp.42"]
+    td = resource["thingdescription"]
+    assert td["id"] == "urn:fabrikam:lamp:42"
+    assert resource["versionid"] == td["version"]["instance"] == "1.0.0"
+    assert entry["url"] == (
+        "https://registry.example/thingdescriptiongroups/"
+        "Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/"
+        f"versions/{resource['versionid']}"
+    )
+
+    assert event["subject"] == expected_subject
+    selected = td
+    pointer = entry.get("affordanceselector", "")
+    for token in pointer.split("/")[1:]:
+        selected = selected[token.replace("~1", "/").replace("~0", "~")]
+    if index == 0:
+        assert selected is td["events"]["overheated"]
+    else:
+        assert selected is td
+    jsonschema.validate(event["data"], td["events"]["overheated"]["data"])

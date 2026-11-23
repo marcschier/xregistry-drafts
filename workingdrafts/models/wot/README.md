@@ -6,7 +6,8 @@
 <!-- words: describedby marcschier standalone -->
 <!-- words: thingdescription thingmodel -->
 
-The [WoT Registry specification][Spec] and [model][Model] define this draft's
+The [WoT Registry specification][Spec], [SemVer model][Model], and
+[incremental model](model-incremental.json) define this draft's
 document storage, identity and resolution rules. The
 [decision record][Decisions] explains the design decisions. The informative
 [versioning design][Versioning] and [samples][Samples] provide supporting detail.
