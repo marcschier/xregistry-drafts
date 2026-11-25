@@ -90,6 +90,32 @@ def test_incremental_vectors_cover_every_operation():
     assert operations == set(check_incremental.OPERATIONS)
 
 
+@pytest.mark.parametrize("pin_kind", ["versionid", "digest"])
+def test_unambiguous_replay_does_not_require_a_known_profile(pin_kind):
+    case = deepcopy(CASES["i021-replay-versionid-other-line"])
+    case["profile"] = "unknown"
+    selected = case["registry"][0]["versions"][1]
+    pin_value = selected["versionid" if pin_kind == "versionid" else "contentdigest"]
+    case["pin"] = {pin_kind: pin_value}
+    result = check_incremental.replay(case)
+    assert result == {
+        "wotid": case["reference"]["target"],
+        "versionid": selected["versionid"],
+        "contentdigest": selected["contentdigest"],
+        "origin": check_incremental.ORIGIN,
+    }
+    case["expect"] = {"result": {key: value for key, value in result.items() if key != "origin"}}
+    schema = _load(WOT / "tests" / "resolution" / "incremental.schema.json")
+    jsonschema.Draft202012Validator(schema).validate({"i999-unknown-replay": case})
+
+
+def test_duplicate_digest_replay_requires_a_known_profile():
+    case = deepcopy(CASES["i020-replay-digest-duplicate-highest"])
+    case["profile"] = "unknown"
+    with pytest.raises(check_incremental.OutcomeError, match="^unknown-profile$"):
+        check_incremental.replay(case)
+
+
 def test_canonical_revision_order_does_not_convert_integers():
     small = "9" * 200
     large = "1" + "0" * 200

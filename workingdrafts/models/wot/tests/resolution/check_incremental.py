@@ -79,10 +79,11 @@ def result(resource, version, profile):
         "wotid": resource["wotid"],
         "versionid": version["versionid"],
         "contentdigest": version["contentdigest"],
-        "versionprofile": profile,
         "origin": ORIGIN,
     }
-    if "compatibilityline" in version:
+    if profile is not None:
+        output["versionprofile"] = profile
+    if profile is not None and "compatibilityline" in version:
         output["compatibilityline"] = version["compatibilityline"]
     return output
 
@@ -140,22 +141,29 @@ def live(case):
 
 def replay(case):
     """Raw exact replay: identity and bytes only, no requirement check."""
-    if case["profile"] != "incremental":
-        raise ValueError("replay vectors cover the Incremental profile")
+    if case["profile"] not in ("incremental", "unknown"):
+        raise ValueError("replay vectors cover Incremental or unknown profiles")
     resource = resource_for(case, case["reference"]["target"])
     pin = case["pin"]
     if "digest" in pin:
         matches = [v for v in resource["versions"] if v["contentdigest"] == pin["digest"]]
         if not matches:
             raise OutcomeError("pin-mismatch")
-        selected = max(matches, key=lambda v: revision_key(v["versionid"]))
+        if case["profile"] == "unknown" and len(matches) > 1:
+            raise OutcomeError("unknown-profile")
+        selected = (
+            matches[0]
+            if len(matches) == 1
+            else max(matches, key=lambda v: revision_key(v["versionid"]))
+        )
     else:
         selected = next(
             (v for v in resource["versions"] if v["versionid"] == pin["versionid"]), None
         )
         if selected is None:
             raise OutcomeError("not-found")
-    return result(resource, selected, "incremental")
+    profile = "incremental" if case["profile"] == "incremental" else None
+    return result(resource, selected, profile)
 
 
 def compose(case):

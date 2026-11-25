@@ -88,18 +88,26 @@ cross-referenced from xRegistry [Endpoint][xRegistry Endpoint],
 
 ### 1.1. Thing Descriptions and Thing Models
 
-A Thing Description (TD) is a JSON-LD 1.1 document conforming to
+A Thing Description (TD) is a [JSON-LD 1.1][JSON-LD] document conforming to
 [WoT-TD 1.1][WoT-TD-1.1]. It identifies a deployed Thing, declares its
 properties, actions, and events, and provides `forms` that bind those
 interaction affordances to network endpoints over protocols such as HTTP,
 MQTT, CoAP, OPC-UA, or Modbus.
 
+A JSON-LD document is JSON whose context defines the meaning of its terms.
+WoT document semantics come from the WoT specifications. A resolver uses
+the applicable JSON-LD context where this draft calls for expanded terms.
+
 A Thing Model (TM) is a JSON-LD 1.1 document conforming to
 [WoT-TM 1.1][WoT-TM-1.1]. It describes an abstract class of Things and
-typically omits `href` values from its forms. Thing Models are reusable: a
-concrete Thing Description MAY extend or compose one or more Thing Models
-through WoT `tm:extends` and `tm:ref` mechanisms or JSON-LD `@type`
-declarations.
+typically omits the network target (`href`) from its forms. A TD MAY be
+derived from more than one TM and can identify the models with `type`
+links, as described in
+[Section 6.1](#61-thing-description-to-thing-model). A concrete TD MAY
+extend or compose one or more TMs through WoT mechanisms such as
+`tm:extends` for inheritance or `tm:ref` for a definition reference.
+JSON-LD `@type` declares a type; it does not instruct a processor to merge
+documents and is not the `type` link relation.
 
 Although both document classes use JSON-LD and share part of its vocabulary,
 a WoT Registry MUST treat them as distinct Resource types. Their intended use,
@@ -130,20 +138,24 @@ joins both. It assigns an ordinary `tm:ref` to a Schema Resource to the
 schema closure and leaves a `describedby` link advisory unless the selected
 profile makes it mandatory.
 
-This specification does not require the Registry to resolve or validate these
-cross-references. An implementation MAY check that a referent exists, but it
-still stores and serves the document when a referent is absent. A Consumer
-composing a TD from Thing Models or binding an affordance to an endpoint
-depends on those references independently of the Registry's checks.
+For ordinary storage, this specification does not require the Registry to
+resolve or validate the cross-references listed above. An implementation
+MAY check that a referent exists, but it still stores and serves the document
+when a referent is absent. The requirements for a publication claiming
+closure are separate. A Consumer composing a TD from Thing Models or
+binding an affordance to an endpoint depends on those references independently
+of the Registry's checks.
 
 ### 1.3. Versioning
 
-A Registry exposes either the SemVer [model](model.json) or the
-[incremental model](model-incremental.json). The read-only Registry
+A Registry exposes either the [Semantic Versioning][SemVer] (SemVer)
+[model](model.json) or the [incremental model](model-incremental.json).
+The SemVer profile uses semantic precedence. The incremental profile uses
+increasing integer IDs within one Resource sequence. The read-only Registry
 attribute `wotversionprofile` identifies the model as `semver` or
-`incremental`. Where a trusted source is known to implement the legacy
-SemVer model, omission denotes `semver`; omission MUST NOT identify an
-arbitrary Core provider as SemVer. An unrecognized profile fails
+`incremental`. If the Consumer already knows that a trusted source uses
+the legacy SemVer model, omission denotes `semver`. Omission MUST NOT
+identify an arbitrary Core provider as SemVer. An unrecognized profile fails
 version-aware selection with `unknown-profile`. Neither a Version ID
 nor an authored document field identifies the profile.
 
@@ -156,10 +168,9 @@ Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
 WoT document, stored without rewriting its bytes. A Resource's `wotid` and
 Registry Resource id are stable across compatible revisions. `wotid` is
 declared with [`matchversions`][xRegistry matchversions]. A registry MUST
-reject a Version that supplies a different `wotid`.
-
-Under the SemVer profile, a Thing Model's major version MUST be part of its
-`wotid`. A breaking change MUST use a new `wotid` and a new Resource
+reject a Version that supplies a different `wotid`. In the SemVer profile,
+a Thing Model's major version MUST be part of its `wotid`, and a breaking
+Thing Model change MUST use a new `wotid` and a new Resource
 ([Section 5.1.1](#511-breaking-changes-and-successor-identifiers)).
 
 Under the SemVer profile, Thing Model Resources and Thing Description
@@ -169,7 +180,7 @@ Resource's [`ancestorid`][Core ancestorid] lineage by SemVer precedence and
 forbids multiple roots with these aspects. The assignment rules for the
 corresponding authored fields are:
 
-| Resource | Authored field | Valid SemVer | Missing or non-SemVer |
+| Resource | Authored field | SemVer without build metadata that fits a Core ID | Missing or non-SemVer |
 | --- | --- | --- | --- |
 | TM | `version.model` | `versionid` MUST equal the authored value verbatim. | The registry MUST assign `0.0.0-N`. |
 | TD | `version.instance` | `versionid` MUST equal the authored value verbatim. | The registry MUST assign `0.0.0-N`. |
@@ -178,11 +189,11 @@ For either Resource type, the registry MUST inspect the authored field
 without modifying the stored document. The original authored field MUST NOT
 be rewritten, including when absent or non-SemVer.
 
-A valid authored value is SemVer 2.0.0 without build metadata and fits Core's
-128-character [id constraint][Core id constraints]. SemVer build metadata
-(`+build`) MUST be rejected as `invalid-version` because `+` is not allowed by
-Core's id constraints. An authored SemVer value that exceeds Core's
-128-character id limit MUST also be rejected under those constraints.
+SemVer build metadata (`+build`) MUST be rejected as `invalid-version`
+because `+` is not allowed by Core's [ID constraints][Core id constraints].
+An authored SemVer value that exceeds Core's 128-character limit MUST also
+be rejected as `invalid-version`. These values do not take the generated-ID
+branch in the table.
 
 `N` is the lowest positive integer whose complete id is not already used
 in the Resource. The registry MUST assign an omitted `versionid`. A supplied
@@ -209,21 +220,17 @@ not replace the assignment rules above.
 Generated ids are prereleases. They MUST NOT be used as minimum-version floors,
 even when the target Version is absent.
 
-A TD's `version.model` describes a model dependency. Only a TD's
-`rel: "type"` link uses it as an implicit floor. It does not determine the
-TD's instance version or supply a floor for a TD-to-TD reference. The
-proposed TD composition operators `td:extends`, `td:subthing`, and `td:ref`
-resolve under Sections 5.4 and 6.2. A projection plan selects sources by
-target kind: `tm:minVersion` is uncapped for TMs, while `td:minVersion`
-uses a TD caret range. An unfloored TD source can cross major versions.
-The projection envelope's own `version.model` and `version.instance` do
-not set a source floor.
+A TD's `version.model` describes a model dependency, not the TD's instance
+version. [Section 5.4](#54-versioned-reference-resolution) defines when it
+sets an implicit floor and how floors apply to TD, TM, and projection
+source references.
 
-The following illustrative JSON fragments show the authored version and the
-Version attributes assigned by the registry. Ellipses mark omitted members.
-They are not JSON tokens.
+These pseudo-JSON fragments show the authored version and the Version
+attributes the registry assigns. Ellipses mark omitted members. The TM
+reference's `tm:minVersion` constrains the dependency, not the TM's own
+`versionid`.
 
-```json
+```yaml
 {
   "id": "urn:example:pump:v1",
   "version": { "model": "1.4.0" },
@@ -237,7 +244,7 @@ They are not JSON tokens.
 }
 ```
 
-```json
+```yaml
 {
   "versionid": "1.4.0",
   "versionorigin": "authored",
@@ -245,9 +252,11 @@ They are not JSON tokens.
 }
 ```
 
-A TD can identify its instance revision independently of its model dependency:
+A TD's `version.instance` determines its own Version ID independently of
+the floor on a TD it extends. In this example the Version gets
+`versionid: "2.0.0"` and `versionorigin: "authored"`:
 
-```json
+```yaml
 {
   "@context": [...],
   "id": "urn:example:pump:42",
@@ -274,8 +283,8 @@ apply to every earlier Version in the Resource's Core
 A Registry MAY validate this domain-specific compatibility rule through Core's
 [`validatecompatibility`][Core validatecompatibility]
 capability. Core's [`strictvalidation`][Core strictvalidation] rules still
-apply. Absence of a domain validator does not permit a Producer to publish an
-incompatible revision under the same `wotid`.
+apply. The requirement to use a successor Resource for a breaking Thing
+Model change applies even if the Registry does not check compatibility.
 
 When [`defaultversionsticky`][Core defaultversionsticky] is false, Core's SemVer
 [`versionmode`][Core versionmode] orders the default. A late `1.0.1` after
@@ -302,8 +311,10 @@ collection and import a copy under a new registry Resource id.
 
 The operator MUST preserve authored bytes, record old-to-new registry paths
 for callers holding pins, and establish a valid default before enabling
-`singleversionroot`. An operator MUST NOT claim that an unresolved multiple-root
-Resource conforms to this model.
+`singleversionroot`. The path mapping records the migration; it does not
+redirect an exact pin or guarantee that the old path remains available.
+An operator MUST NOT claim that an unresolved multiple-root Resource
+conforms to this model.
 
 `tm:minVersion` and `td:minVersion` are proposed extensions to the W3C WoT
 Thing Description. They are not part of the published WoT 1.1 Recommendation.
@@ -330,8 +341,10 @@ forms:
 | [`shortself`][xRegistry shortself], when enabled | Document | Alternative document URL. |
 
 The document view serves stored JSON-LD bytes under their media type:
-`application/td+json` for TDs and `application/tm+json` for TMs, as specified
-in [WoT-TD 1.1 §12.1 and §12.2][WoT-TD-1.1].
+[`application/td+json`][WoT-TD media] for TDs and
+[`application/tm+json`][WoT-TM media] for TMs, or an explicitly registered
+deployment media type under [Section 4.2](#42-thing-description-resources)
+or [Section 4.4](#44-thing-model-resources).
 
 An xRegistry-unaware WoT consumer MAY use a Version's `self` URL with the
 `$details` suffix removed, or its `shortself` URL, as a regular WoT TD or TM
@@ -352,9 +365,10 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
-Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if the corresponding feature is not supported or enabled.
+In writes, the server MUST silently store server-unknown extension
+attributes in the backing datastore. If a client supplies a
+specification-defined or server-known extension attribute whose feature
+is unsupported or disabled, the server MUST report an error.
 
 However, as with all attributes, if accepting the attribute results in a bad
 state (such as exceeding a size limit or resulting in a security issue), then
@@ -362,8 +376,8 @@ the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once. The presence
-of the `#` character means the remaining portion of the line is a comment.
+and `+` means the preceding attribute MUST appear at least once. An
+unquoted `#` starts a comment in these pseudo-JSON snippets.
 Whitespace characters in the JSON snippets are used for readability and are
 not normative.
 
@@ -373,12 +387,10 @@ This specification defines the following terms:
 
 #### 2.2.1. Thing Description
 
-This specification uses Thing Description (or `thingdescription` Resource) for
-a logical grouping of Thing Description Versions. Each Version holds a concrete
-WoT-TD 1.1 JSON-LD document for the same Thing instance. The Resource groups
-one or more such documents and provides a stable alias for its
-[default Version][xRegistry version-ids], which is addressed when no Version
-is named.
+The Thing Description is the WoT-TD 1.1 JSON-LD document. A
+`thingdescription` Resource groups one or more Versions for the same Thing
+instance, each holding one such document. Addressing the Resource without
+naming a Version serves its [default Version][xRegistry version-ids].
 
 The TD's `version.instance` carries its revision, including breaking major
 revisions. A major revision remains under the same `id`, `wotid`, and Resource.
@@ -389,10 +401,9 @@ Thing MUST use that Thing's `id` and a corresponding Resource. See
 
 #### 2.2.2. Thing Model
 
-This specification uses Thing Model (or `thingmodel` Resource) for a logical
-grouping of Thing Model Versions. Each Version holds a concrete WoT-TM 1.1
-JSON-LD document. As with Things, the Resource's `compatibility` attribute
-governs versioning.
+The Thing Model is the WoT-TM 1.1 JSON-LD document. A `thingmodel`
+Resource groups its Versions, each holding one such document. As with
+Things, the Resource's `compatibility` attribute governs versioning.
 
 A Thing Model describes a class of Things and typically lacks concrete `href`
 values in its forms. A Thing Description instead describes a specific deployed
@@ -431,14 +442,14 @@ contains.
 
 ## 3. WoT Registry Model
 
-The authoritative xRegistry extension models of the WoT Registry reside in
+The authoritative xRegistry extension models for the WoT Registry are
 [model.json](model.json) for SemVer and
 [model-incremental.json](model-incremental.json) for incremental.
-Their `modelversion` is `0.1` while this remains a
-working draft. It versions the WoT model independently of the xRegistry Core
-specification version in a Registry's `specversion`.
+Their `modelversion` is `0.1` while this remains a working draft. It identifies
+the WoT model version independently of the xRegistry Core specification
+version in a Registry's `specversion`.
 
-The following form shows the SemVer serialization. An incremental Registry
+This notation shows the SemVer serialization. An incremental Registry
 uses the same collections and additionally exposes the OPTIONAL Version
 attribute `compatibilityline` (Section 5.5.2).
 
@@ -495,7 +506,7 @@ attribute `compatibilityline` (Section 5.5.2).
           "contenttype": "<STRING>", ?             # application/td+json; see 4.2
           "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "wotid": "<STRING>",                     # the document's authored 'id'
-          "derivedfrom": [ "<STRING>" * ], ?       # wotids of the TMs it derives from
+          "derivedfrom": [ "<STRING>" * ], ?       # advisory index of referenced TM wotids
           "license": "<STRING>", ?                 # provenance metadata
           "publisher": "<STRING>", ?
           "standardsbody": "<STRING>", ?
@@ -560,7 +571,7 @@ attribute `compatibilityline` (Section 5.5.2).
           "contenttype": "<STRING>", ?             # application/tm+json; see 4.4
           "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "wotid": "<STRING>",                     # the document's authored 'id'
-          "derivedfrom": [ "<STRING>" * ], ?       # wotids of the TMs it extends
+          "derivedfrom": [ "<STRING>" * ], ?       # advisory index of referenced TM wotids
           "license": "<STRING>", ?                 # provenance metadata
           "publisher": "<STRING>", ?
           "standardsbody": "<STRING>", ?
@@ -612,8 +623,8 @@ Its Group Type (`<GROUP>`) name is `thingdescriptiongroup` (singular), and
 its collection name is `thingdescriptiongroups`. It has no specific extension
 attributes.
 
-Every Thing Description (the `thingdescription` Resource) MUST reside inside
-a Thing Description Group.
+Every `thingdescription` Resource MUST reside inside a Thing Description
+Group.
 
 Example:
 
@@ -649,20 +660,19 @@ value `true`, as specified in [Section 1.3](#13-versioning). Core derives
 ([`ancestorid`][Core ancestorid]).
 
 The Version-level `versionorigin` attribute is REQUIRED, read-only, and uses
-the strict enumeration `authored` or `generated`. In the SemVer profile the `versionid` is assigned
-from `version.instance` when that member is SemVer without build metadata.
-Otherwise it is the lowest free `0.0.0-N` id. The original document bytes,
-including `version.instance`, are not rewritten.
+the strict enumeration `authored` or `generated`. In the SemVer profile,
+[Section 1.3](#13-versioning) assigns `versionid` from `version.instance`
+when valid, distinguishes generated IDs from rejected values, and
+preserves the original document bytes. The incremental profile assigns
+IDs as described in [Section 5.5](#55-incremental-profile).
 
 The `format` attribute of a `thingdescription` Resource Version MUST be
 `"JSON-LD/1.1"`. [model.json](model.json) declares the `format` enumeration
-as `strict`, so a registry rejects any other value rather than merely
-discouraging it.
+as `strict`, so a registry rejects any other value.
 
 The `contenttype` of a `thingdescription` document MUST be
-`application/td+json` as specified in
-[WoT-TD 1.1 §12.1][WoT-TD-1.1], or another media type that the deployment has
-explicitly registered for WoT documents.
+[`application/td+json`][WoT-TD media] or another media type that the
+deployment has explicitly registered for WoT documents.
 
 `contenttype` is client-supplied and determines the media type used to serve
 the stored bytes through the document view
@@ -672,10 +682,10 @@ content, such as `text/html`, `image/svg+xml`, or `application/xhtml+xml`.
 A Registry MUST either reject such a write or serve the document under the
 media type this section requires.
 
-WoT tooling dereferences a Version's document-view URL directly. For documents
-it did not author, a Registry SHOULD additionally return
-`X-Content-Type-Options: nosniff` or serve them from an origin separate from
-any Registry user interface. See [Section 7](#7-security).
+WoT tooling dereferences a Version's document-view URL directly. When serving
+a document it did not author over HTTP, a Registry SHOULD return
+`X-Content-Type-Options: nosniff` or serve that document from an HTTP origin
+separate from any Registry user interface. See [Section 7](#7-security).
 
 The `wotid` attribute is REQUIRED and holds the document's authored WoT
 identifier, distinct from the `thingdescriptionid`. See
@@ -703,8 +713,7 @@ application-defined way, typically by vendor or product family. Its Group Type
 name is `thingmodelgroup` (singular), and its collection name is
 `thingmodelgroups`. It has no specific extension attributes.
 
-Every Thing Model (the `thingmodel` Resource) MUST reside inside a Thing
-Model Group.
+Every `thingmodel` Resource MUST reside inside a Thing Model Group.
 
 ### 4.4. Thing Model Resources
 
@@ -715,8 +724,8 @@ name is `thingmodel` and its collection name is `thingmodels`. Each
 
 The `format` attribute of a `thingmodel` Resource Version MUST be
 `"JSON-LD/1.1"`, enforced by the same `strict` enumeration used for
-`thingdescription`. The `contenttype` MUST be `application/tm+json`, as
-specified in [WoT-TM 1.1 §12.2][WoT-TM-1.1], or another media type that the
+`thingdescription`. The `contenttype` MUST be
+[`application/tm+json`][WoT-TM media] or another media type that the
 deployment has explicitly registered for WoT documents. The constraint on
 serving stored bytes as active content in
 [Section 4.2](#42-thing-description-resources) also applies.
@@ -735,21 +744,23 @@ The `wotid` attribute is REQUIRED on a `thingmodel` and holds the document's
 authored WoT identifier, which is distinct from the `thingmodelid`. Where a
 Thing Model extends another through a `tm:extends` link relation, references
 one through `tm:ref`, or composes one through `tm:submodel`, the referenced
-Thing Models' `wotid`s SHOULD be listed in `derivedfrom`.
+Thing Models' `wotid`s SHOULD be listed in `derivedfrom`. For the proposed
+versioned-reference vocabulary, see the [proposal][WoT reference proposal].
 
 ### 4.5. Formats
 
 Both Thing Descriptions and Thing Models are serialized as JSON-LD 1.1
 documents, so both use the
 [core specification's `format`](../../../core/spec.md#format-attribute) identifier
-`JSON-LD/1.1`. The distinction between the two document classes is carried by
-the Resource type (`thingdescriptions` versus `thingmodels`) and by the
-`contenttype` attribute, not by `format`.
+`JSON-LD/1.1`. The Resource type (`thingdescription` versus `thingmodel`) and
+the `contenttype` attribute distinguish the two document classes; `format`
+does not.
 
 #### 4.5.1. WoT Thing Description
 
 - Format identifier: `JSON-LD/1.1`
-- `contenttype`: `application/td+json`
+- `contenttype`: [`application/td+json`][WoT-TD media], subject to the
+  deployment rules in [Section 4.2](#42-thing-description-resources).
 - Document: a JSON-LD 1.1 document conformant with
   [W3C WoT Thing Description 1.1][WoT-TD-1.1].
 - The document's `@context` MUST include
@@ -762,7 +773,8 @@ the Resource type (`thingdescriptions` versus `thingmodels`) and by the
 #### 4.5.2. WoT Thing Model
 
 - Format identifier: `JSON-LD/1.1`
-- `contenttype`: `application/tm+json`
+- `contenttype`: [`application/tm+json`][WoT-TM media], subject to the
+  deployment rules in [Section 4.4](#44-thing-model-resources).
 - Document: a JSON-LD 1.1 document conformant with
   [W3C WoT Thing Model 1.1][WoT-TM-1.1].
 - The document's `@context` MUST include
@@ -774,8 +786,8 @@ the Resource type (`thingdescriptions` versus `thingmodels`) and by the
 
 Tools and autonomous agents need explicit metadata to choose among documents
 describing similar Things rather than inferring their provenance from titles
-or naming conventions. Both `thingdescription` and `thingmodel` Resources
-carry the following OPTIONAL attributes:
+or naming conventions. Each Version of a `thingdescription` or `thingmodel`
+Resource can carry the following OPTIONAL attributes:
 
 | Attribute | Type | Meaning |
 |---|---|---|
@@ -816,16 +828,15 @@ One `wotid` MAY legitimately match several Resources written by different
 parties ([Section 5.3](#53-lookup)), so a Consumer can face this choice.
 See also [Section 7](#7-security).
 
-These attributes are also not part of a document's semantic identity. A
-registry MUST NOT treat two documents as the same document because their
-provenance attributes agree, nor as different documents because they differ:
-identity is `wotid` alone
-([Section 5.1](#51-wot-identifiers-and-registry-ids)).
+These attributes do not determine WoT identity. A Registry MUST NOT infer
+that two documents share a WoT identity because their provenance attributes
+agree, or that their WoT identities differ because those attributes differ.
+`wotid` identifies the Thing or model, not an exact Version's bytes or
+a unique Resource across Groups.
 
-They are Version attributes, carried on each Version alongside the document
-they describe, as `format` and `wotid` are. This specification defines no
-special update semantics for them. They are written and updated exactly as any
-other Version attribute is, under the xRegistry Core rules.
+Each Version carries these attributes alongside the document they describe,
+just as it carries `format` and `wotid`. The xRegistry Core rules for writing
+and updating Version attributes apply.
 
 ## 5. Identity and Resolution
 
@@ -854,8 +865,8 @@ mapping between them:
 > `thingdescriptionid` is the Resource's id *within this registry* and is
 > chosen by the client that creates the Resource, subject to the xRegistry
 > Core id rules and to whatever further naming constraints the deployment
-> imposes. Neither is derived from the other. The same applies to a
-> `thingmodel`'s `wotid` and `thingmodelid`.
+> imposes. This specification mandates no derivation between them. The same
+> applies to a `thingmodel`'s `wotid` and `thingmodelid`.
 
 A client creating a Resource therefore chooses its id the same way it chooses
 a Group id:
@@ -908,7 +919,7 @@ A `wotid` is REQUIRED, and the rule for populating it depends on the document:
   `wotid`, rather than inventing one, because an invented identifier is not
   stable across registries.
 
-[Decision 4](decisions.md#4-wotid-is-a-required-indexed-first-party-attribute)
+[Decision 4](decisions.md#4-wotid-is-a-required-model-attribute)
 records that whether a future revision ought to define a derivation for the
 second case is not yet settled.
 
@@ -943,15 +954,16 @@ Registries store existing Thing Models and Thing Descriptions as authored.
 A vendor, standards body, or toolchain can supply a document, and artifacts
 outside the Registry can already reference it.
 
-- A registry MUST store the WoT document byte-for-byte as supplied, apart from
-  transformations the client explicitly requested.
+- A registry MUST store the WoT document byte-for-byte as supplied, apart
+  from transformations the client explicitly requested. Those transformations
+  do not authorize the identifier rewriting prohibited below.
 - A registry MUST NOT rewrite the document's `id` member, its `links[].href`
   values, its `tm:extends` or `tm:ref` targets, or any other identifier
   internal to the document, into registry-specific identifiers.
 - A retrieval of a stored Version through the document view MUST return the
-  exact bytes supplied, as the xRegistry Core document view already requires.
-  Re-serializing the document — reordering members, re-indenting, or
-  normalizing its JSON-LD — is not permitted.
+  exact bytes supplied. Re-serializing the document on retrieval —
+  reordering members, re-indenting, or normalizing its JSON-LD — is not
+  permitted.
 
 Rewriting is incompatible with these documents for three reasons:
 
@@ -964,15 +976,19 @@ Rewriting is incompatible with these documents for three reasons:
   identities for the same bytes, so neither registry could tell the copies
   apart from distinct documents.
 
-The Registry identifies a document externally through its `thingdescriptionid`
-or `thingmodelid` and the resulting `xid`. The document's authored identifiers
-are carried alongside it, unchanged, in `wotid` and `derivedfrom`. Keeping
-these identifier spaces separate allows the document to round-trip unchanged.
+The Registry identifies the Resource through its `thingdescriptionid` or
+`thingmodelid` and the resulting `xid`. An exact Version address identifies
+a particular document revision. The Version's metadata carries its WoT
+identity in `wotid`, which preserves the authored `id` when present, and
+can index WoT references in `derivedfrom`. Keeping the identifier spaces
+separate lets the document round-trip unchanged.
 
 Where a registry wants the TD-to-TM link to be traversable without parsing the
 document, it records the referenced Thing Models' *authored* identifiers in
-the `derivedfrom` attribute. `derivedfrom` holds `wotid` values, not `xid`s,
-so they can be compared directly with the document's authored references.
+the `derivedfrom` attribute. `derivedfrom` holds the target TMs' `wotid`
+values, not `xid` values or the literal syntax of a relative reference.
+Identify the target TM under the applicable reference rules before comparing
+its `wotid` to this index.
 
 `derivedfrom` is a producer-supplied *index* of the document's references, not
 an authority over them. A registry MAY verify that it matches the
@@ -986,53 +1002,56 @@ MUST NOT rely on `derivedfrom` alone.
 
 ### 5.3. Lookup
 
-A Consumer holding a WoT identifier — typically from a `tm:extends` link, a
-`tm:ref`, another `links[].href`, or a message attribute — can resolve it to a
-stored document in either of two ways.
+A Consumer can resolve a WoT identifier to a stored document in two ways. The
+identifier typically comes from a `tm:extends` link, a `tm:ref`, another
+`links[].href`, or a message attribute.
 
-**By path.** Where the Consumer already knows the Resource's Group and id —
-because it was given them, or because it follows a stored `self` URL — it
-addresses the Resource directly:
+**By path.** If the Consumer already has the Resource's Group and id, or
+follows a stored `self` URL, it addresses the Resource directly:
 
 ```
 /thingmodelgroups/<thingmodelgroupid>/thingmodels/<thingmodelid>
 ```
 
-**By `wotid`.** Otherwise — the usual case, because WoT documents reference
-one another by authored identifier rather than by registry path — it queries on
-the `wotid` attribute:
+**By `wotid`.** Otherwise, the Consumer queries the `wotid` attribute. This is
+the usual case because WoT documents reference one another by authored
+identifier rather than by registry path:
 
 ```
-GET /thingmodels?filter=wotid=urn:fabrikam:lamp:v1
+GET /thingmodelgroups/Fabrikam.Lighting/thingmodels?filter=wotid=urn:fabrikam:lamp:v1
 ```
 
-An implementation SHOULD serve this query in time that does not grow with
-collection size, in practice by indexing `wotid` on both `thingdescriptions`
-and `thingmodels`. A linear scan for each reference would make TD composition
-slower as the collection grows.
+An implementation SHOULD avoid a full scan for each lookup, for example by
+indexing `wotid` on `thingdescriptions` and `thingmodels`. Returning the
+matching Resources still takes work proportional to the size of the result.
 
 A `wotid` SHOULD be unique within a Group, so that a Group-scoped query for
 one identifies a single Resource. Across Groups a `wotid` MAY repeat — the
 same vendor TM legitimately appears in two tenants' Groups. A
-registry-wide query MAY therefore match more than one Resource. A caller
-that needs exactly one narrows the query by naming the Group.
+registry-wide query MAY therefore match more than one Resource. Naming a
+Group narrows the query but does not guarantee a unique match.
 
 A Registry-wide query MUST return every matching Resource rather than an
-arbitrary one of them. [Section 4.6](#46-provenance-and-selection-metadata)
-governs how a Consumer chooses among them.
+arbitrary one of them. A Consumer can query the relevant Groups using Core
+operations; the Group-scoped example does not define a root `thingmodels`
+collection. [Section 4.6](#46-provenance-and-selection-metadata) governs
+how a Consumer chooses among candidate TMs.
 
 Version selection is separate from the *identifier*. The URL carries the
 selection through the `versions` collection:
 
 | Intent | Request |
 |---|---|
-| Latest Version | the Resource's URL, which serves its default Version |
+| Default Version | `<resource-url>`, which serves its default Version |
 | A specific Version | `<resource-url>/versions/<versionid>` |
 | Enumerate Versions | `<resource-url>/versions` |
 
-`<resource-url>` above is the Resource's [`self`][xRegistry self] URL for the
-metadata view, or that URL with the `$details` suffix removed for the
-document view. See [Section 1.4](#14-document-store).
+`<resource-url>` above is the Resource's [`self`][xRegistry self] URL with
+the `$details` suffix removed. For HTTP Resource or Version metadata,
+append `$details` at the end of the complete Resource or Version URL.
+`<resource-url>/versions/2$details`, for example, requests Version `2`'s
+metadata, and `<resource-url>/versions/2` requests its document. See
+[Section 1.4](#14-document-store).
 
 A request to the Resource URL without a Version returns the Core default,
 even when [`defaultversionsticky`][Core defaultversionsticky]
@@ -1053,14 +1072,14 @@ recipient can put straight into a URL.
 
 #### 5.3.1. CloudEvents WoT Source Resolution
 
-CloudEvents for a TD in this Registry MUST follow the proposed CloudEvents WoT
-profile, `cloudevents/extensions/wot.md` in
-[CloudEvents PR 1406](https://github.com/cloudevents/spec/pull/1406). The profile
-requires `describedby` and selects the TD through a Descriptor entry of class
-`thingdescription`. The publication profile selects that entry by name or,
-without a name, by the unique entry of that class. `source` and `subject`
-retain their CloudEvents Core meanings; neither a `wotid` nor a `wotversion`
-source query selects the TD or provides a fallback.
+CloudEvents for a TD in this Registry MUST follow the proposed
+[CloudEvents WoT profile][CE WoT profile]
+([CloudEvents PR 1406](https://github.com/cloudevents/spec/pull/1406)). The
+profile requires `describedby` and selects the TD through a Descriptor entry
+of class `thingdescription`. The publication profile selects that entry by
+name or, without a name, by the unique entry of that class. `source` and
+`subject` retain their CloudEvents Core meanings; neither a `wotid` nor a
+`wotversion` source query selects the TD or provides a fallback.
 
 For a TD in this Registry, the Descriptor Publisher SHOULD use the document
 URL of an explicit Thing Description Version as the entry's `url`. A Resource URL
@@ -1071,9 +1090,10 @@ The Document bytes of the referenced Version MUST be the resolved TD view.
 Producing or publishing the view MUST NOT overwrite or rewrite stored authored
 source bytes ([Section 5.2](#52-preserving-customer-documents)). When the
 resolved view differs from the authored source, the Producer MUST publish the
-resolved bytes as a publication Version and retain the authored source bytes
-separately. The Descriptor Publisher MUST NOT reference an authored source Version
-whose bytes do not represent the resolved view.
+resolved bytes as a publication Version with its own exact document address.
+It MUST retain the authored source bytes separately. The Descriptor Publisher
+MUST NOT reference an authored source Version whose bytes do not represent
+the resolved view.
 
 When the resolved view or its source closure changes, the Producer MUST create
 a new publication Version according to [Section 1.3](#13-versioning) and MUST
@@ -1099,7 +1119,10 @@ Reconstruction needs a publication that satisfies the
 [Section 5.4.4](#544-publication-closure) alone covers only references between
 TDs and TMs.
 
-Independent source and publication closure digests remain applicable.
+The [Publication byte checks](../../publication/spec.md#byte-descriptors)
+apply to captured document bytes and the closure extension. They do not
+replace the authored projection source digest check in
+[Section 5.4.4](#544-publication-closure).
 
 The CloudEvents `type` identifies the payload contract, not the Registry
 Resource or TD Version; its revision is independent of `version.instance`,
@@ -1110,177 +1133,184 @@ the whole TD through Descriptors that reference an explicit Version.
 
 ### 5.4. Versioned Reference Resolution
 
-Sections 5.4.1 and 5.4.2 define floors and selection for a target Resource in
-a SemVer registry. [Section 5.5.3](#553-reference-selection-and-replay)
-defines the requirements and selection order for a target in an Incremental
-registry. The profile of the registry that stores the target decides which
-rules apply. For a configured external provider, the profile comes from
-trusted provider metadata recorded with the target. When that metadata is
-missing or untrusted, resolution MUST fail as `unknown-profile`. A resolver
-MUST NOT infer the profile from the reference or from the target bytes.
+The resolver uses the target's trusted profile, not the referring document's
+profile or the spelling of a version. [Section 1.3](#13-versioning) defines
+SemVer Version assignment; [Section 5.5](#55-incremental-profile) defines
+Incremental assignment and compatibility-line claims.
 
-A resolver distinguishes three operations under both profiles:
+The following four records are informative descriptions of information already
+used by the resolver. They do not define new document or Registry fields:
 
-| Operation | Behavior |
-| --- | --- |
-| Live selection | Selects a Version of the target Resource for an unpinned reference. The target profile's floor and line rules, the TD major cap and SemVer prerelease eligibility apply. A sticky default MUST satisfy those requirements; it bypasses only SemVer prerelease filtering. |
-| Raw exact replay | Retrieves a caller-retained exact Version or digest without candidate selection. The resolver verifies the Version identity, authorization and bytes. A successful replay does not establish that the Version satisfies a reference requirement. |
-| Snapshot-bound composition | Takes the exact target from the reference's binding in a captured publication, then checks the reference's requirements against that Version. A failed requirement produces `unsatisfied`; a missing binding, target or content produces `closure-incomplete`. The Consumer MUST NOT fall back to live selection, another binding or another snapshot. |
-
-A caller pin applies only to raw exact replay. It MUST NOT waive a
-requirement check during snapshot-bound composition.
+- **Revision:** a TD or TM revision in an authorized Resource sequence, with
+  its logical identity, stored `versionid`, authored version, profile,
+  `versionorigin`, compatibility line when applicable, and byte digest.
+  The authored version and the stored id can differ.
+- **Requirement:** what one reference asks for: its operator or source
+  media type, target and any fragment, effective minimum version
+  (floor), explicit line if applicable, and any declared projection source
+  byte digest.
+- **Request:** how the caller wants to resolve the target: live selection,
+  raw exact replay, or snapshot composition. Source authorization,
+  prerelease policy, replay pins, and publication selection are caller inputs,
+  not part of the authored requirement.
+- **Result:** the exact target and the evidence used to identify it. A
+  snapshot binding identifies the captured occurrence; the manifest identifies
+  the publication in which the binding was verified.
 
 #### 5.4.1. Floors and Pins
 
-A reference to a SemVer target MAY carry a minimum SemVer, called its floor,
-but MUST NOT carry a version range. `tm:minVersion` is a member of
-`tm:extends` or `tm:submodel` links and a sibling of `tm:ref`.
-`td:minVersion` is a member of `td:extends` or `td:subthing` links and a
-sibling of `td:ref`.
+The table gives the permitted requirements for each authored occurrence.
+An author MAY supply a floor, but MUST NOT supply a version range. In the
+Incremental column, the line selector is `uav:compatibilityLine` and the only
+permitted floor term is `uav:minVersion`.
 
-On the same occurrences and on a TD `type` link, a consumer MUST accept
-`uav:minVersion` as the equivalent explicit SemVer floor. More than one
-explicit floor term on an occurrence is `invalid-floor`, even when the
-values agree. `uav:compatibilityLine` on a reference to a SemVer target is
-`invalid-line`.
+| Authored occurrence | Target kind | SemVer requirement | Incremental requirement for live selection or snapshot composition |
+|---|---|---|---|
+| `tm:extends` or `tm:submodel` link, or object containing an ordinary `tm:ref` | TM | OPTIONAL `tm:minVersion` or `uav:minVersion`; no major cap. | Explicit line; OPTIONAL numeric floor. |
+| TD link with `rel: "type"` | TM | OPTIONAL `tm:minVersion` or `uav:minVersion`, combined with the TD's `version.model` as specified below; no major cap. | Explicit line; OPTIONAL numeric floor. `version.model` supplies no implicit floor. |
+| `td:extends` or `td:subthing` link, or object containing an ordinary `td:ref` | TD | OPTIONAL `td:minVersion` or `uav:minVersion`; the TD major cap applies only if there is a floor. | Explicit line; OPTIONAL numeric floor. |
+| Experimental projection source-manifest entry (Section 5.4.4) | TD or TM, from the entry's expected media type | OPTIONAL kind-correct `tm:minVersion` or `td:minVersion`, or `uav:minVersion`; the major cap applies only to a TD source with a floor. | Explicit line; OPTIONAL numeric floor. |
 
-The `uav` terms expand under the Binding namespace
-`http://opcfoundation.org/UA/WoT-Binding/`. Consumers MUST recognize these
-terms by expanded IRI using the active context. The line is a URI-valued
-string and the floor is a string. These terms do not add link operators or
-change the carrier rules in W3C WoT 1.1.
+Consumers MUST recognize floor and line members by expanded IRI under the
+active [JSON-LD context][JSON-LD], including any term-scoped context. The
+`uav` terms expand under `http://opcfoundation.org/UA/WoT-Binding/`. For
+example, a different prefix mapped to that same namespace does not change
+the expanded IRI of `uav:minVersion`. These terms do not add operators or
+change the allowed locations of the WoT links and reference members.
+An affordance selector is not a projection source entry. The root is not a
+reference: a root line describes the containing Incremental revision
+(Section 5.5.2) and is never inherited by its dependencies. The root does
+not take an explicit floor. Values inside opaque payloads such as `default`
+and `examples` are not reference occurrences.
 
-A floor MUST be a SemVer 2.0.0 string without build metadata. A floor is not a
-Core identifier, so Core's 128-character [id limit][Core id constraints] does
-not apply. It MUST NOT have the generated `0.0.0-N` form.
-Invalid syntax or a generated floor MUST produce `invalid-version`.
-`td:minVersion` on a TM reference and `tm:minVersion` on a TD-to-TD
-reference MUST produce `invalid-floor`.
+A floor MUST be a string and a line MUST be an absolute URI string.
+`null` is not omission. More than one explicit floor term on an occurrence
+is `invalid-floor`, even when the values agree. A floor term for the wrong
+target kind is also `invalid-floor`.
 
-A TM floor has no upper bound. The TM major is part of its `wotid`. A TD
-floor `X.Y.Z` admits target versions greater than or equal to `X.Y.Z` and
-below `(X+1).0.0`, including when X is zero. It also excludes prereleases
-whose major is `X+1`.
+- A SemVer floor MUST be a SemVer 2.0.0 string without build metadata
+  and MUST NOT have the generated `0.0.0-N` form. Core's 128-character
+  [id limit][Core id constraints] does not apply to floors. A line is
+  not valid on a reference to a SemVer target.
+- An Incremental floor MUST be a canonical positive decimal integer string
+  (`[1-9][0-9]*`) in the target sequence. A generated integer is a normal
+  candidate and MAY be used as a floor. An Incremental target has no
+  implicit floor, major cap, or prerelease filter. A portable SemVer floor
+  term is not valid for an Incremental target.
 
-A TD reference without a floor has no lower or upper bound and can select a
-version in any major. Neither the referencing TD's `version.instance` nor its
-`version.model` supplies an implicit floor for a TD-to-TD reference. The
-`version.model` implicit floor applies only to a TD's `rel: "type"` link to
-a TM.
+For SemVer, a Version MUST be at or above the effective floor if one is
+present. A TD floor additionally requires the Version's major to equal the
+floor's major, even for major zero. For example, a TD floor of `0.3.0`
+admits `0.4.0` but excludes `1.0.0-rc.1` even if prereleases are allowed.
+A TD reference with no floor can cross majors. A TM floor has no such cap:
+a breaking TM major has a different `wotid`, not another candidate for the
+same reference. Neither version field of a referring TD or of a projection
+plan supplies a floor for TD-to-TD references or projection sources.
 
-For a TD with exactly one `rel: "type"` link, its `version.model`, when
-present, is the implicit floor of that link. If the link also has an explicit
-`tm:minVersion`, the greater value by SemVer precedence is the effective
-floor. An explicit lower value MUST NOT weaken the implicit floor. If only one
-floor is present, that floor applies.
+For TD type links, determine the target profiles before interpreting the
+TD's `version.model`. It is an implicit floor for the SemVer-target links
+only. If the TD has `version.model` and more than one SemVer-target link,
+each such link MUST have an explicit floor. If one lacks it, SemVer type-link
+resolution MUST report `ambiguous-floor`, even when the selected SemVer
+link has its own floor. Report that ambiguity before validating individual
+floor values. Otherwise use the greater of the implicit and explicit floors
+by SemVer precedence, or the only floor present. Without `version.model`,
+each SemVer link uses its own floor if present and omission is not
+ambiguous. Incremental links independently require their own line.
 
-For a TD with several type links and `version.model`, every type link MUST
-carry its own `tm:minVersion`. Otherwise, resolution MUST fail as
-`ambiguous-floor`, including when resolving a different, fully specified link.
-When every link has a floor, each link MUST use the greater of its own floor
-and `version.model`.
+A Consumer MAY retain the resolution result outside the document and later
+supply a `versionid` or digest as a replay pin. A request MUST NOT supply
+both. Authored references MUST NOT carry Registry replay pins. A projection
+source's declared byte digest is a separate check on the selected source
+(Section 5.4.4), not a request to choose a Version by digest.
 
-For several type links without `version.model`, each link uses its own floor
-if present. An omitted floor MUST NOT produce `ambiguous-floor`.
+When the resolver derives an implicit floor for a SemVer-target link from
+`version.model`, a present value MUST satisfy the SemVer floor rules above.
+An invalid value MUST produce `invalid-version`. Core's 128-character ID
+limit does not apply to this floor.
 
-A non-SemVer implicit floor MUST produce `invalid-version`.
-
-A `tm:ref` or `td:ref` is document-local when its URI-reference, resolved
-against the containing document's base URI and with its fragment removed,
-identifies that same document. A document-local reference targets the
-containing revision being processed, not a Resource lookup. When it carries a
-floor, the resolver MUST compare the floor with that revision's
-`version.model` for `tm:ref` or `version.instance` for `td:ref`. A `td:ref`
-floor also applies the TD major cap. A missing authored version, or one below
-the floor or outside the cap, MUST produce `unsatisfied`. An invalid authored
-version MUST produce `invalid-version`. The resolver MUST NOT select another
-Version of the containing Resource to satisfy a local reference.
-
-A resolver MUST return
-`(wotid, versionid, contentdigest, versionprofile, compatibilityline, origin)`.
-`origin` identifies the registry from which the stored bytes were obtained,
-and `contentdigest` is the digest of those bytes. `versionprofile` is
-`semver` or `incremental`. `compatibilityline` is the selected Version's
-line. It is absent for a SemVer target and for a line-less Incremental
-Version. A Consumer MAY retain this tuple outside the document and pass
-either a digest pin or a `versionid` pin on a subsequent resolution. A
-request MUST contain at most one kind of pin.
-Documents MUST NOT carry registry version pins or digest pins. A floor is a
-compatibility requirement, not a pin. Authored references and document bytes
-MUST remain portable between registries.
+<a id="553-reference-selection-and-replay"></a>
 
 #### 5.4.2. Resolver Algorithm
 
-The caller selects a registry and Group scope identifying one Resource by
-`wotid`, following [Section 5.3](#53-lookup). For an external `tm:ref` or
-`td:ref`, the lookup target is the document identifier resolved from the
-reference URI, excluding any fragment. The fragment is applied after version
-selection. A document-local reference follows Section 5.4.1 instead of this
-algorithm.
-Resource disambiguation across Groups precedes this algorithm.
+For an external live or raw replay request, the caller MUST select an
+authorized Registry and Group scope that identifies one Resource by `wotid`
+([Section 5.3](#53-lookup)). Even a Group-scoped lookup can require
+disambiguation. Find that Resource before processing a pin or deriving
+requirements. If it does not exist, return `not-found`. A deprecated
+Resource remains eligible; the resolver MUST NOT follow its
+`deprecated.alternative` as a substitute. Compare Versions only within the
+selected authoritative sequence. Live candidates MUST be Versions of a
+conforming Resource of the expected target kind.
 
-Core defines Resource defaults and Version lineage through
-[`defaultversionsticky`][Core defaultversionsticky],
-[`versionmode`][Core versionmode],
-and [`ancestorid`][Core ancestorid]. This resolver
-uses those Core values but applies target-kind floors before returning an
-unpinned candidate. For an Incremental target, steps 1 and 2 apply with
-integer revision order in place of SemVer precedence, and
-[Section 5.5.3](#553-reference-selection-and-replay) replaces steps 3
-to 6.
+| Request | How it selects a Version | What the resolver MUST check |
+|---|---|---|
+| Live selection | Derive the requirement, then use the Core sticky `defaultversionid` if sticky. Otherwise select the highest eligible Version by SemVer precedence or Incremental numeric order. | Apply the target-kind and profile rules in Section 5.4.1. A sticky choice bypasses SemVer prerelease filtering only; if missing, return `not-found`, or if incompatible, return `unsatisfied`. With no sticky default and no eligible Version, return `unsatisfied`. Do not retry with another Resource or Version. |
+| Raw exact replay | Use the caller's `versionid` or digest pin in the authorized Resource. If the digest matches multiple Versions, select the highest matching Version under the known target profile, irrespective of line. | Verify identity, authority and bytes, and any retained expectations used to verify the replayed revision. Do not derive or apply the authored floor or line, TD major cap, prerelease filter, or sticky default. Return `not-found` for a missing named Version or `pin-mismatch` for a digest with no match. Do not retry as live selection. |
+| Snapshot composition | Open the supplied channel once, or verify the exact snapshot and its manifest. For an external occurrence, obtain the exact captured binding under Section 5.4.4 before testing acceptance. | Verify the bound revision's identity, authority and bytes. Check that revision against the authored requirement and applicable caller acceptance policy. Return `unsatisfied` if the revision fails the floor, line, major cap, or applicable prerelease policy. Do not retry with a live target, another bound revision or digest match, or another snapshot. Incomplete closure is not a successful composition. |
 
-The resolver MUST apply these steps in order:
+Ordinary Resource retrieval still serves the [Core default][Core defaults].
+The resolver uses [`defaultversionsticky`][Core defaultversionsticky] for
+live selection only. In manual mode the Core default need not be the highest
+numeric Version. For live selection and snapshot composition, a SemVer
+prerelease, including a generated id, is ineligible unless the caller sets
+`allowPrerelease` or the effective floor is a prerelease. Only a sticky
+default in live selection bypasses this filter. The filter does not weaken
+the floor or TD major cap. An Incremental candidate MUST have an accepted claim
+for the requested line and meet any numeric floor.
 
-1. Find the Resource whose `wotid` equals the reference target. If none
-   exists, fail as `not-found`. A deprecated Resource is eligible and MUST
-   NOT be replaced automatically by its `deprecated.alternative`.
-2. If a digest pin is supplied, return a Version with that `contentdigest`,
-   or fail as `pin-mismatch`. For duplicate bytes, return the Version with
-   highest SemVer precedence. If a `versionid` pin is supplied, return that
-   exact Version or fail as `not-found`. Pins bypass floor derivation, the TD
-   major cap, prerelease filtering, and sticky-default selection. They do not
-   authorize substituting bytes or following a successor.
-3. Derive the target kind and floor as specified in Section 5.4.1. Report
-   `ambiguous-floor` before validating individual floors when the
-   multiple-type-link rule is violated.
-4. If [`defaultversionsticky`][Core defaultversionsticky] is true, select
-   `defaultversionid` as-is. Do not substitute another Version or apply
-   prerelease filtering to a sticky choice. If it is unavailable, fail as
-   `not-found`. If a floor exists and the selected Version is below it, or a
-   TD target's major is at least `floor.major + 1`, fail as `unsatisfied`.
-5. Otherwise, exclude prereleases, including generated ids, unless the floor
-   is a prerelease or the caller opts in with `allowPrerelease`. For TD targets
-   with a floor, also exclude Versions below the floor and those with
-   major at least `floor.major + 1`, including prereleases of the next major.
-   Select the highest remaining Version by SemVer precedence. If none is
-   eligible, fail as `unsatisfied`. A generated-only Resource requires an
-   opt-in, pin, or sticky default.
-6. If a floor exists and the selected Version is below it, or a TD target's
-   major is at least `floor.major + 1`, fail as `unsatisfied`. Never downgrade,
-   bypass a sticky default or retry with a lower Version.
-   Otherwise return the tuple defined in Section 5.4.1.
+For `tm:ref` and `td:ref`, resolve the URI-reference against the
+containing document's base URI and remove the fragment before lookup.
+In snapshot composition, use the captured source base
+([Section 5.4.4](#544-publication-closure)), not the URI of a local copy.
+If the result identifies the containing document, the reference is
+document-local. Check the containing revision itself, without a Resource
+lookup, pin, or substitution. For SemVer and a local floor, use that
+revision's authored `version.model` for `tm:ref` or `version.instance`
+for `td:ref`. A missing authored value is `unsatisfied` and an invalid
+one is `invalid-version`.
+The TD major cap still applies. For Incremental, use the containing
+Version's trusted line and Version ID. Apply a valid fragment after selecting
+the document.
 
-For an unpinned reference to a SemVer target, only SemVer Versions from a
-conforming Resource of the indicated target kind are inputs. A TD Resource's
-`versionid` is derived from `version.instance`. A TM Resource's is derived
-from `version.model`.
+A successful resolution MUST return `(wotid, versionid, contentdigest, origin)`.
+`origin` identifies the Registry that supplied the stored bytes and
+`contentdigest` is their digest, not a manifest or closure digest.
+When the target profile is known, the result MUST also carry
+`versionprofile`, with value `semver` or `incremental`, and the selected
+Version's `compatibilityline`. The line is absent for a SemVer target or a
+line-less Incremental Version. An unambiguous exact replay can succeed
+without a known profile.
+
+Raw replay does not validate the referring document. When validation or
+composition uses the retrieved content, it MUST still apply the document and
+reference rules for that operation. A pin cannot make invalid authored
+syntax valid. Core-only storage does not establish that a document's
+references are valid.
+
+For example, a TD with `version.model: "2.3.0"` has a type link to the TM
+`urn:example:pump-model:v2`. With revisions `2.2.0`, `2.3.0`, and `2.4.0`
+available and no sticky default, live selection chooses `2.4.0`. A raw
+pin for `2.2.0` returns that revision. Composition with a snapshot that
+binds `2.2.0` rejects it as `unsatisfied`; a snapshot that binds `2.3.0`
+can satisfy the requirement without replacing it with `2.4.0`.
 
 #### 5.4.3. Errors and Test Vectors
 
 | Error | Meaning |
 |---|---|
 | `not-found` | Resource, pinned Version, or sticky default is absent. |
-| `pin-mismatch` | The target Resource has no Version with the caller's digest. |
-| `unsatisfied` | No eligible Version exists, the selected or bound Version is below the floor, outside the TD major cap or on another line, or a local reference's containing revision fails its requirement. |
-| `ambiguous-floor` | A TD has `version.model`, several SemVer type links and at least one of them without its own floor. |
-| `invalid-floor` | A floor term is used with a reference to the other document kind, or `uav:minVersion` appears beside a legacy floor term. |
+| `pin-mismatch` | No Version matches the caller's replay digest, or selected projection source bytes do not match their declared digest. |
+| `unsatisfied` | No live candidate is eligible, or the selected, containing, or bound revision fails an applicable floor, line, major cap, or prerelease check. |
+| `ambiguous-floor` | A TD has `version.model` and more than one SemVer-target type link, at least one without its own floor. |
+| `invalid-floor` | Competing floor terms appear on one occurrence, or the term is not valid for the target kind or profile. |
+| `invalid-line` | A line is not a valid absolute URI string, is not valid at that location, or is supplied for SemVer. |
+| `compatibility-required` | An Incremental reference checked by live selection or snapshot composition lacks an explicit line. |
+| `unknown-profile` | Trusted metadata does not establish a recognized target profile for live selection, snapshot acceptance, or ranking multiple replay digest matches. |
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment, or an authored Incremental revision is not above the high-water mark. |
-| `invalid-version` | A floor or publication version violates the version syntax or generated-floor restriction. |
-| `unknown-profile` | The target's version profile is not known from registry or trusted provider metadata. |
-| `invalid-line` | A compatibility line is not an absolute IRI, appears for a SemVer target or Version, or appears at an unsupported location. |
-| `compatibility-required` | An unpinned reference to an Incremental target carries no compatibility line. |
-| `closure-incomplete` | Snapshot-bound composition finds no binding, target or content for a reference in the closure. |
-| `inconsistent-publication` | Root line and creation metadata disagree, a request changes a Version's line, or trusted metadata for one revision conflicts. |
+| `invalid-version` | A floor, local authored version, or publication version violates the applicable version rules. |
+| `inconsistent-publication` | The root line and authorized Version metadata disagree, or trusted publication data claims conflicting bytes or fixed metadata for the same source revision. |
+| `closure-incomplete` | The manifest digest does not match, or necessary closure data, a binding, or bound content is absent or unsupported. |
 
 These names identify domain outcomes, not replacements for Core's protocol
 error envelopes or its [`versionid`][Core versionid]
@@ -1292,6 +1322,10 @@ assignment, for both profiles.
 #### 5.4.4. Publication closure
 
 The requirements below define WoT closure data and its reference mapping.
+The xRegistry Publication working draft defines
+[opening a channel](../../publication/spec.md#opening-a-channel),
+[manifest and byte integrity](../../publication/spec.md#manifest-and-integrity),
+and [domain closure](../../publication/spec.md#domain-closure-and-compatibility).
 The [publication design](../../publication/design/design.md#a-complete-wot-publication)
 is informative. Passing the closure schema alone does not establish that a
 pinned WoT view is reconstructible.
@@ -1303,15 +1337,14 @@ a REQUIRED manifest extension. Its document format is
 [closure schema](schemas/publication-closure.schema.json). The extension does
 not change the authored WoT documents or their reference semantics.
 
-Each `entries` item, binding `source`, and binding `target` MUST be an exact
-Version XID in the captured Registry view. A target MUST identify one
-associated Version document, not a Resource XID, default-Version alias, WoT
-identifier or URL. The captured Registry model determines the target
-Resource's kind. A Consumer MUST validate that kind and target identity
-against the source occurrence using the mapping defined for that reference
-kind. The closure document does not add a target-kind field or authorize a
-different selection rule. If no such mapping is defined, the Consumer MUST
-reject the binding.
+The closure's `entries` array identifies the starting Version documents.
+The Producer follows the domain closure rules above to check reference
+occurrences reachable from those entries. Each `entries` item, binding
+`source`, and binding `target` MUST be an exact Version XID in the
+captured Registry view. A target MUST identify one associated Version
+document, not a Resource XID, default-Version alias, WoT identifier or URL.
+The closure document does not add a target-kind field or authorize a
+substitute for the bound Version.
 
 A Producer MUST derive the closure from the captured source document bytes,
 not from the binding list. Each in-scope external reference occurrence in the
@@ -1357,6 +1390,9 @@ closure document:
 | TD link with `rel: "type"` | `type` |
 | Experimental projection source-manifest entry | `https://raw.githubusercontent.com/marcschier/wot-thing-description/main/proposals/wot-projections/context.experimental-v1.jsonld#projects` |
 
+The projection operator IRI is a label, not a URL a Consumer fetches.
+Use the context artifact from the pinned proposal below.
+
 A Consumer MUST compare canonical operators as exact strings and MUST reject
 unknown or mismatched operators. Member names MUST be interpreted under
 their captured effective JSON-LD contexts; the literal prefix alone does not
@@ -1383,40 +1419,50 @@ IRIs defined there. The former placeholder namespace is not an alias.
 Consumers MUST use captured contexts or a supported immutable context set;
 opening a publication MUST NOT fetch live contexts.
 
+A projection plan describes a view composed from selected source documents.
 In a marked projection plan, each external source-manifest entry is a
 dependency occurrence, in its authored array order. Its binding MUST record
 that entry's `href` and the projection operator above. The entry's expected
-media `type` determines whether the target is a TD or TM; the Consumer
-MUST verify the captured target's actual kind. A `tm:ref` affordance selector
-matched to that source under the selected proposal MUST use the entry's
-binding and MUST NOT have a second binding of its own. Ordinary `td:ref`
-occurrences remain separate dependencies. A marker, source entry, or selector
-that fails the selected proposal's rules MUST NOT be accepted by supplying
-an otherwise well-shaped closure binding.
+media `type` identifies the kind under the pinned proposal, for example
+`application/td+json` for a TD or `application/tm+json` for a TM.
+The Consumer MUST verify the captured target's actual kind. A `tm:ref`
+affordance selector matched to that source under the selected proposal MUST
+use the entry's binding and MUST NOT have a second binding of its own.
+Ordinary `td:ref` occurrences remain separate dependencies. An otherwise
+well-shaped closure binding MUST NOT be used to accept a marker, source
+entry, or selector that fails the selected proposal's rules.
+
+In live selection or snapshot composition, the Consumer MUST verify every
+declared `wotproj:sourceDigest` against the exact selected source bytes,
+including for sources that contribute nothing to the resolved view.
+A mismatch fails as `pin-mismatch`; the Consumer MUST NOT look for a
+different Version with matching bytes. Verifying an unused source's digest
+does not add a provenance link for it. If both the declared digest and an
+applicable floor or line check fail, the Consumer MUST reject the result;
+this specification does not assign priority between them.
 
 Before validating closure bindings, the Producer and Consumer MUST determine
 candidate targets from the captured Registry model, Registry view, and document
 associations. Target matching MUST use each candidate's Group and Resource
 identity, Resource kind, applicable `wotid`, original document URI base, and
-document-view URI from the captured Registry metadata. Each URI identity MUST
+document-view URI from the captured Registry metadata. The Publication
+[document association](../../publication/spec.md#registry-json-and-document-associations)
+supplies `base` for relative references. Each URI identity MUST
 distinguish a Resource from an exact Version. `originRegistry` is provenance,
 not a document URI identity, and MUST NOT be used for target matching.
-Neither side MAY use closure binding
-targets, unrecorded retrieval locations, or requests to a live Registry to
-choose a target.
+Neither side MAY use closure binding targets, unrecorded retrieval locations,
+or requests to a live Registry to establish the candidate identities.
 
 For each external reference occurrence, the Producer and Consumer MUST resolve
 the authored `href` against the source document's captured base and remove its
-fragment before matching captured URI identities. The operator's resolution
-rules determine whether a Resource or exact Version is selected. For SemVer
-`tm:ref` and `td:ref` references that identify a Resource by `wotid`, Section
-5.4.2 determines the selected Version. For incremental references, use
-Section 5.5.3 to check the captured binding against its authored requirement.
-A document-view URI recorded as
-identifying an exact Version selects that Version; a Resource-level URI uses
-the captured view's selection state. The closure binding still MUST preserve
-the authored `href` unchanged. In every case, its target MUST identify the
-resulting Resource and exact Version.
+fragment before matching captured URI identities. The operator's rules
+determine whether the occurrence identifies a Resource or an exact Version.
+For a Resource-level match, the bound Version MUST belong to that Resource.
+For an exact-Version match, the binding MUST name that Version. If no
+mapping is defined for the reference kind, the Consumer MUST reject the
+binding. Having established the exact bound Version, the Consumer MUST
+check it under the snapshot composition row of Section 5.4.2. Neither a
+Resource-level match nor an exact-Version URI waives this check.
 
 For an ordinary `tm:ref`, one unique identity match to a Thing Model Resource
 classifies the occurrence as an in-scope dependency. One unique match to a
@@ -1458,9 +1504,10 @@ the bound target Version, then checks the reference's floor, line and TD major
 cap against it. A failed check produces `unsatisfied`. It does not authorize
 selecting another Version.
 
-The schema and sample validate descriptor shape only. They do not verify that
-a publication covers every in-scope reference or binds it to the correct
-Version.
+The [closure schema](schemas/publication-closure.schema.json) checks the
+structure shown in the [closure example](samples/publication-closure.json).
+It does not verify that a publication covers every in-scope reference or
+binds it to the correct Version.
 
 ### 5.5. Incremental Profile
 
@@ -1504,10 +1551,11 @@ proves compatibility. The SemVer rule requiring a TM major in `wotid`
 does not apply. A breaking update to the same logical document can
 start a different line without changing `wotid`.
 
-An authorized Producer MAY set root `uav:compatibilityLine` or supply
-Version metadata `compatibilityline` without changing the document
-bytes. If both are present they MUST agree exactly, or publication
-fails as `inconsistent-publication`. A value, when supplied, MUST be an
+An authorized Producer MAY author `uav:compatibilityLine` in the document
+root or supply `compatibilityline` separately as Version metadata.
+Supplying metadata does not change the document bytes. If both values are
+present they MUST agree exactly, or publication fails as
+`inconsistent-publication`. A value, when supplied, MUST be an
 absolute URI; null or an empty string is not omission. Creation fixes
 the effective value, including absence. Changing it requires a new
 Version. Replacing the document bytes also requires a new Version.
@@ -1522,48 +1570,15 @@ directly but MUST NOT satisfy compatibility-line selection. The
 incremental model does not assert Core Resource-wide backward
 compatibility across different lines.
 
-#### 5.5.3. Reference Selection and Replay
-
-An unpinned incremental reference MUST specify target
-`uav:compatibilityLine` and MAY specify `uav:minVersion` as a positive
-integer string in that target's authoritative sequence. These members
-apply to a supported link, source-manifest entry, or object containing
-an inline reference. The document root's line does not constrain its
-dependencies. An incremental target has no implicit floor from either
-authored version field, no SemVer major cap, and no prerelease filter.
-A generated integer is a normal candidate.
-
-A missing line fails as `compatibility-required`. Invalid line syntax
-or using a line on a SemVer target fails as `invalid-line`. An invalid
-numeric floor fails as `invalid-version`; supplying a SemVer floor term
-on an incremental target, or supplying competing floor terms, fails
-as `invalid-floor`.
-
-For live selection, the Consumer MUST identify one authoritative
-Resource sequence before comparing Version IDs. If the Core default
-is sticky, it MUST use that Version only if it satisfies the trusted
-line and floor; otherwise it MUST return `unsatisfied` without trying
-another Version. If not sticky, it MUST select the numerically highest
-eligible Version or return `unsatisfied`. A missing sticky Version
-returns `not-found`. Evaluate a document-local reference against the
-containing Version without substituting another Version. Apply a valid
-fragment after selecting the document.
-
-Raw exact replay bypasses live line, floor, and default selection.
-A Version ID pin selects that Version; a digest pin selects the
-highest numeric revision among matches in the same sequence. A failed
-pin MUST NOT fall back to live selection. Section 5.4.4 snapshot
-composition MUST instead evaluate the requested line and floor against
-the already bound Version, including when a reference uses a captured
-exact document URL. It MUST NOT consult a live default or retry with
-another Version. Core Resource GET still returns its Core default.
-
 ## 6. Relationships and Cross-References
 
-Sections [6.1](#61-thing-description-to-thing-model) through
-[6.4](#64-thing-description-to-schema-registry) describe how existing WoT and
-xRegistry mechanisms compose. They place no requirements on a conformant
-registry.
+Sections [6.1](#61-thing-description-to-thing-model),
+[6.3](#63-thing-description-to-endpoint-registry), and
+[6.4](#64-thing-description-to-schema-registry) describe relationships
+informatively. [Section 6.2](#62-thing-description-to-thing-description)
+identifies the proposed TD-to-TD mechanisms covered by the resolution
+rules in [Section 5.4](#54-versioned-reference-resolution). Those rules do
+not require a Registry to resolve references during ordinary storage.
 [Section 6.5](#65-affordance-grouping) is normative.
 
 ### 6.1. Thing Description to Thing Model
@@ -1583,12 +1598,13 @@ document itself and not to xRegistry metadata
 
 Because
 [Section 5.2](#52-preserving-customer-documents) forbids rewriting, a document
-that already carried an `href` in the WoT identifier space keeps it, and the
-link is recorded in `derivedfrom` instead.
+that already carries an `href` in the WoT identifier space keeps it. The
+Producer can record the target's `wotid` in `derivedfrom` without modifying
+the link.
 
 The `href` in such a link is an absolute URI. A registry-relative path would
-not survive a copy of the document to another registry, which is the outcome
-[Section 5.2](#52-preserving-customer-documents) exists to prevent.
+not survive a copy of the document to another registry. See
+[Section 5.2](#52-preserving-customer-documents).
 
 For example:
 
@@ -1615,24 +1631,13 @@ Resource under more than one Group.
 
 ### 6.2. Thing Description to Thing Description
 
-A TD-to-TD reference to a SemVer target selects a Version of the target
-`thingdescription` Resource using its `wotid` and SemVer `versionid`, derived
-from the target `version.instance` as specified in
-[Section 1.3](#13-versioning). For `td:extends`, `td:subthing` and `td:ref`,
-`td:minVersion` is an OPTIONAL floor. A floor limits the target Version to
-`[floor, (major + 1).0.0)`. Without a floor, resolution selects the highest
-eligible Version overall and can cross major versions. The referencing TD's
-`version.instance` and `version.model` do not supply an implicit floor. For
-an Incremental target, the reference carries a compatibility line and an
-OPTIONAL integer floor instead, as
-[Section 5.5.3](#553-reference-selection-and-replay) specifies.
-
-This selection rule identifies the TD supplied to the composition operator.
-It does not change the operator's inheritance, child-relationship, or
-definition-reference semantics. A `td:minVersion` on a TM reference or a
-`tm:minVersion` on a TD-to-TD reference is `invalid-floor`. Other TD links are
-outside this rule. The W3C versioned-reference proposal defines the proposed
-vocabulary and processing model.
+For `td:extends`, `td:subthing`, and `td:ref`,
+[Section 5.4](#54-versioned-reference-resolution) defines how a resolver
+identifies the TD revision supplied to the composition operator. It does
+not change the operator's inheritance, child-relationship, or
+definition-reference semantics. Other TD links are outside this rule. The
+[WoT versioned-reference proposal][WoT reference proposal] defines the
+proposed vocabulary and processing model.
 
 ### 6.3. Thing Description to Endpoint Registry
 
@@ -1641,10 +1646,9 @@ endpoint.
 
 When a Thing Description shares an endpoint independently managed by an
 xRegistry [Endpoint Registry][xRegistry Endpoint], implementations typically
-link the two descriptions through `forms[].href`. Its value is a URL that
-resolves to one of the protocol bindings declared by the corresponding
-`endpoint` Resource, so that the two descriptions of the same endpoint do
-not drift.
+correlate the TD's `forms[].href` with a protocol binding documented by
+the corresponding `endpoint` Resource. The `href` addresses the Thing
+interface, not the Registry Resource that describes it.
 
 This specification does not require an `endpoint` Resource to exist for every
 `forms` entry, nor does it require any specific naming or correlation
@@ -1660,9 +1664,9 @@ When the referenced
 schema is managed by an xRegistry [Schema Registry][xRegistry Schema],
 implementations typically express the reference using the WoT
 [`tm:ref`][WoT-TM-1.1] mechanism (in TMs) or a `links` entry with
-`"rel": "describedby"` (in TDs). The `href` resolves to the `schema`
-Resource Version's document-view URL: the `self` URL with the `$details`
-suffix removed.
+`"rel": "describedby"` (in TDs). The `tm:ref` value or the link's `href`,
+respectively, refers to the `schema` Resource Version's document-view URL:
+the `self` URL with the `$details` suffix removed.
 
 In a captured publication, the
 [composite closure contract][Publication composite closure] treats a
@@ -1688,9 +1692,9 @@ Proposals to sub-divide a large TD's affordances, such as a `td:submodel`
 grouping member, are being discussed in the W3C WoT community. Were such a
 mechanism to be standardized, a WoT Registry would store a TD that uses it
 exactly as it stores any other TD, since the grouping is a member of the
-document rather than the registry model. Support is OPTIONAL. A registry
-that does not understand the mechanism MUST still store and serve the document
-unchanged, as specified in
+document rather than the registry model. Interpreting the grouping is
+OPTIONAL. A registry that does not understand the mechanism MUST still
+store and serve the document unchanged, as specified in
 [Section 5.2](#52-preserving-customer-documents).
 
 Documents authored outside the Registry routinely contain no grouping
@@ -1698,20 +1702,19 @@ construct. They MUST remain fully supported.
 
 ## 7. Security
 
-Like the [xRegistry Core][xRegistry Core] specification, this specification
-does not explicitly address authentication or authorization levels of users,
-nor how to securely protect the APIs.
+Like [xRegistry Core][xRegistry Core], this specification does not specify how
+to authenticate users, what access levels to grant them, or how to secure the
+APIs.
 
 Implementations are expected to use authentication and authorization
 suited to the application domain and deployment environment. These
 mechanisms MAY include OAuth 2.0, OpenID Connect, API keys, or other options
 suited to the use case.
 
-For authorization, `thingdescriptiongroup` and `thingmodelgroup` provide
-natural boundaries. Users can receive access to specific Groups and the
-Things or Thing Models they contain. Access can also be restricted to
-specific Versions of `thingdescription` and `thingmodel` Resources. This
-supports fine-grained access control.
+A deployment can use `thingdescriptiongroup` and `thingmodelgroup` as
+authorization boundaries, granting users access to specific Groups and the
+Things or Thing Models they contain. It can also restrict access to specific
+Versions of `thingdescription` and `thingmodel` Resources.
 
 Operators of a WoT Registry SHOULD be aware that Thing Descriptions can
 expose detailed information about deployed devices, including network
@@ -1721,13 +1724,14 @@ additional guidance.
 
 The document-preservation and selection rules introduce the following risks:
 
-- **Resolution is composition.** A Thing Model composes other Thing Models
-  through `tm:extends` and `tm:ref`, and a Thing Description names network
-  endpoints through `links[].href` and `forms[].href`. These are authored
-  strings taken verbatim from a document the registry did not write
-  ([Section 5.2](#52-preserving-customer-documents)), and resolving one is a
-  fetch performed with the resolver's network position and credentials, not
-  the author's.
+- **Composition can retrieve external documents.** A Thing Model composes
+  other Thing Models through `tm:extends` and `tm:ref`, and a Thing Description
+  names network endpoints through `links[].href` and `forms[].href`. These
+  are authored strings taken verbatim from a document the registry did not
+  write ([Section 5.2](#52-preserving-customer-documents)). Looking up a
+  Registry identity is not the same as fetching an authored URL or invoking
+  the Thing operation named by a form. When a resolver fetches a URL, it
+  uses its own network position and credentials, not the author's.
 
   A Consumer or Registry that resolves them SHOULD confine resolution to the
   Registry and its declared federation links. Where a deployment has to
@@ -1744,8 +1748,9 @@ The document-preservation and selection rules introduce the following risks:
   which this specification defines no integrity check.
 
 - **Provenance metadata is self-asserted.** `license`, `publisher`,
-  `standardsbody`, `canonicalurl`, and `maturity` are written by whoever
-  creates the Resource and are verified by nothing in this specification
+  `standardsbody`, `canonicalurl`, and `maturity` are supplied by the
+  writer of each Version. This specification mandates no verification of
+  these claims
   ([Section 4.6](#46-provenance-and-selection-metadata)).
 
   The same `wotid` MAY appear in more than one Group
@@ -1757,8 +1762,9 @@ The document-preservation and selection rules introduce the following risks:
 
   Selection MUST therefore be scoped to writers the Consumer already trusts.
 
-- **Stored documents are served from the registry's origin.** A document is
-  stored byte-for-byte ([Section 5.2](#52-preserving-customer-documents)) and
+- **Serving stored documents from the Registry UI's origin adds risk.** A
+  document is stored byte-for-byte
+  ([Section 5.2](#52-preserving-customer-documents)) and
   served under a client-supplied `contenttype`.
   [Section 4.2](#42-thing-description-resources) constrains which media types
   a registry will serve it under. Format validation does not help here: a
@@ -1782,7 +1788,13 @@ The document-preservation and selection rules introduce the following risks:
 [Publication schema closure]: ../../publication/profiles/schema-closure.md
 [Publication composite closure]: ../../publication/profiles/composite-closure.md
 [WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
-[WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11/
+[WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11#thing-model
+[WoT-TD media]: https://www.w3.org/TR/wot-thing-description11#media-type-section
+[WoT-TM media]: https://www.w3.org/TR/wot-thing-description11#media-type-section-tm
+[JSON-LD]: https://www.w3.org/TR/json-ld11/
+[SemVer]: https://semver.org/spec/v2.0.0.html
+[CE WoT profile]: https://github.com/cloudevents/spec/blob/278dcbde5f51b65e62863c5d0d144c7f366fec74/cloudevents/extensions/wot.md
+[WoT reference proposal]: https://github.com/marcschier/wot-thing-description/blob/f66f89ab59196be3d19b088692f9ce7c22e7785e/proposals/td-versioned-references/spec.md
 [WoT-Discovery]: https://www.w3.org/TR/wot-discovery/
 [WoT-Security]: https://www.w3.org/TR/wot-security/
 [RFC3986]: https://www.rfc-editor.org/rfc/rfc3986

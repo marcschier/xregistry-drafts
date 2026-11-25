@@ -152,8 +152,7 @@
       "required": [
         "wotid",
         "versionid",
-        "contentdigest",
-        "versionprofile"
+        "contentdigest"
       ],
       "additionalProperties": false
     },
@@ -405,6 +404,26 @@
         "expect"
       ],
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "profile": {
+                "enum": ["semver", "incremental"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "expect": {
+                "properties": {
+                  "result": {
+                    "required": ["versionprofile"]
+                  }
+                }
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {
