@@ -3,6 +3,7 @@
 <!-- words: bytestrings compatibilityvalidated firstregistry formatvalidated identifiertype methodid modellingrules namespaces namespaceversion objectid qualifiedname readme referencetype reserializing standalone -->
 
 <!-- words: xregistry addressspace browsename browsenames browsepath -->
+<!-- words: modeluri publicationdate REQUIREDMODEL -->
 <!-- words: browsepaths nodeid nodeids nodeclass typedefinition opc ua -->
 <!-- words: filetransfer versionid versionids groupid resourceid registryid -->
 <!-- words: xid xids epoch labels createdat modifiedat defaultversionid -->

@@ -1,0 +1,207 @@
+{
+  "format": "xregistry-publication/1",
+  "scope": "urn:example:closure-corpus",
+  "capture": "assembled",
+  "completeness": "offline-complete",
+  "registry": {
+    "reference": {
+      "registry": {
+        "binding": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/fixtures/objects/registry-semver/versions/content"
+    },
+    "digest": "sha256:39f6a648c3cb43e2fb5d1a8aac40b105bb70511c18e68e7df6fc9f4b969beeca",
+    "size": 4733
+  },
+  "documents": [
+    {
+      "viewVersion": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0",
+      "base": "https://example.test/things/pump-7.td.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0"
+        },
+        "digest": "sha256:d85eb4851244acaaeefd0dcfc301b7b596b8dc584f6b088fb265379a15d8cfff",
+        "size": 788
+      }
+    },
+    {
+      "viewVersion": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0",
+      "base": "https://example.test/things/pump-template.td.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0"
+        },
+        "digest": "sha256:620a67141d3e268458eae528ffb37716e95b0ff1461b962dc33207e7ec7642bb",
+        "size": 483
+      }
+    },
+    {
+      "viewVersion": "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0",
+      "base": "https://example.test/models/pump.tm.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+        },
+        "digest": "sha256:3f344e019c0bea1d9a0eabc28670b9bc60083bfec224c6bc65cc6ac4b51096b6",
+        "size": 1066
+      }
+    },
+    {
+      "viewVersion": "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0",
+      "base": "https://example.test/models/base.tm.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0"
+        },
+        "digest": "sha256:3d4da0fa0eb840cc9aaba411264e8ef5173aaf44745f5ddb06ad718b6dbb2ad2",
+        "size": 322
+      }
+    },
+    {
+      "viewVersion": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "base": "https://example.test/schemas/address.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/schemagroups/acme/schemas/address/versions/1.0.0"
+        },
+        "digest": "sha256:4939cb4264919c5783ed1c269cfb385cd00d3f4502543308ed3f472612f9ea6e",
+        "size": 641
+      }
+    },
+    {
+      "viewVersion": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "base": "https://example.test/schemas/common.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/schemagroups/acme/schemas/common/versions/2.1.0"
+        },
+        "digest": "sha256:95405bb0abe2e834cff1cfbdf5b411c1f2a54c4d73a58074cc5dae7f7ed1781c",
+        "size": 600
+      }
+    },
+    {
+      "viewVersion": "/contextgroups/acme/contexts/pump/versions/1.0.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/contextgroups/acme/contexts/pump/versions/1.0.0",
+      "base": "https://example.test/contexts/pump.jsonld",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/contextgroups/acme/contexts/pump/versions/1.0.0"
+        },
+        "digest": "sha256:5b215e73f751b37dcf86b6903ef3431eacf537a9c30a99044a446e2f67ab6ae8",
+        "size": 177
+      }
+    },
+    {
+      "viewVersion": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0",
+      "base": "https://example.test/nodesets/pump.xml",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0"
+        },
+        "digest": "sha256:00466a4bdbd6a4ae30453d008d44a34e127ba4564d84d63762e5e176dedc8ae3",
+        "size": 191
+      }
+    }
+  ],
+  "extensions": {
+    "https://xregistry.io/workingdrafts/publication/profiles/composite-closure/1-experimental": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/composite-semver/versions/content"
+      },
+      "digest": "sha256:b73fa078ed23fc9b12778941069e5276c18124b134e91431d28c5a539c0a7f7b",
+      "size": 774
+    },
+    "http://opcfoundation.org/UA/WoT-Binding/publication-closure/1": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/wot-semver/versions/content"
+      },
+      "digest": "sha256:b64f89ae2e16e434551eaca54673d5bb4a7e58787277a9d82fa17c2741e985c9",
+      "size": 1254
+    },
+    "https://xregistry.io/workingdrafts/publication/profiles/schema-closure/1-experimental": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/schema-semver/versions/content"
+      },
+      "digest": "sha256:c4f648dd7610a70250f069a1a6dc552046f39e0598963ef786dbdaceb4f84c9e",
+      "size": 2366
+    },
+    "urn:example:opcua-materialization": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/opcua-semver/versions/content"
+      },
+      "digest": "sha256:752401df387acfbbda7701b75e48f90252d0fc7158ab61abbf662d98283d857d",
+      "size": 405
+    }
+  },
+  "requiredExtensions": [
+    "https://xregistry.io/workingdrafts/publication/profiles/composite-closure/1-experimental",
+    "http://opcfoundation.org/UA/WoT-Binding/publication-closure/1",
+    "https://xregistry.io/workingdrafts/publication/profiles/schema-closure/1-experimental",
+    "urn:example:opcua-materialization"
+  ]
+}

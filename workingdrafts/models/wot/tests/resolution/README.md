@@ -2,6 +2,7 @@
 
 <!-- words: allowprerelease contentdigest minversion prereleases py pytest submodel typelinks versionorigin workingdrafts wotid -->
 <!-- words: standalone -->
+<!-- words: compatibilityline highwatermark uav versionprofile -->
 
 The checker runs the reference implementation on 33 representative version
 assignment and reference resolution cases from [vectors.json](vectors.json).
@@ -231,6 +232,67 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 | `058-td-publish-authored-assignment` | Assign a TD id from its authored instance version. |
 | `060-td-publish-version-mismatch` | Reject a supplied id that differs from the assignment. |
 | `061-td-publish-build-metadata` | Reject build metadata in an authored version. |
+
+## Incremental profile vectors
+
+[incremental.json](incremental.json) holds 42 cases for the OPTIONAL
+Incremental version profile in
+[Section 5.5](../../spec.md#55-incremental-profile), checked by
+[check_incremental.py](check_incremental.py) against
+[incremental.schema.json](incremental.schema.json). The SemVer collection
+above is unchanged. A case that targets a SemVer Resource passes its
+reference to the SemVer resolver in `check_vectors.py`, after mapping
+`uav:minVersion` to the floor term for the reference kind.
+
+Run them from the repository root:
+
+```sh
+python workingdrafts/models/wot/tests/resolution/check_incremental.py
+python -B -m pytest workingdrafts/models/wot/tests/test_wot_incremental.py -q
+```
+
+The pytest module also compares
+[model-incremental.json](../../model-incremental.json) with
+[model.json](../../model.json), after resolving their includes. It checks the
+profile's Version mode, lineage, compatibility and immutable line overrides.
+Both resolved models are also validated against the Core model schema.
+
+Each case has `description`, `profile`, `operation`, `registry` and `expect`.
+The `profile` field is `incremental`, `semver` or `unknown`. A case states
+the profile as trusted Registry metadata rather than inferring it from Version
+ids. Registry Resources add `kind` and an OPTIONAL `highwatermark`. A Version
+MAY carry `compatibilityline`. A reference carries a `requirements` object
+whose members are the authored terms `uav:compatibilityLine`,
+`uav:minVersion`, `tm:minVersion` and `td:minVersion`. The `operation` field
+selects the input that the case uses:
+
+| Operation | Input | Behavior |
+| --- | --- | --- |
+| `live` | `reference` | Live selection under the target's profile. |
+| `replay` | `reference`, `pin` | Raw exact replay; requirements are not checked. |
+| `compose` | `reference`, OPTIONAL `binding` | Snapshot-bound composition; the bound Version is checked against the requirements. |
+| `local` | `reference`, `document` | A document-local reference checked against the containing revision. |
+| `publish` | `publish` | Revision, line and ancestor assignment. |
+| `update` | `update` | A request that repeats or changes a Version's line. |
+
+A result with a known profile adds `versionprofile` and, when the Version has
+one, `compatibilityline`. An unambiguous exact replay can succeed with an
+unknown profile. A publication result is `assigned`, with `versionid`,
+`versionorigin`, `ancestorid`, the new `highwatermark` and any recorded line.
+Besides the SemVer error names, the cases use `unknown-profile`,
+`invalid-line`, `compatibility-required`, `closure-incomplete` and
+`inconsistent-publication`. A supplied `versionid` or `ancestorid` that
+differs from the assignment returns `version-mismatch`.
+
+| IDs | Behavior |
+| --- | --- |
+| `i001`-`i013` | Line and floor selection, sticky defaults, requested lines, malformed terms, line-less and generated revisions. |
+| `i014`-`i017` | `uav:minVersion` on SemVer targets, including the TD major cap, and the rejected line or duplicate floor. |
+| `i020`-`i021` | Raw exact replay by digest or Version id, across lines. |
+| `i022`-`i026` | Snapshot-bound composition with bound, missing, off-line, low or mismatched bindings. |
+| `i030`-`i032` | Document-local references in Incremental documents. |
+| `i040`-`i051` | Assignment above a durable high-water mark, line recording and rejected inputs. |
+| `i060`-`i062` | A Version's line is fixed at creation, including absence. |
 
 ## Maintenance and limits
 

@@ -1,0 +1,172 @@
+{
+  "format": "xregistry-publication-package/1",
+  "context": {
+    "format": "xregistry-open/1",
+    "scope": "urn:example:closure-corpus",
+    "snapshot": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/ada522f3464792d72d1eb11a82f9d0fba2f1df3b017169f48ba1f4d569a18324/versions/manifest"
+      },
+      "digest": "sha256:ada522f3464792d72d1eb11a82f9d0fba2f1df3b017169f48ba1f4d569a18324",
+      "size": 7986
+    },
+    "registry": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-semver/versions/content"
+      },
+      "digest": "sha256:39f6a648c3cb43e2fb5d1a8aac40b105bb70511c18e68e7df6fc9f4b969beeca",
+      "size": 4733
+    },
+    "completeness": "offline-complete"
+  },
+  "objects": [
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/ada522f3464792d72d1eb11a82f9d0fba2f1df3b017169f48ba1f4d569a18324/versions/manifest"
+      },
+      "path": "manifests/dynamic-reference.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-semver/versions/content"
+      },
+      "path": "registries/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0"
+      },
+      "path": "documents/things/pump-7.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2.1.0"
+      },
+      "path": "documents/things/pump-template.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/pump/versions/1.4.0"
+      },
+      "path": "documents/models/pump.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/base/versions/1.2.0"
+      },
+      "path": "documents/models/base.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/address/versions/1.0.0"
+      },
+      "path": "documents/schemas/address-dynamic.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/common/versions/2.1.0"
+      },
+      "path": "documents/schemas/common.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/contextgroups/acme/contexts/pump/versions/1.0.0"
+      },
+      "path": "documents/contexts/pump.jsonld"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0"
+      },
+      "path": "documents/nodesets/pump.xml"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/composite-semver/versions/content"
+      },
+      "path": "descriptors/composite/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/wot-semver/versions/content"
+      },
+      "path": "descriptors/wot/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/schema-semver/versions/content"
+      },
+      "path": "descriptors/schema/semver.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/opcua-semver/versions/content"
+      },
+      "path": "descriptors/opcua/semver.json"
+    }
+  ]
+}

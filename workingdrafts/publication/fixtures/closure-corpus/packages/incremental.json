@@ -1,0 +1,172 @@
+{
+  "format": "xregistry-publication-package/1",
+  "context": {
+    "format": "xregistry-open/1",
+    "scope": "urn:example:closure-corpus",
+    "snapshot": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/3bbd5749495b852a84549593648d229edeaf8a460a895efc106732b89f8419bb/versions/manifest"
+      },
+      "digest": "sha256:3bbd5749495b852a84549593648d229edeaf8a460a895efc106732b89f8419bb",
+      "size": 7964
+    },
+    "registry": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-incremental/versions/content"
+      },
+      "digest": "sha256:3a880b26e6d399f63d122b43ac406fe01a9360cf521db60d68be5d649073b463",
+      "size": 5217
+    },
+    "completeness": "offline-complete"
+  },
+  "objects": [
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/snapshots/3bbd5749495b852a84549593648d229edeaf8a460a895efc106732b89f8419bb/versions/manifest"
+      },
+      "path": "manifests/incremental.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/registry-incremental/versions/content"
+      },
+      "path": "registries/incremental.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/3"
+      },
+      "path": "documents/incremental/pump-7.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingdescriptiongroups/plant/thingdescriptions/pump-template/versions/2"
+      },
+      "path": "documents/incremental/pump-template.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/pump/versions/4"
+      },
+      "path": "documents/incremental/pump.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/thingmodelgroups/acme/thingmodels/base/versions/2"
+      },
+      "path": "documents/incremental/base.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/address/versions/1.0.0"
+      },
+      "path": "documents/schemas/address.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/schemagroups/acme/schemas/common/versions/2.1.0"
+      },
+      "path": "documents/schemas/common.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/contextgroups/acme/contexts/pump/versions/1.0.0"
+      },
+      "path": "documents/contexts/pump.jsonld"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/nodesetgroups/acme/nodesets/pump/versions/1.0.0"
+      },
+      "path": "documents/nodesets/pump.xml"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/composite-incremental/versions/content"
+      },
+      "path": "descriptors/composite/incremental.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/wot-incremental/versions/content"
+      },
+      "path": "descriptors/wot/incremental.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/schema-incremental/versions/content"
+      },
+      "path": "descriptors/schema/incremental.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/opcua-incremental/versions/content"
+      },
+      "path": "descriptors/opcua/incremental.json"
+    }
+  ]
+}

@@ -35,8 +35,9 @@ docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
 while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep .1;done
 echo ; echo
 
-# Validate all model.json files in the entire repo
-for fn in `find . -name \*model.json`; do
+# The byte-pinned closure corpus contains manifests and packages, not models.
+for fn in $(find . -name \*model.json \
+    ! -path './workingdrafts/publication/fixtures/closure-corpus/*'); do
     echo "# Model: $fn"
     echo "  # Verifying"
     $XR model verify $fn

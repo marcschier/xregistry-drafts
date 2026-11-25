@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.test/schemas/address.json",
+  "title": "Postal address, altered after capture",
+  "$defs": {
+    "postal": {
+      "type": "object",
+      "properties": {
+        "street": {
+          "$ref": "common.json#/$defs/text"
+        },
+        "country": {
+          "$ref": "common.json#country"
+        },
+        "unit": {
+          "$ref": "units/v2#/$defs/length"
+        },
+        "next": {
+          "$ref": "#/$defs/postal"
+        },
+        "weird": {
+          "$ref": "common.json#/$defs/a~1b~0c%25d"
+        },
+        "note": {
+          "type": "string",
+          "examples": [
+            {
+              "$ref": "literal-examples.json"
+            }
+          ],
+          "default": {
+            "$ref": "literal-default.json"
+          },
+          "x-note": {
+            "$ref": "literal-unknown-keyword.json"
+          }
+        }
+      }
+    },
+    "code": {
+      "enum": [
+        {
+          "$ref": "literal-enum.json"
+        }
+      ],
+      "const": {
+        "$ref": "literal-const.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "format": "xregistry-composite-closure/1-experimental",
+  "entries": [
+    "/thingdescriptiongroups/plant/thingdescriptions/pump-7/versions/1.0.0"
+  ],
+  "members": [
+    {
+      "role": "wot",
+      "extension": "http://opcfoundation.org/UA/WoT-Binding/publication-closure/1"
+    },
+    {
+      "role": "schema",
+      "extension": "https://xregistry.io/workingdrafts/publication/profiles/schema-closure/1-experimental"
+    },
+    {
+      "role": "opcua-materialization",
+      "extension": "urn:example:opcua-materialization"
+    }
+  ],
+  "immutableContexts": [
+    "https://www.w3.org/2022/wot/td/v1.1"
+  ]
+}

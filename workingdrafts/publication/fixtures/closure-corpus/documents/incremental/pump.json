@@ -1,0 +1,44 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    "../contexts/pump.jsonld"
+  ],
+  "@type": "tm:ThingModel",
+  "id": "urn:example:pump",
+  "title": "Pump",
+  "version": {
+    "model": "4"
+  },
+  "uav:compatibilityLine": "urn:example:pump:line-a",
+  "exopc:nodeset": "../nodesets/pump.xml",
+  "links": [
+    {
+      "rel": "tm:extends",
+      "href": "./base.tm.json",
+      "type": "application/tm+json",
+      "uav:compatibilityLine": "urn:example:pump:base:line-a",
+      "uav:minVersion": "2"
+    },
+    {
+      "rel": "describedby",
+      "href": "../schemas/address.json",
+      "type": "application/schema+json"
+    }
+  ],
+  "properties": {
+    "location": {
+      "model:ref": "../schemas/address.json#/$defs/postal"
+    },
+    "status": {
+      "tm:ref": "./base.tm.json#/properties/status",
+      "uav:compatibilityLine": "urn:example:pump:base:line-a"
+    },
+    "mode": {
+      "type": "object",
+      "description": "The default is a literal value, not a reference.",
+      "default": {
+        "tm:ref": "./not-captured.tm.json"
+      }
+    }
+  }
+}

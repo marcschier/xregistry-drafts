@@ -1,0 +1,48 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {
+      "uav": "http://opcfoundation.org/UA/WoT-Binding/"
+    }
+  ],
+  "@type": "Thing",
+  "id": "urn:example:pump-7",
+  "title": "Pump 7",
+  "version": {
+    "instance": "3"
+  },
+  "uav:compatibilityLine": "urn:example:pump-7:line-a",
+  "links": [
+    {
+      "rel": "type",
+      "href": "urn:example:pump",
+      "type": "application/tm+json",
+      "uav:compatibilityLine": "urn:example:pump:line-a",
+      "uav:minVersion": "4"
+    },
+    {
+      "rel": "td:extends",
+      "href": "./pump-template.td.json",
+      "type": "application/td+json",
+      "uav:compatibilityLine": "urn:example:pump-template:line-a"
+    }
+  ],
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  },
+  "security": [
+    "nosec_sc"
+  ],
+  "properties": {
+    "speed": {
+      "type": "number",
+      "forms": [
+        {
+          "href": "https://pump-7.example.test/speed"
+        }
+      ]
+    }
+  }
+}

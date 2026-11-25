@@ -1,0 +1,69 @@
+{
+  "format": "xregistry-publication/1",
+  "scope": "urn:example:closure-corpus",
+  "capture": "assembled",
+  "completeness": "offline-complete",
+  "registry": {
+    "reference": {
+      "registry": {
+        "binding": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/fixtures/objects/registry-schema-only/versions/content"
+    },
+    "digest": "sha256:cb7b9fb953c826e244c0d5a7dd1e472c500f2e1afa79daa592ea4bbd80807ef8",
+    "size": 1147
+  },
+  "documents": [
+    {
+      "viewVersion": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/schemagroups/acme/schemas/address/versions/1.0.0",
+      "base": "https://example.test/schemas/address.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/schemagroups/acme/schemas/address/versions/1.0.0"
+        },
+        "digest": "sha256:8a785c62f34863941fcf506de0b2ad6b692314be3a2418251e6da70fe01d655b",
+        "size": 1102
+      }
+    },
+    {
+      "viewVersion": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/schemagroups/acme/schemas/common/versions/2.1.0",
+      "base": "https://example.test/schemas/common.json",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/schemagroups/acme/schemas/common/versions/2.1.0"
+        },
+        "digest": "sha256:95405bb0abe2e834cff1cfbdf5b411c1f2a54c4d73a58074cc5dae7f7ed1781c",
+        "size": 600
+      }
+    }
+  ],
+  "extensions": {
+    "https://xregistry.io/workingdrafts/publication/profiles/schema-closure/1-experimental": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/fixtures/objects/schema-schema-only/versions/content"
+      },
+      "digest": "sha256:56253d232a114f448dc2fca0776887163e83fc76a96e6be14f061bb9c5f5e597",
+      "size": 1972
+    }
+  },
+  "requiredExtensions": [
+    "https://xregistry.io/workingdrafts/publication/profiles/schema-closure/1-experimental"
+  ]
+}

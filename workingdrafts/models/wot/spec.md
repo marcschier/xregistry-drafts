@@ -14,6 +14,7 @@
 <!-- words: shortself -->
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
 <!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
+<!-- words: wotdigest topology versionprofile semver -->
 <!-- words: percent dereferenceable affordanceselector -->
 <!-- words: compatibilityline wotversionprofile wotversion vn -->
 
@@ -128,12 +129,14 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
   is derived. See [Section 6.1](#61-thing-description-to-thing-model).
 
 The [xRegistry Publication working draft](../../publication/spec.md) defines
-immutable snapshots and domain-closure requirements. WoT closure records
-exact Versions for entry documents and reachable in-scope dependencies.
-[Section 5.4.4](#544-publication-closure) defines prerequisites for WoT
-publication closure and records the mapping decisions still needed to
-reconstruct a pinned WoT view. It does not yet define a complete WoT closure
-profile.
+immutable snapshots and domain-closure requirements. Section
+[5.4.4](#544-publication-closure) defines the WoT closure extension for
+references between TDs and TMs. The publication
+[schema closure profile][Publication schema closure] covers static JSON Schema
+dependencies. The [composite closure contract][Publication composite closure]
+joins both. It assigns an ordinary `tm:ref` to a Schema Resource to the
+schema closure and leaves a `describedby` link advisory unless the selected
+profile makes it mandatory.
 
 For ordinary storage, this specification does not require the Registry to
 resolve or validate the cross-references listed above. An implementation
@@ -170,8 +173,8 @@ a Thing Model's major version MUST be part of its `wotid`, and a breaking
 Thing Model change MUST use a new `wotid` and a new Resource
 ([Section 5.1.1](#511-breaking-changes-and-successor-identifiers)).
 
-Thing Model Resources and Thing Description Resources MUST use Core
-[`versionmode`][Core versionmode] `semver` and
+Under the SemVer profile, Thing Model Resources and Thing Description
+Resources MUST use Core [`versionmode`][Core versionmode] `semver` and
 [`singleversionroot`][Core singleversionroot] `true`. Core orders each
 Resource's [`ancestorid`][Core ancestorid] lineage by SemVer precedence and
 forbids multiple roots with these aspects. The assignment rules for the
@@ -316,6 +319,9 @@ conforms to this model.
 `tm:minVersion` and `td:minVersion` are proposed extensions to the W3C WoT
 Thing Description. They are not part of the published WoT 1.1 Recommendation.
 Sections 5.4 and 6.2 define their resolver and TD-composition behavior.
+`uav:minVersion` and `uav:compatibilityLine` belong to the OPC UA WoT Binding
+namespace `http://opcfoundation.org/UA/WoT-Binding/`. Sections 5.4.1 and 5.5
+define how this specification resolves them.
 
 ### 1.4. Document Store
 
@@ -692,9 +698,6 @@ an authority over the document's own references, as
 All Versions of a single Thing Description Resource MUST adhere to the
 semantic rules of the Thing Description's [`compatibility`][Core compatibility]
 attribute, if specified.
-
-Implementations of this specification SHOULD use the xRegistry default
-algorithm for generating new `versionid` values.
 
 The default Version is the one served when no Version is named. It MUST be
 determined by the xRegistry Core rules, including the Resource's
@@ -1111,9 +1114,10 @@ logical view from a complete pinned source closure and the applicable
 resolution rules. If the closure cannot establish that result, the Consumer
 MUST obtain the published view or report failure. It MUST NOT substitute live
 dependencies or a pointer into an unresolved source document.
-[Section 5.4.4](#544-publication-closure) records unresolved closure mappings;
-the existing closure extension and schema alone do not establish that such
-reconstruction is possible.
+Reconstruction needs a publication that satisfies the
+[composite closure contract][Publication composite closure].
+[Section 5.4.4](#544-publication-closure) alone covers only references between
+TDs and TMs.
 
 The [Publication byte checks](../../publication/spec.md#byte-descriptors)
 apply to captured document bytes and the closure extension. They do not
@@ -1272,6 +1276,11 @@ the document.
 A successful resolution MUST return `(wotid, versionid, contentdigest, origin)`.
 `origin` identifies the Registry that supplied the stored bytes and
 `contentdigest` is their digest, not a manifest or closure digest.
+When the target profile is known, the result MUST also carry
+`versionprofile`, with value `semver` or `incremental`, and the selected
+Version's `compatibilityline`. The line is absent for a SemVer target or a
+line-less Incremental Version. An unambiguous exact replay can succeed
+without a known profile.
 
 Raw replay does not validate the referring document. When validation or
 composition uses the retrieved content, it MUST still apply the document and
@@ -1298,7 +1307,7 @@ can satisfy the requirement without replacing it with `2.4.0`.
 | `invalid-line` | A line is not a valid absolute URI string, is not valid at that location, or is supplied for SemVer. |
 | `compatibility-required` | An Incremental reference checked by live selection or snapshot composition lacks an explicit line. |
 | `unknown-profile` | Trusted metadata does not establish a recognized target profile for live selection, snapshot acceptance, or ranking multiple replay digest matches. |
-| `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |
+| `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment, or an authored Incremental revision is not above the high-water mark. |
 | `invalid-version` | A floor, local authored version, or publication version violates the applicable version rules. |
 | `inconsistent-publication` | The root line and authorized Version metadata disagree, or trusted publication data claims conflicting bytes or fixed metadata for the same source revision. |
 | `closure-incomplete` | The manifest digest does not match, or necessary closure data, a binding, or bound content is absent or unsupported. |
@@ -1307,8 +1316,8 @@ These names identify domain outcomes, not replacements for Core's protocol
 error envelopes or its [`versionid`][Core versionid]
 constraints. The
 [canonical resolution vectors](tests/resolution/README.md) define portable
-SemVer resolver inputs and expected outcomes, including write-side version
-assignment.
+resolver inputs and expected outcomes, including write-side version
+assignment, for both profiles.
 
 #### 5.4.4. Publication closure
 
@@ -1461,10 +1470,15 @@ Schema Resource classifies it as a Schema reference outside this WoT closure
 profile; that occurrence MUST NOT have a closure binding. A match to another
 Resource kind is invalid. This classification uses captured model and URI
 identities, not a binding target. The Schema document itself is not thereby
-included in WoT closure or validated by this profile.
+included in WoT closure or validated by this profile. The
+[composite closure contract][Publication composite closure] assigns such a
+Schema reference to the [schema closure profile][Publication schema closure],
+where it is a mandatory schema dependency.
 
 A `links` occurrence with `rel: "describedby"` that identifies a Schema
 Resource is also outside this profile and MUST NOT have a closure binding.
+Under the composite closure contract it remains advisory unless the selected
+profile makes it mandatory.
 
 For `td:ref`, `type`, and the other operators, the captured Resource kind
 MUST agree with the target kind defined for that operator. A `type` link MAY
@@ -1478,7 +1492,17 @@ If no captured identity matches or the match is ambiguous, the Producer MUST
 NOT claim domain-complete closure and the Consumer MUST reject such a claim.
 The binding list cannot resolve the ambiguity. This profile does not include
 Schema Resource documents or OPC UA `uav:dataTypeDefinitions` materialization
-references; another closure profile is needed to cover those dependencies.
+references. The [schema closure profile][Publication schema closure] covers
+static JSON Schema dependencies. The
+[composite closure contract][Publication composite closure] joins this
+extension, the schema closure and, when selected, an OPC UA materialization
+extension, and gives each mandatory reference occurrence one owner.
+
+A WoT closure binding is checked by snapshot-bound composition
+([Section 5.4](#54-versioned-reference-resolution)). The Consumer first takes
+the bound target Version, then checks the reference's floor, line and TD major
+cap against it. A failed check produces `unsatisfied`. It does not authorize
+selecting another Version.
 
 The [closure schema](schemas/publication-closure.schema.json) checks the
 structure shown in the [closure example](samples/publication-closure.json).
@@ -1644,6 +1668,13 @@ implementations typically express the reference using the WoT
 respectively, refers to the `schema` Resource Version's document-view URL:
 the `self` URL with the `$details` suffix removed.
 
+In a captured publication, the
+[composite closure contract][Publication composite closure] treats a
+`tm:ref` to a Schema Resource as a mandatory schema dependency, which the
+[schema closure profile][Publication schema closure] binds and walks. A
+`describedby` link stays advisory unless the selected profile makes it
+mandatory.
+
 ### 6.5. Affordance Grouping
 
 A Thing Description declares its properties, actions, and events in the
@@ -1754,6 +1785,8 @@ The document-preservation and selection rules introduce the following risks:
 [Core strictvalidation]: ../../../core/model.md#groupsstringresourcesstringstrictvalidation
 [Core defaultversionsticky]: ../../../core/spec.md#defaultversionsticky-attribute
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource
+[Publication schema closure]: ../../publication/profiles/schema-closure.md
+[Publication composite closure]: ../../publication/profiles/composite-closure.md
 [WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
 [WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11#thing-model
 [WoT-TD media]: https://www.w3.org/TR/wot-thing-description11#media-type-section

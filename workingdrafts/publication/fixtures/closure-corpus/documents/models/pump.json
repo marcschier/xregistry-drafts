@@ -1,0 +1,41 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    "../contexts/pump.jsonld"
+  ],
+  "@type": "tm:ThingModel",
+  "id": "urn:example:pump",
+  "title": "Pump",
+  "version": {
+    "model": "1.4.0"
+  },
+  "exopc:nodeset": "../nodesets/pump.xml",
+  "links": [
+    {
+      "rel": "tm:extends",
+      "href": "./base.tm.json",
+      "type": "application/tm+json",
+      "tm:minVersion": "1.0.0"
+    },
+    {
+      "rel": "describedby",
+      "href": "../schemas/address.json",
+      "type": "application/schema+json"
+    }
+  ],
+  "properties": {
+    "location": {
+      "model:ref": "../schemas/address.json#/$defs/postal"
+    },
+    "status": {
+      "tm:ref": "./base.tm.json#/properties/status"
+    },
+    "mode": {
+      "type": "object",
+      "description": "The default is a literal value, not a reference.",
+      "default": {
+        "tm:ref": "./not-captured.tm.json"
+      }
+    }
+  }
+}

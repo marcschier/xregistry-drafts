@@ -185,9 +185,14 @@ def open_context(context, read_document, supported_extensions=()):
     return manifest
 
 
-def open_package(directory, *, max_bytes=16 * 1024 * 1024, max_objects=100000):
+def load_package(directory, *, name="publication-package.json",
+                 max_bytes=16 * 1024 * 1024, max_objects=100000):
+    """Read package metadata and objects; the caller opens the context."""
     directory = Path(directory).resolve()
-    with (directory / "publication-package.json").open("rb") as stream:
+    metadata_path = (directory / name).resolve()
+    if not metadata_path.is_relative_to(directory):
+        raise PublicationError("invalid_package", "package path escapes root")
+    with metadata_path.open("rb") as stream:
         metadata = stream.read(max_bytes + 1)
     if len(metadata) > max_bytes:
         raise PublicationError("limit_exceeded", "Package metadata exceeds byte limit")
@@ -212,20 +217,28 @@ def open_package(directory, *, max_bytes=16 * 1024 * 1024, max_objects=100000):
         if remaining < 0:
             raise PublicationError("limit_exceeded", relative)
         documents.put(reference, raw)
+    return package, documents
+
+
+def open_package(directory, *, max_bytes=16 * 1024 * 1024, max_objects=100000):
+    package, documents = load_package(
+        directory, max_bytes=max_bytes, max_objects=max_objects,
+    )
     return open_context(package["context"], documents.read)
 
 
 class Channels:
     """Illustrate serialized conditional state changes; no durability claim."""
 
-    def __init__(self):
+    def __init__(self, supported_extensions=()):
         self.records = {}
         self.retired = set()
+        self.supported_extensions = tuple(supported_extensions)
 
     def create(self, identifier, scope, head, read_document):
         if identifier in self.records or identifier in self.retired:
             raise PublicationError("conflict", "channel identity already used")
-        manifest = check_snapshot(head, read_document)
+        manifest = check_snapshot(head, read_document, self.supported_extensions)
         if manifest["scope"] != scope:
             raise PublicationError("inconsistent_snapshot", "scope")
         self.records[identifier] = {"scope": scope, "head": deepcopy(head), "epoch": 1}
@@ -234,7 +247,7 @@ class Channels:
         record = self.records[identifier]
         if record["epoch"] != epoch:
             raise PublicationError("mismatched_epoch", identifier)
-        manifest = check_snapshot(head, read_document)
+        manifest = check_snapshot(head, read_document, self.supported_extensions)
         if record["scope"] != manifest["scope"]:
             raise PublicationError("inconsistent_snapshot", "scope")
         self.records[identifier] = {
