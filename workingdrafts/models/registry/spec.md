@@ -1,13 +1,13 @@
 # Registry-of-Registries Service - Version 1.0-rc1
 
 <!-- words: applicationuri federationprofiles nodeid nsu opcua registryroot -->
-<!-- words: registrytypes transportprofileuri weburl xregurl -->
+<!-- words: registrytypes requesttopic transportprofileuri weburl xregurl -->
 <!-- words: categoryid curated docx mcp namespace nfc nodeset opc opcfoundation -->
 <!-- words: opencontainers parametersreference publicschemas readme -->
 <!-- words: registrygroups registryurl ssh ua uabinary uasc uatcp unversioned -->
 <!-- words: website websites -->
 <!-- words: compatibilityvalidated formatvalidated -->
-<!-- words: registriesurl walkthrough -->
+<!-- words: registriesurl validators walkthrough -->
 
 ## Abstract
 
@@ -46,6 +46,7 @@ describes.
   - [5.5. File](#55-file)
   - [5.6. OPC UA](#56-opc-ua)
   - [5.7. Extensions](#57-extensions)
+  - [5.8. MQTT](#58-mqtt)
 - [6. Discovery and Selection](#6-discovery-and-selection)
   - [6.1. Entry Selection](#61-entry-selection)
   - [6.2. Advertisement Selection](#62-advertisement-selection)
@@ -59,7 +60,7 @@ describes.
 
 ## 1. Overview
 
-A Registry of Registries is an xRegistry Registry that serves as a catalog.
+A Registry of Registries is a catalog implemented as an xRegistry Registry.
 Its `category` Groups organize `registry` Resources. Each Resource describes
 one independently administered Registry or a website listed for discovery.
 Its Versions record successive descriptions, not copies of the described
@@ -67,7 +68,7 @@ Registry.
 
 ### 1.1. Scope
 
-The catalog MAY advertise HTTP, OCI, Git, File, OPC UA, or extension
+The catalog MAY advertise HTTP, OCI, Git, File, OPC UA, MQTT, or extension
 bindings. [Shared federation][Federation] defines the read operations and
 Registry context established after selection. A catalog does not have to
 implement those bindings, serve an HTTP facade for them, proxy their
@@ -104,7 +105,8 @@ distinctions:
 - **Catalog-description Version:** A Version of that entry's description.
 - **Target Registry:** The independently administered Registry described
   by a Catalog entry. It has its own root, model, capabilities, and ID scopes.
-- **Advertisement:** An access method for the target Registry.
+- **Advertisement:** A metadata object describing one access method for the
+  target Registry.
 - **Registry context:** The selected logical Registry and access context
   within which a target XID is interpreted.
 - **Revision pin:** A binding-specific immutable snapshot reference,
@@ -182,8 +184,9 @@ collection name MUST be `registries`. Canonical entry XIDs have the form:
 /categories/<categoryid>/registries/<registryid>
 ```
 
-A catalog-description Version appends `/versions/<versionid>`. Its Meta
-entity appends `/meta` to the entry XID. All identifiers MUST follow
+A catalog-description Version XID appends `/versions/<versionid>` to the
+entry XID. The entry's Meta entity XID appends `/meta` instead.
+All identifiers MUST follow
 [Core ID rules][Core IDs]. IDs MUST be unique case-insensitively within
 their parent scope, but lookups MUST be case-sensitive. For example,
 `Catalog` and `catalog` MUST NOT identify different siblings. A lookup
@@ -267,28 +270,28 @@ This conversion MUST NOT rewrite `xid`, `meta.xref`, or catalog-root
 `relationships.target` values as document-local pointers. Their catalog
 scope remains unchanged. A storage filename is not a replacement base.
 
-The following partial projection is based on
-[`multi-profile-catalog.json`](samples/multi-profile-catalog.json). It
-includes the `public` Category, the `schemas` entry, and its Meta entity,
-but omits the entry's Versions. The absolute URLs use the illustrative
-catalog API root `https://catalog.example/xregistry`. The fragment is not
-a complete Registry document.
+The following abbreviated document-view response is based on
+[`multi-profile-catalog.json`](samples/multi-profile-catalog.json). The
+`public` Category is the response root. The response includes the `schemas`
+entry and its Meta entity, but not the entry's Versions. Unrelated Core
+attributes are omitted from the example. The absolute URLs use the
+illustrative catalog API root `https://catalog.example/xregistry`.
 
 ```json
 {
   "categoryid": "public",
-  "self": "#/categories/public",
+  "self": "#",
   "xid": "/categories/public",
-  "registriesurl": "#/categories/public/registries",
+  "registriesurl": "#/registries",
   "registries": {
     "schemas": {
       "registryid": "schemas",
-      "self": "#/categories/public/registries/schemas",
+      "self": "#/registries/schemas",
       "xid": "/categories/public/registries/schemas",
-      "metaurl": "#/categories/public/registries/schemas/meta",
+      "metaurl": "#/registries/schemas/meta",
       "meta": {
         "registryid": "schemas",
-        "self": "#/categories/public/registries/schemas/meta",
+        "self": "#/registries/schemas/meta",
         "xid": "/categories/public/registries/schemas/meta",
         "defaultversionid": "2",
         "defaultversionurl": "https://catalog.example/xregistry/categories/public/registries/schemas/versions/2"
@@ -299,8 +302,9 @@ a complete Registry document.
 }
 ```
 
-`self`, `registriesurl`, and `metaurl` point to included data, so they use
-document pointers. The Meta entity's `defaultversionurl` and the entry's
+The Category's `self` is `#` because it identifies the response root.
+The other `self` values, `registriesurl`, and `metaurl` use document pointers
+to included data. The Meta entity's `defaultversionurl` and the entry's
 `versionsurl` target omitted data, so they remain absolute API URLs. `xid`
 remains the catalog-scoped identity. If a relationship is present, its
 `target` likewise remains a catalog reference even when the target entry
@@ -347,7 +351,8 @@ by the model.
     treated as a directory. It MUST NOT be resolved against the entry's
     Version URL, an advertised endpoint, or a document's storage path.
   - Without that external catalog URL context, a relative value MAY be
-    retained and displayed as a reference, but MUST NOT be guessed.
+    retained and displayed as supplied. The Consumer MUST NOT guess a base
+    URL to resolve it.
   - MUST NOT contribute a federation candidate, even if its scheme is
     HTTP or HTTPS.
 - Examples:
@@ -368,8 +373,10 @@ by the model.
   - An identifier denotes only the specification or model it identifies.
     An unversioned URI MUST NOT imply a particular `modelversion`.
   - To identify a particular revision, producers SHOULD use a URI that
-    identifies that revision explicitly. Consumers MUST inspect the target
-    model for its actual version and compatibility claims.
+    identifies that revision explicitly. When resolving a target Registry,
+    Consumers MUST inspect its model for its actual version and compatibility
+    claims as specified in [Section 6.3](#63-consistency-and-failure).
+    Reading the catalog description alone does not require that inspection.
   - Array order and duplicate identifiers MUST NOT affect binding
     selection. The list is not a target capability response or proof of
     model compatibility.
@@ -454,7 +461,7 @@ Profile-specific extensions belong inside `parameters`.
 - Constraints:
   - REQUIRED and MUST be nonempty.
   - MUST be compared case-sensitively, without normalization.
-  - This revision defines `http`, `oci`, `git`, `file`, and `opcua`.
+  - This revision defines `http`, `oci`, `git`, `file`, `opcua`, and `mqtt`.
     Other strings remain valid catalog data.
   - An unknown value MUST NOT be executed as a known binding. For example,
     `HTTP` is not an alias for `http`.
@@ -504,9 +511,12 @@ Profile-specific extensions belong inside `parameters`.
 - Constraints:
   - OPTIONAL. Absence MUST be interpreted as an empty object.
   - Built-in profiles MUST supply the parameters marked REQUIRED below.
-  - Unknown parameters MAY be retained in catalog metadata. If a built-in
-    profile containing an unknown parameter is selected, the resolver MUST
-    report `unsupported_operation` before accessing the endpoint.
+  - Unknown parameters MAY be retained in catalog metadata.
+    [Advertisement selection](#62-advertisement-selection) filters and ranks
+    candidates before checking the selected candidate's binding parameters.
+    If a selected built-in advertisement contains an unknown parameter, the
+    resolver MUST report `unsupported_operation` before accessing the
+    endpoint and MUST NOT try another advertisement in the same operation.
   - Credentials, bearer tokens, passwords, and private keys MUST NOT be
     included. Authentication configuration is external to the catalog.
   - The empty-object default is a processing rule, not a non-scalar Core
@@ -521,8 +531,9 @@ The `http` profile provides access to the target Registry through the
 [Core HTTP binding][HTTP]. Its endpoint MUST be an absolute HTTP or HTTPS URL
 of that Registry's root, with no query or fragment. It MUST NOT point to a
 Group, Resource, Version, website, or domain document in place of the root.
-This revision defines no HTTP parameters. If `parameters` is present in a
-supported advertisement, it MUST be empty.
+This revision defines no HTTP parameters. A selected HTTP advertisement's
+`parameters` object, if present, MUST be empty. Any member triggers the
+[unknown-parameter rule](#514-parameters).
 
 A resolver still needs to retrieve the target's model and capabilities and
 check Core version support. An endpoint's URL scheme alone does not establish
@@ -580,12 +591,15 @@ shell commands, SSH credentials, or arbitrary repository execution.
 - Description: The input revision from which the Registry snapshot is read.
 - Constraints:
   - REQUIRED.
-  - MUST be a complete `refs/...` reference satisfying Git reference-name
-    rules, or a complete 40-digit SHA-1 or 64-digit SHA-256 hexadecimal
-    object ID.
+  - MUST be a complete `refs/...` reference satisfying the
+    [Git binding's reference-name rules](../../bindings/git.md#advertisement),
+    or a complete 40-digit SHA-1 or 64-digit SHA-256 hexadecimal object ID.
   - Abbreviated object IDs, unqualified branch names such as `main`,
     `HEAD`, and revision expressions MUST NOT be used.
-  - A reference or tag MUST be resolved to one commit before traversal.
+  - Before traversal, the resolver MUST resolve either input form to one
+    commit, peeling annotated tags as specified by the
+    [Git binding](../../bindings/git.md#revision-and-object-selection).
+    An object that cannot resolve to a commit is invalid selection input.
     The commit MUST remain pinned for the complete operation.
   - A Git object ID MUST NOT be substituted for an OCI content digest or
     an xRegistry Version ID.
@@ -709,9 +723,13 @@ discovery, including
 - Description: The requested OPC UA transport profile.
 - Constraints:
   - OPTIONAL.
-  - MUST be an absolute transport-profile URI recognized by the Consumer.
-  - An unsupported requested profile MUST produce `unsupported_operation`.
-    It MUST NOT be silently dropped to select a weaker transport.
+  - MUST be an absolute URI identifying the requested OPC UA transport
+    profile.
+  - When resolving a selected advertisement, a Consumer that does not
+    recognize or support the requested profile MUST report
+    `unsupported_operation`. It MUST NOT drop the request to select a weaker
+    transport. The selected endpoint MUST match the requested profile under
+    the [native binding's selection rules][OPC UA selection].
 - Examples:
   - `http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary`
 
@@ -731,6 +749,19 @@ fields are valid. A Consumer that does not implement their semantics MUST
 exclude them from supported resolution candidates. It MUST NOT infer a
 known binding from their endpoints. Parameters in an extension profile are
 owned by that extension. Their names do not activate built-in semantics.
+
+### 5.8. MQTT
+
+The `mqtt` profile provides access to an exposed Registry view through the
+[MQTT 5.0 RPC binding](../../bindings/mqtt.md). The endpoint MUST be a
+broker URI of the form `mqtts://host[:port]`, with no credentials, path,
+query, or fragment. `parameters.requesttopic` is REQUIRED and MUST be a
+concrete MQTT Topic Name. The broker and request topic select the view;
+they do not identify an entity within it. No other parameters are defined.
+See the binding's [advertisement rules](../../bindings/mqtt.md#advertisement)
+for validation and port selection. The binding also defines a native
+xRegistry API for clients that address the Registry directly; catalog
+discovery does not grant authorization to write to it.
 
 ## 6. Discovery and Selection
 
@@ -752,7 +783,7 @@ flowchart TB
   end
   subgraph Selection["Advertisement selection"]
     direction LR
-    Caller["Caller choice and policy"] --> Eligible["Filter by choice and policy;<br/>rank by priority, then array order"]
+    Caller["Caller choice, binding support and policy"] --> Eligible["Rank eligible candidates by priority,<br/>then array order"]
   end
   Ads --> Eligible
   subgraph Target["Target Registry scope"]
@@ -805,12 +836,16 @@ Selection MUST use the following procedure:
    endpoint, priority `0`, and empty parameters, ordered after the explicit
    advertisements. Its selection defaults MUST NOT be inherited from a
    different explicit candidate.
-4. Apply the caller's explicit advertisement choice, including a selected
-   `binding` value or original array position, and the caller's access
-   policy. The Producer's priority MUST NOT override that choice.
-5. Exclude `binding` values the Consumer does not support. If no supported
-   candidate remains, report `unsupported_binding`. If policy rejects
-   the selection, report `policy_denied`.
+4. Apply the caller's choice, if any, such as a `binding` value or a specific
+   advertisement by original array position. If the caller explicitly
+   selects a specific advertisement and policy denies it, report
+   `policy_denied`.
+5. From the matching advertisements (all advertisements if the caller did
+   not narrow the choice), exclude `binding` values the Consumer does not
+   support. If none remain, report `unsupported_binding`. Apply access
+   policy to the supported candidates. If all are denied, report
+   `policy_denied`; otherwise continue with the permitted candidates.
+   The Consumer MUST NOT contact a denied target.
 6. Order eligible candidates by ascending priority, treating an absent
    value as `0`. Preserve original array order for equal priorities,
    including the appended implicit candidate.
@@ -826,19 +861,19 @@ MUST retain those distinctions. In particular, a matching explicit HTTP
 advertisement does not change the implicit candidate's zero priority.
 Map iteration order MUST NOT be used to rank advertisements.
 
-The following table summarizes how caller choice and policy constrain the
-candidates before priority ranks them. Priority neither replaces an explicit
-choice nor bypasses access policy.
+Caller choice and policy narrow the candidate set before ranking by priority.
+Priority neither replaces an explicit choice nor bypasses access policy.
 
 | Selection input | Result |
 | --- | --- |
 | Caller choice and policy leave multiple eligible candidates | Lower priority is preferred. Original array order breaks ties. |
 | Caller choice leaves one eligible candidate | That candidate is selected, regardless of a different candidate's lower priority. |
 | No caller choice | Priority and then original array order select among eligible candidates. |
-| Policy rejects the selected choice | Report `policy_denied`. Priority does not override policy. |
+| Caller explicitly selects a denied advertisement, or policy denies all otherwise supported matching candidates | Report `policy_denied`. |
+| No supported candidate matches the choice, or none is supported when there is no choice | Report `unsupported_binding`, unless the caller explicitly selected a denied advertisement. |
 
-The checked [multiple-profiles walkthrough][multi-profile example]
-demonstrates these results with the catalog fixtures.
+The [multiple-profiles walkthrough][multi-profile example] applies these
+rules to the catalog fixtures.
 
 After selection, target XIDs and reads use the selected
 [federation Registry context][Federation identity] and
@@ -855,15 +890,16 @@ match.
 
 A Consumer MUST check the target's model, Core version, and applicable
 capabilities. Neither `registrytypes` nor a successful endpoint connection
-replaces those checks. If advertisements demonstrably identify different
-logical Registries, the Consumer MUST report an inconsistent selection rather
-than silently merge them.
+replaces those checks. If the available evidence shows that advertisements
+identify different logical Registries, the Consumer MUST report that
+inconsistency as a resolution failure rather than merge them. This check
+does not require contacting unselected endpoints.
 
-An integrity error, policy rejection, unsupported version, ambiguous
-selection, or inconsistent snapshot MUST NOT trigger silent fallback to a
-different candidate. A caller MAY initiate a new operation with an explicit
-alternative after inspecting the failure. This specification does not
-authorize automatic retries through weaker trust or integrity mechanisms.
+Once a candidate has been selected, the Consumer MUST NOT fall back to
+another candidate after a failure. A caller MAY initiate a new operation
+with an explicit alternative after inspecting the failure. This specification
+does not authorize automatic retries through weaker trust or integrity
+mechanisms.
 
 ## 7. Descriptive Relationships
 
@@ -906,7 +942,12 @@ selection, and `depends-on` does not enumerate all transitive dependencies.
     `/categories/<categoryid>/registries/<registryid>`. It MUST NOT be a
     network-path reference beginning `//`.
   - An absolute URI MUST identify a catalog entry in another catalog,
-    not merely a target Registry's serving endpoint.
+    not merely a target Registry's serving endpoint. This is a Producer
+    assertion. Catalog validators can check URI syntax without fetching the
+    entry; validation need not verify that assertion by dereferencing the
+    URI. If the containing catalog's URL is unavailable, an offline
+    validator might not be able to tell whether the target is in a different
+    catalog.
   - Other relative references, including `../`, bare IDs, and document
     fragments, MUST NOT be used.
   - The local base remains the containing catalog Registry, even when
@@ -945,9 +986,10 @@ generates `unknown_attribute`. This domain does not add Core error codes.
 
 Resolution uses the [shared federation error vocabulary][Errors]. An offline
 resolver reports `invalid_package` for malformed or contradictory catalog
-input, `unsupported_binding` when no supported binding is available, and
-`unsupported_operation` for unknown parameters in a selected built-in profile.
-An unreadable selected endpoint is not a successful empty Registry.
+input and `unsupported_operation` for unknown parameters in a selected
+built-in profile. The [advertisement-selection procedure](#62-advertisement-selection)
+distinguishes `unsupported_binding` from `policy_denied`. An unreadable
+selected endpoint is not a successful empty Registry.
 
 Normal dangling Core `xref` serialization is not a new federation error.
 A dangling descriptive relationship also does not invalidate its source
@@ -1007,7 +1049,12 @@ advertisement for a binding supported by the Consumer, either explicitly
 or through `xregurl`, with all parameters needed to identify the target.
 Any xregurl/explicit HTTP consistency constraint MUST also hold.
 
-This is relative to a Consumer's supported bindings and policy. A
+These requirements are relative to the Consumer's supported bindings and
+access policy. They do not guarantee that a given selection will succeed:
+if the advertisement selected by [Section 6.2](#62-advertisement-selection)
+fails parameter validation, another valid advertisement does not make that
+operation succeed. A caller MAY start a new operation with an explicit
+alternative as described in [Section 6.3](#63-consistency-and-failure). A
 well-formed extension-only entry can be resolvable by an extension-aware
 consumer and unsupported by another. Website-only data never satisfies
 this class. No conformance claim guarantees current endpoint availability.
@@ -1052,8 +1099,8 @@ JSON object order cannot encode advertisement preference.
 
 Derived artifacts MUST NOT override Core or this specification when a
 generator omits a constraint or produces an incompatible description.
-Current limitations and reproduction commands are documented alongside the
-generated files rather than changing the domain model to accommodate them.
+The documentation alongside the generated files lists current limitations and
+reproduction commands. Those limitations do not change the domain model.
 
 ## References
 

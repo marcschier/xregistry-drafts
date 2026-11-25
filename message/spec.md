@@ -1108,7 +1108,7 @@ the value of the placeholder is assumed to be identical.
 
 The following example defines a message that is sent over HTTP:
 
-```json
+```yaml
 {
   "protocol": "HTTP",
   "protocoloptions": {
@@ -1118,9 +1118,12 @@ The following example defines a message that is sent over HTTP:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": "bar"
-    },
+    "query": [
+      {
+        "name": "foo",
+        "value": "bar"
+      }
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
