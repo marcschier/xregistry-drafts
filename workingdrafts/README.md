@@ -62,6 +62,21 @@ flowchart TD
 | [OPC UA](bindings/opcua.md) | Native OPC UA API and federation integration. |
 | [MQTT 5.0 RPC](bindings/mqtt.md) | Native xRegistry API and Federation reads over single-packet MQTT request and reply publications. |
 
+The [WoT generator](bindings/tools/generate_wot.py) turns repository
+`model.json` files into the proposed MQTT Thing Models and JSON Schemas.
+`python -m workingdrafts.bindings.tools.generate_wot <output-dir>`
+writes the bundle to a dedicated directory. A `.zip` output path packages
+only the generated files under `xregistry-wot/`.
+The same command with `--check` reports missing, changed, or stale output
+without writing. The bundle includes `XRegistry.TM.json`, the domain models
+that extend it, and shared RPC schemas. The `xreg:types` link in each model
+points to its generated metadata types; `xreg:facets` and
+`xreg:ifvalues` preserve Core aspects that require model-aware interpretation.
+The output describes the proposed xRegistry MQTT binding. An SDK generator
+must support that binding to produce compatible client or server code.
+The generator tests in `bindings/tools/test_generate_wot.py` are included
+in the repository's `testpython` target through pytest discovery.
+
 ### Choosing a Binding
 
 | Binding | Service and storage preparation | Revision and consistency | Implementation prerequisites |
