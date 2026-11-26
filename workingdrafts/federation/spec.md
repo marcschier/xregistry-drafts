@@ -1,6 +1,6 @@
 # xRegistry Federation
 
-<!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse requesttopic standalone symlinks transportprofileuri ua website weburl xregurl -->
+<!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse topicbase standalone symlinks transportprofileuri ua website weburl xregurl -->
 <!-- words: py sequencediagram -->
 <!-- words: assetid selectedxid -->
 <!-- words: usda -->
@@ -33,6 +33,7 @@ write access.
   - [Example: Select After Applying Shadows](#example-select-after-applying-shadows)
 - [Discovery and Binding Selection](#discovery-and-binding-selection)
 - [Read Operations](#read-operations)
+  - [MQTT Native Reads](#mqtt-native-reads)
 - [Identity and References](#identity-and-references)
 - [Selectors](#selectors)
 - [Representations](#representations)
@@ -652,7 +653,7 @@ are case-sensitive. The values defined by this family are:
 | `git` | HTTPS repository URL | `revision`: full ref or complete object ID. `path` defaults to `xregistry`, with an empty string selecting the repository root. |
 | `file` | File URI selecting a directory | `layout`: `document-tree` or `oci-layout`. `reference` for OCI layout selection only. |
 | `opcua` | Native UA endpoint URL | `registryroot`: [portable NodeId](../bindings/opcua.md#101-advertisement-and-registry-selection). OPTIONAL `applicationuri` and `transportprofileuri`. |
-| `mqtt` | `mqtts://host[:port]` | `requesttopic`: concrete MQTT Topic Name for the [exposed Registry view](../bindings/mqtt.md#advertisement). |
+| `mqtt` | `mqtts://host[:port]` | `topicbase`: concrete MQTT topic base for the [exposed Registry view](../bindings/mqtt.md#advertisement). |
 
 The bindings define parameter grammars and their supported transports.
 Endpoints MUST be absolute URIs and MUST NOT embed credentials. A selected
@@ -732,7 +733,7 @@ commit or most recently modified file. Metadata-only Resources have no domain
 document. A `document` read of a metadata-only Resource or Version MUST
 produce `unsupported_operation` unless the selected binding specifies
 returning Core metadata for that target, as the
-[MQTT binding](../bindings/mqtt.md#short-read-requests) does. This exception does
+[MQTT binding](#mqtt-native-reads) does. This exception does
 not permit returning metadata when a domain document is missing or unreadable.
 
 For each single-source binding read a resolver MUST:
@@ -801,6 +802,60 @@ references. For offline-complete interpretation, all model material needed
 MUST be available without network access, even if a reference is immutable.
 A consumer MUST NOT accept unknown Core versions merely because a document
 parses.
+
+### MQTT Native Reads
+
+The [MQTT binding](../bindings/mqtt.md) uses one `read` action. The topic
+contains the selected view's `topicbase`, `read`, and the target. The
+resolver maps the abstract operations to native reads as follows:
+
+| Federation operation | Target | MQTT payload |
+| --- | --- | --- |
+| `model` | `/` | `{"surface":"model"}` and, when available, a separate `{"surface":"modelsource"}` read. |
+| `capabilities` | `/` | `{"surface":"capabilities"}`. |
+| `collection` | The typed collection path | `{}` for a complete collection, or `page` arguments when supported. |
+| `entity` | The entity XID | `{}` for Core API view. |
+| `document` | The Resource or Version XID | `{"view":"document"}`. |
+
+The resolver MUST keep these reads in the selected Registry context. A
+producer-resolved view applies composition before serving the reads.
+Its MQTT replies MUST provide the [result provenance][mqtt-provenance]
+for that view, including member origins on every collection page.
+A Consumer MUST NOT repeat the Producer's resolution. A Consumer
+resolving sources itself MUST track each selected source and assemble
+the origin information defined above. Ordinary independent Registry replies
+need not report origins; the Consumer MUST NOT invent a revision or a
+catalog selection on behalf of the serving Registry.
+
+The resolver MUST evaluate selectors over the complete visible collection
+under [Selectors](#selectors). A selector is not an MQTT payload member.
+The resolver MUST honor native pagination, if used, and MUST NOT
+interpret a partial or failed traversal as an empty collection or a
+unique match. A detected inconsistency in a page chain MUST produce
+`inconsistent_snapshot`; other retrieval failures retain their specific
+outcomes. A complete live traversal does not establish a snapshot.
+
+Before accepting a `document` result, the resolver MUST establish that
+the model applies to the exposed view and the reply. A deployment
+guarantee covering both, or an independently verified immutable snapshot
+pin covering the model and reply under the same Registry and binding,
+satisfies this rule. Reading the model immediately before the document,
+or matching MQTT Correlation Data, does not establish that relationship.
+The resolver MUST NOT infer the model from the result's member names.
+
+On a document-bearing type, the native reply contains separate metadata
+and document content. When that content is a locator, the resolver MUST
+apply caller policy and the relevant integrity and consistency rules
+before following it. If the operation permits returning a locator, the
+resolver MAY return an authorized locator rather than bytes. If policy
+denies access, the resolver MUST report `policy_denied`. If policy allows
+retrieval but the bytes are unobtainable, it MUST report `unavailable`
+unless a more specific integrity or consistency error applies. On a
+metadata-only type, the native reply contains Core metadata directly.
+Failure to obtain document bytes on a document-bearing type MUST NOT be
+treated as metadata or as a missing Registry entity.
+
+[mqtt-provenance]: ../bindings/mqtt.md#result-provenance
 
 ## Identity and References
 

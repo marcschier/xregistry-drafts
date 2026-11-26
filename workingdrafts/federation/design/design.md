@@ -120,7 +120,7 @@ context and trust.
 | --- | --- |
 | [HTTP](../../bindings/http-federation.md) | The Registry root URL, including its base path. Ordinary live reads don't imply a revision pin. |
 | [OPC Unified Architecture (OPC UA)](../../bindings/opcua.md#101-advertisement-and-registry-selection) | The endpoint selects the server, and a portable NodeId identifies the Registry root on that server. In a nonstandard namespace, this form uses a namespace URI rather than a server-assigned index. Native reads don't require HTTP. |
-| [MQTT](../../bindings/mqtt.md) | The broker endpoint and the concrete request topic for the view. Correlation identifies an exchange, not a revision. |
+| [MQTT](../../bindings/mqtt.md) | The broker endpoint and the topic base for the view. Each request topic adds the action and target path. Correlation identifies an exchange, not a revision. |
 | [Git](../../bindings/git.md) | The repository, mapped directory, and selected revision. A resolved commit, not a moving branch name, provides a pin. |
 | [File](../../bindings/file.md) | A selected directory and layout. A mutable directory path doesn't establish a stable snapshot. |
 | [Open Container Initiative (OCI)](../../bindings/oci.md) | The repository and selected artifact. The digest, rather than a moving tag, identifies the pinned artifact. |
@@ -137,7 +137,7 @@ contains metadata. A document read of a document-bearing Resource or
 Version returns domain bytes or, where the binding permits it, an external
 document locator. A 0-byte document isn't missing content. A metadata-only
 Resource has no separate document, but the
-[MQTT short read](../../bindings/mqtt.md#short-read-requests) returns Core
+[MQTT native read](../spec.md#mqtt-native-reads) returns Core
 metadata for that target. It doesn't substitute metadata for missing or
 unreadable document bytes on a document-bearing target. Each binding read
 uses the source's exposed view without searching that source's catalog.
@@ -863,7 +863,7 @@ that exact topic to the grant and replies only on the configured reply
 topic. A new grant generation uses fresh topics so a queued request
 can't select a replacement grant. Correlation Data identifies the
 exchange, not the identity or permission of the sender. Deployment
-doesn't change the `mrpc/1.0` binding for native operations and short reads.
+doesn't change the `mrpc/1.0` binding for native operations.
 
 ### A pinned Publication as a source
 
