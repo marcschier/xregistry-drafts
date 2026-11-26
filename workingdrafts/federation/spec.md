@@ -7,6 +7,9 @@
 <!-- words: powershell pytest workingdrafts -->
 <!-- words: contenttype federationdeployment https mqtt opcua staging uint -->
 <!-- words: inspectstage inspecttarget matchversions retryable workflow -->
+<!-- words: comparisonunavailable coreerror maxchunkbytes maxcontrolbytes maxdocumentbytes -->
+<!-- words: maxpreconditionageseconds maxstagebytes maxstages nextoffset readablefields -->
+<!-- words: stagelifetimeseconds statemarker writablefields -->
 
 ## Abstract
 
@@ -41,6 +44,7 @@ write access.
 - [Downstream Deployment](#downstream-deployment)
   - [Deployment Authority and Discovery](#deployment-authority-and-discovery)
   - [Deployment Operations](#deployment-operations)
+  - [Deployment Operation Data](#deployment-operation-data)
   - [Conditional Commit](#conditional-commit)
   - [Recovery and Synchronization](#recovery-and-synchronization)
   - [Deployment from a Publication](#deployment-from-a-publication)
@@ -1206,9 +1210,15 @@ failure MUST NOT undo an earlier write. No operation deletes Versions,
 changes the model, creates a Group, edits Resource Meta explicitly, or
 activates a snapshot.
 
-The [deployment bindings](../bindings/deployment.md) define HTTPS, native
-OPC UA, and MQTT profiles for the operations in this section. The
-[design](design/design.md#downstream-deployment) describes the choices
+Each deployment profile maps the same operations to its transport:
+
+| Profile | Binding |
+| --- | --- |
+| `https-deploy/1` | [HTTPS](../bindings/http-federation.md#downstream-deployment) |
+| `opcua-deploy/1` | [OPC UA](../bindings/opcua.md#107-downstream-deployment) |
+| `xreg-deploy/1` | [MQTT](../bindings/mqtt.md#downstream-deployment) |
+
+The [design](design/design.md#downstream-deployment) describes the choices
 behind the contract.
 
 ### Deployment Authority and Discovery
@@ -1276,11 +1286,11 @@ constrains the extension's shape.
 
 ### Deployment Operations
 
-These are abstract operations. The
-[deployment bindings](../bindings/deployment.md#operation-data) define
-their transport data. A stage is a bounded pending upload outside the live
-Registry. A precondition token is an opaque comparison value for a later
-write. Neither one confers authorization.
+The [deployment profiles](#downstream-deployment) map these operations
+and their [shared data](#deployment-operation-data) to each transport.
+A stage is a bounded pending upload outside the live Registry. A
+precondition token is an opaque comparison value for a later write.
+Neither one confers authorization.
 
 | Operation | Target and arguments | Result |
 | --- | --- | --- |
@@ -1333,6 +1343,82 @@ stage after a lost reply. Offsets report progress, not the identity of
 accepted bytes. The receiver MUST verify the total length and exact digest
 before publishing. Verification MUST NOT require buffering the entire
 document in memory.
+
+### Deployment Operation Data
+
+Each configured entry point identifies one live destination Registry. It
+MUST support all [deployment operations](#deployment-operations) for its
+profile. The sender selects the entry point outside the deployment
+messages. No request parameter can change the selected Registry.
+
+JSON control data MUST be [RFC8259](https://www.rfc-editor.org/rfc/rfc8259)
+JSON encoded as UTF-8. A decoder MUST reject duplicate object member names,
+unrecognized members of defined records, and incorrect types. It MUST NOT
+interpret caller-supplied metadata as transport fields. The destination
+model defines the members of `metadata`. Names and enumerated values are
+case-sensitive.
+
+| Type | Definition |
+| --- | --- |
+| Target | An exact Core Version XID in the configured destination Registry. The receiver MUST validate and resolve it using Core and the effective model. |
+| Byte count | An unsigned 64-bit integer. In JSON, encode it as a decimal string with no leading zero except `"0"`, no sign, and no exponent. |
+| Stage ID and token | Nonempty, opaque, case-sensitive strings of ASCII letters, digits, `-`, and `_`. A stage ID has at most 128 characters and a token at most 512. The sender MUST NOT parse or rewrite either one. |
+| State marker | An opaque, case-sensitive string with the same syntax as a token, with the comparison behavior specified by [Conditional Commit](#conditional-commit). |
+| Time | An [RFC3339](https://www.rfc-editor.org/rfc/rfc3339) timestamp with `Z` for UTC. |
+| Descriptor | `null` for a metadata-only Version, or an object containing exactly `size` (a byte count), `digest` (`sha256:` followed by 64 lowercase hexadecimal digits), and `contenttype` (an [HTTP media type](https://www.rfc-editor.org/rfc/rfc9110#name-media-type) string or `null`). |
+| Mode | `create` or `replace`. |
+
+Fields in the following table are REQUIRED unless marked OPTIONAL. An
+absent `fields` input has the same meaning as an empty array. When supplied,
+`fields` MUST be an array of distinct nonempty Version field names.
+
+| Operation | Argument object |
+| --- | --- |
+| `limits` | Empty. |
+| `inspectTarget` | `target`, OPTIONAL `fields`. |
+| `begin` | `target`, `mode`, and `descriptor`. |
+| `inspectStage` | `target` and OPTIONAL `stage`. |
+| `append` | `stage`, `offset`, and `data` (nonempty bytes). |
+| `commit` | `stage`, `token`, and `metadata` (a JSON object, empty if no fields are supplied). |
+| `abort` | `target` and `stage`. |
+
+The following records are successful results:
+
+- `limits`: `profile` (the entry point's profile identifier),
+  `maxDocumentBytes`, `maxChunkBytes`, `maxControlBytes`, and
+  `maxStageBytes` (byte counts), and `maxStages`, `stageLifetimeSeconds`,
+  and `maxPreconditionAgeSeconds` (positive JSON integers at most
+  4294967295). `maxStages` and `maxStageBytes` bound the active stage count
+  and aggregate staged bytes for the grant. `maxChunkBytes` MUST be
+  positive and at most `maxDocumentBytes` when the latter is positive.
+  `maxControlBytes` MUST be positive. These limits apply to authorization
+  for the selected entry point. Lower transport limits still apply.
+- `inspectTarget`: `target`, `state` (`resource_absent`, `version_absent`,
+  or `version_present`), `mode` (or `null` if neither mode is allowed),
+  and `readableFields` and `writableFields` (distinct names from the
+  requested fields that the current grant and model permit the sender
+  to read and to write, respectively). If `mode` is not `null`, the result
+  MUST also include `token`, `expires` (a time), and `stateMarker`.
+  Otherwise it MUST NOT include them. For `version_present`, `fields`
+  MUST contain the readable subset of the requested fields. Each member
+  of `fields` is `{"present": false}` if that field is absent, or contains
+  `present: true` and `value` if present. An omitted field is not readable.
+  Its omission does not show that the field is absent. The
+  `version_present` result MUST include `descriptor` unless the
+  receiver cannot compare the current document fingerprint; in that case
+  it MUST omit `descriptor` and include `comparisonUnavailable: true`.
+  `fields`, `descriptor`, and `comparisonUnavailable` MUST NOT appear
+  for an absent Version.
+- `begin` and `inspectStage`: `stage`, `target`, `mode`, `descriptor`,
+  `nextOffset` (a byte count), `maxChunkBytes` (a byte count), and
+  `expires` (a time).
+- `append`: `nextOffset`, the byte count accepted so far.
+- `commit`: `outcome` (`created` or `replaced`), `target`, `epoch` (the
+  destination Version epoch encoded as an unsigned decimal string), and
+  `descriptor` describing the committed Version.
+- `abort`: `removed` (Boolean). `true` means this operation removed a
+  matching live stage. `false` means it found no matching live stage.
+  Both values confirm that the stage cannot commit after this response.
 
 ### Conditional Commit
 
@@ -1496,6 +1582,12 @@ destination.
 
 ### Deployment Errors
 
+An operation error includes `code`, one of the values below, and MAY
+include `message` and `coreError`, both strings. `coreError` is the
+underlying Core error name, when safe to disclose. An `offset_mismatch`
+error MUST also include `nextOffset`. The error MUST NOT
+include that member for an unauthorized caller.
+
 | Code | Condition |
 | --- | --- |
 | `invalid_request` | An operation, field, target, token, or offset has invalid syntax or does not bind to its declared request context. |
@@ -1514,6 +1606,10 @@ The receiver MUST retain a safe Core diagnostic when available without
 disclosing protected data or credentials. A transport acknowledgment or
 missing authenticated operation result MUST NOT be represented as a
 successful write. The binding defines the wire encoding of these errors.
+A request exceeding a transport limit can fail before the receiver can
+encode an operation result. If the sender dispatched `commit` and did
+not receive a usable result, it follows
+[Recovery and Synchronization](#recovery-and-synchronization).
 
 ## Errors
 
@@ -1574,11 +1670,14 @@ API facade requires separate protocol-binding conformance.
 
 A deployment sender or receiver MUST conform to
 [Downstream Deployment](#downstream-deployment) and identify each
-[deployment binding](../bindings/deployment.md) it implements. Support for
-reads, generic Core writes, or Publication writes does not establish
-deployment conformance. Deployment support does not imply support for all
-read bindings. The binding's executable examples illustrate selected
-outcomes; they do not implement a production receiver.
+profile it implements. For each claimed profile, it MUST implement all
+operations and security rules for its role. Support for reads, generic
+Core writes, or Publication writes does not establish deployment
+conformance. Deployment support does not imply support for all read
+bindings. The [offline deployment examples](tools/test_deployment_examples.py)
+exercise the shared operations and wire mappings; they do not implement a
+production receiver or prove that a live broker or Registry enforces the
+requirements.
 
 The executable examples check the specified behavior offline; they do not
 implement production resolution. The

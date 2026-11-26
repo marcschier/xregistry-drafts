@@ -40,8 +40,7 @@ flowchart TD
 - **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
   then [federation reads](federation/spec.md#read-operations) and the chosen
   binding below.
-- **Deploy downstream:** [deployment and synchronization](federation/spec.md#downstream-deployment),
-  then the [deployment bindings](bindings/deployment.md) for wire mappings.
+- **Deploy downstream:** [shared deployment rules and protocol profiles](federation/spec.md#downstream-deployment).
   The [deployment design](federation/design/design.md#downstream-deployment)
   explains policy and recovery.
 - **Publish and promote:** [channel updates](publication/spec.md#publishing-and-opening-a-channel),
@@ -53,7 +52,7 @@ flowchart TD
 | --- | --- |
 | [Registry of Registries](models/registry/spec.md) | Catalog model with the xRegistry Hub's category and registry hierarchy, advertisements and relationships. |
 | [Federation](federation/spec.md) | Registry contexts, selection, references, representations, and downstream deployment. |
-| [Deployment bindings](bindings/deployment.md) | Staged uploads and conditional Version writes over HTTPS, native OPC UA, or MQTT. |
+| [Downstream deployment](federation/spec.md#downstream-deployment) | Shared staging and commit rules, with separate API profiles for HTTPS, OPC UA, and MQTT. |
 | [Directory mapping](bindings/mapping.md) | Map existing directory contents to a Registry through Git or File. |
 | [OCI](bindings/oci.md) | Bounded descriptor graphs, publication and native snapshot resolution. |
 | [HTTP federation](bindings/http-federation.md) | Federation using the existing xRegistry HTTP API. |

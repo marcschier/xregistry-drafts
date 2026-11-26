@@ -3,6 +3,7 @@
 <!-- words: djik mqtt mqtts mrpc topicbase uuids xids memberorigins selectedxid -->
 <!-- words: applicationerror correlationdata messageexpiryinterval payloadformatindicator puback qos responsetopic userproperties -->
 <!-- words: capabilitiesoffered contentlocation setdefaultversionid xregcorrelationid -->
+<!-- words: nextoffset ywi -->
 
 ## Abstract
 
@@ -11,6 +12,8 @@ using MQTT 5.0 PUBLISH properties and JSON payloads. It supports direct
 access to a Registry without a Federation catalog or an HTTP endpoint,
 including native reads for [xRegistry Federation](../federation/spec.md).
 It also defines an OPTIONAL mapping for [Registry events](#registry-events).
+The OPTIONAL [downstream deployment profile](#downstream-deployment)
+defines a separate MQTT API.
 
 **Status:** Unreleased working draft using xRegistry Core Version 1.0-rc4.
 
@@ -27,10 +30,10 @@ Annex A `read` operation on a collection can request
 [pages](#a4-native-collection-pagination) as separate operations.
 
 [MQTT 5.0][mqtt5] QoS 1 allows duplicate delivery; it does not guarantee
-that the Registry executes an operation only once. This binding does not
-define multi-packet transfer, session management, retries, duplicate
-handling, deadline calculation, or deployment agreements between the
-parties, such as credential provisioning.
+that the Registry executes an operation only once. The Registry RPC API
+does not define multi-packet transfer, session management, retries,
+duplicate handling, deadline calculation, or deployment agreements
+between the parties, such as credential provisioning.
 
 ## Advertisement
 
@@ -433,16 +436,6 @@ The request and reply use example expiry intervals of 10 and 8 seconds.
 These values do not imply that the reply interval is derived from the
 request interval.
 
-The request can instead carry `[["__protVer","1.0"]]` as its User
-Properties, with these equivalent properties in the reply:
-
-```json
-[["__protVer", "1.0"], ["mrpc-status", "200"], ["__stat", "200"]]
-```
-
-Changing the final value to `"500"` would make the reply envelope invalid,
-not indicate an application error.
-
 The document bytes are `v2` followed by a line feed. If the same request
 instead addresses a missing explicit Version, the reply uses the same
 property rules, including `mrpc-status=200`, with this payload:
@@ -545,6 +538,87 @@ If events from an MQTT RPC interaction include `xregcorrelationid`, its
 User Property. Otherwise, that property MUST be absent from RPC
 publications. MQTT Correlation Data still matches the request to its
 reply; it does not identify the Registry interaction in an event.
+
+## Downstream Deployment
+
+The OPTIONAL `xreg-deploy/1` profile maps [Federation downstream
+deployment](../federation/spec.md#downstream-deployment) to [MQTT 5.0][mqtt5]
+using a configured TLS broker. The
+[shared operation data](../federation/spec.md#deployment-operation-data)
+and [conformance rules](../federation/spec.md#conformance) apply. The
+profile does not extend `mrpc/1.0`. The sender and receiver MUST verify
+the broker's identity and use separate broker credentials.
+
+The administrator MUST configure nonempty, distinct, concrete request
+and reply Topic Names for each grant generation. Only the sender
+principal can publish to the request topic and subscribe to the reply
+topic. Only the receiver can subscribe to the request topic and publish
+to the reply topic. The broker MUST enforce those restrictions, including
+against wildcard subscriptions or routing that would bypass them. The
+receiver maps the exact delivered request topic to the grant. A payload,
+client ID, or MQTT property supplied by the sender MUST NOT assert a
+principal or grant. Revocation MUST disable the receiver's mapping.
+Old topic pairs MUST NOT be assigned to a new grant generation.
+
+Each request and reply MUST fit in one PUBLISH packet. Both use QoS 1,
+`RETAIN` set to `0`, `Content Type` set to `application/json`, `Payload
+Format Indicator` set to `1`, and a positive `Message Expiry Interval`.
+Both subscriptions MUST set Retain Handling to `2` and Retain As Published
+to `1`. The broker configuration MUST prevent storage of retained
+deployment messages. A receiver MUST NOT act on a retained message.
+
+A request MUST include the configured reply topic as `Response Topic` and
+fresh, unpredictable `Correlation Data` of 16 bytes. The receiver MUST
+reject a request with another Response Topic and MUST NOT publish to it.
+Replies MUST omit `Response Topic`, carry the same `Correlation Data`,
+and have a positive expiry no greater than the request's remaining expiry.
+The receiver sends a reply only through the configured reply topic while
+authorized. The sender MUST check the topic, profile, correlation, and
+properties before interpreting the result. Delivery acknowledgments and
+correlation are not operation results or authorization.
+
+The UTF-8 JSON request contains exactly `profile` with value
+`"xreg-deploy/1"`, `operation`, and `arguments`. The reply contains the
+same `profile` and exactly one of `result` or `error`. `result` is the
+success record and `error` is the
+[shared error data](../federation/spec.md#deployment-errors), with its
+error code returned directly.
+An `append` carries `data` as [RFC4648][base64] standard Base64. The
+encoding MUST include applicable padding and MUST NOT contain whitespace.
+The decoder MUST reject noncanonical encodings. Applicable control, chunk,
+and maximum packet sizes MUST account for JSON, PUBLISH overhead, and
+Base64 expansion. A document can span `append` requests, but an individual
+control message cannot span packets.
+
+The [MQTT deployment request schema](../federation/schemas/deployment-request.json)
+validates JSON shape. The binding and model govern size, byte decoding,
+XID, authorization, and commit behavior.
+
+The following example appends two bytes at offset zero. The payloads omit
+PUBLISH properties for brevity.
+
+```json
+{
+  "profile": "xreg-deploy/1",
+  "operation": "append",
+  "arguments": {"stage": "upload-2", "offset": "0", "data": "YWI="}
+}
+```
+
+```json
+{
+  "profile": "xreg-deploy/1",
+  "result": {"nextOffset": "2"}
+}
+```
+
+A repeated MQTT delivery can return `offset_mismatch` without changing
+the stage. For commit, a duplicate can return `stage_unavailable` even
+when the first execution committed. That reply does not supersede a
+usable success for the same exchange. If no usable success is available,
+the sender follows [Recovery and
+Synchronization](../federation/spec.md#recovery-and-synchronization).
+Message expiry and MQTT delivery order do not enforce commit atomicity.
 
 ## Annex A: Correspondence to the xRegistry HTTP Binding (normative)
 

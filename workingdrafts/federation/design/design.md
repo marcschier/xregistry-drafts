@@ -430,7 +430,7 @@ It changes if the target incarnation, grant generation, or other guarded
 state changes. A marker doesn't authorize a write or replace the token.
 
 The following table shows the common operations. The
-[binding specification](../../bindings/deployment.md#operation-data)
+[shared operation data](../spec.md#deployment-operation-data)
 defines the exact fields and encodings.
 
 | Operation | Input | Successful result |
@@ -808,16 +808,16 @@ reads the consistency of a pinned Publication.
 
 ### Deployment operations by transport
 
-The [deployment bindings](../../bindings/deployment.md) expose the same
+The [deployment profiles](../spec.md#downstream-deployment) expose the same
 stage and commit lifecycle over three transports. The transport code
 decodes the request and identifies the principal. The receiver applies
 the same grant, stage, and commit rules after decoding. Separate wire
 mappings keep transport behavior out of the decision about whether a
 Version changes.
 
-The [HTTPS](../../bindings/deployment.md#https-profile),
-[OPC UA](../../bindings/deployment.md#opc-ua-profile), and
-[MQTT](../../bindings/deployment.md#mqtt-profile) wire examples all append
+The [HTTPS](../../bindings/http-federation.md#downstream-deployment),
+[OPC UA](../../bindings/opcua.md#107-downstream-deployment), and
+[MQTT](../../bindings/mqtt.md#downstream-deployment) wire examples all append
 the same 2 bytes to a stage at offset zero. The sender receives offset
 `2` regardless of the transport. If a duplicate request uses offset
 zero again, the receiver reports `offset_mismatch` and doesn't append
@@ -825,7 +825,7 @@ the bytes twice.
 
 #### HTTPS
 
-The [HTTPS profile](../../bindings/deployment.md#https-profile) uses a
+The [HTTPS profile](../../bindings/http-federation.md#downstream-deployment) uses a
 configured base URL outside the Core entity API. Control messages use
 JSON, and `append` carries raw bytes. The receiver limits the body while
 reading it. An HTTP status and the operation result describe the outcome
@@ -835,7 +835,7 @@ changing incarnation.
 
 #### OPC UA
 
-The [OPC UA profile](../../bindings/deployment.md#opc-ua-profile) uses
+The [OPC UA profile](../../bindings/opcua.md#107-downstream-deployment) uses
 Methods on the selected Registry's `Deployment` component. It carries a
 chunk as a native `ByteString`. A `Good` Call status means the call reached
 the deployment operation, not that the operation succeeded. The client
@@ -848,7 +848,7 @@ closes, so that sequence can't provide the atomic deployment write.
 
 #### MQTT
 
-The [MQTT profile](../../bindings/deployment.md#mqtt-profile) uses one
+The [MQTT profile](../../bindings/mqtt.md#downstream-deployment) uses one
 packet for each request or reply. A large document takes several
 `append` requests. Each packet limit accounts for the Base64 encoding
 and the packet properties as well as the raw bytes. Delivery can repeat,
