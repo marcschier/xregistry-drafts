@@ -40,6 +40,10 @@ def test_generates_all_repository_models_and_resolves_bundle_references(generate
     assert sources <= {model["xreg:modelSource"] for model in models.values()}
     core = models[generated / "XRegistry.TM.json"]
     assert core["xreg:types"] == "./schemas/XRegistryTypes.schema.json"
+    assert any(
+        isinstance(context, dict) and context.get("mqv") == "https://www.w3.org/2019/wot/mqtt#"
+        for context in core["@context"]
+    )
     expected_actions = {"read", "replace", "update", "upsert", "delete", "options"}
     assert core["actions"].keys() == expected_actions
 
@@ -74,7 +78,13 @@ def test_generates_all_repository_models_and_resolves_bundle_references(generate
             assert any(link["rel"] == "tm:extends" and link["href"] == "./XRegistry.TM.json"
                        for link in model["links"])
     for name, action in core["actions"].items():
-        assert action["forms"][0]["xreg:topic"] == f"{{topicbase}}/{name}{{target}}"
+        form = action["forms"][0]
+        assert form["mqv:controlPacket"] == "publish"
+        assert form["mqv:qos"] == "1"
+        assert form["mqv:retain"] is False
+        assert form["xreg:binding"] == "mqtt"
+        assert form["xreg:topic"] == f"{{topicbase}}/{name}{{target}}"
+        assert "mqv:topic" not in form
 
 
 def test_projects_composed_and_domain_types_from_repository_sources(generated):

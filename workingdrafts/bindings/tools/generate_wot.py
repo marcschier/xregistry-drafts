@@ -12,7 +12,10 @@ from zipfile import BadZipFile, ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[3]
 DIALECT = "https://json-schema.org/draft/2020-12/schema"
-CONTEXT = ["https://www.w3.org/2022/wot/td/v1.1", {"xreg": "https://xregistry.io/vocab/mqtt#"}]
+CONTEXT = [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {"mqv": "https://www.w3.org/2019/wot/mqtt#", "xreg": "https://xregistry.io/vocab/mqtt#"},
+]
 CORE_TITLE = "XRegistry"
 STRING = {"type": "string"}
 TEXT = {**STRING, "minLength": 1}
@@ -153,6 +156,7 @@ def mqtt_contract():
             "description": description, "input": {"xreg:schema": schema_path(f"{name}Request")},
             "output": output, "forms": [{
                 "op": "invokeaction", "contentType": "application/json",
+                "mqv:controlPacket": "publish", "mqv:qos": "1", "mqv:retain": False,
                 "xreg:binding": "mqtt", "xreg:topic": f"{{topicbase}}/{action}{{target}}",
             }],
         }

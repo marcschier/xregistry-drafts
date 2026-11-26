@@ -72,10 +72,16 @@ without writing. The bundle includes `XRegistry.TM.json`, the domain models
 that extend it, and shared RPC schemas. The `xreg:types` link in each model
 points to its generated metadata types; `xreg:facets` and
 `xreg:ifvalues` preserve Core aspects that require model-aware interpretation.
-The output describes the proposed xRegistry MQTT binding. An SDK generator
-must support that binding to produce compatible client or server code.
+Action forms use the [WoT MQTT binding draft][wot-mqtt-binding] terms
+`mqv:controlPacket`, `mqv:qos`, and `mqv:retain` to describe the publish
+step. `xreg:topic` remains a template, not a concrete `mqv:topic`.
+The xRegistry binding specifies the full RPC exchange, including exact
+QoS 1; `mqv:qos` describes a minimum. An SDK generator must support the
+xRegistry binding to produce compatible client or server code.
 The generator tests in `bindings/tools/test_generate_wot.py` are included
 in the repository's `testpython` target through pytest discovery.
+
+[wot-mqtt-binding]: https://w3c.github.io/wot-binding-templates/bindings/protocols/mqtt/#form-terms
 
 ### Choosing a Binding
 
