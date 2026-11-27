@@ -1,6 +1,6 @@
 # Working Drafts
 
-<!-- words: openusd opc ua opcua readme -->
+<!-- words: openusd opc ua opcua readme acf -->
 
 The specifications in this directory are under active development and can
 change independently of released xRegistry specifications. They are included
@@ -16,3 +16,7 @@ specification.
 ## Bindings
 
 - [OPC UA](bindings/opcua.md)
+
+## Profiles
+
+- [ACF Conversation Deployment and Execution Evidence Profiles](profiles/acf/README.md)

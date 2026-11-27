@@ -1,0 +1,75 @@
+{
+  "acfconversation": {
+    "name": "acfconversation",
+    "type": "object",
+    "description": "Reusable ACF conversation deployment and participant bindings",
+    "attributes": {
+      "conversationref": {
+        "name": "conversationref",
+        "type": "string",
+        "required": true
+      },
+      "resolutioncontextref": {
+        "name": "resolutioncontextref",
+        "type": "string",
+        "required": true
+      },
+      "actorbindings": {
+        "name": "actorbindings",
+        "type": "array",
+        "required": true,
+        "item": {
+          "type": "object",
+          "attributes": {
+            "actor": { "name": "actor", "type": "string", "required": true },
+            "mode": {
+              "name": "mode",
+              "type": "string",
+              "required": true,
+              "enum": ["fixed", "runtime"]
+            },
+            "participant": { "name": "participant", "type": "uri" },
+            "actorref": { "name": "actorref", "type": "string" },
+            "allowedparticipants": {
+              "name": "allowedparticipants",
+              "type": "array",
+              "item": { "type": "uri" }
+            }
+          }
+        }
+      },
+      "messagebindings": {
+        "name": "messagebindings",
+        "type": "array",
+        "item": {
+          "type": "object",
+          "attributes": {
+            "step": { "name": "step", "type": "string", "required": true },
+            "processingref": { "name": "processingref", "type": "string", "required": true }
+          }
+        }
+      }
+    }
+  },
+  "acfexecution": {
+    "name": "acfexecution",
+    "type": "object",
+    "description": "Optional publication of one standalone ACF trace snapshot",
+    "attributes": {
+      "traceref": {
+        "name": "traceref",
+        "type": "string",
+        "required": true
+      },
+      "traceid": {
+        "name": "traceid",
+        "type": "string",
+        "required": true
+      },
+      "supersedes": {
+        "name": "supersedes",
+        "type": "string"
+      }
+    }
+  }
+}
